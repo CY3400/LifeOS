@@ -21,7 +21,7 @@ import jakarta.validation.constraints.Size;
 @Table(name = "users", indexes = {
     @Index(name = "idx_users_email", columnList = "email")
 })
-public class Users {
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -52,11 +52,11 @@ public class Users {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public Users(){
+    public User(){
 
     };
 
-    public Users(Long id, String firstName, String lastName, String email, String password){
+    public User(Long id, String firstName, String lastName, String email, String password){
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
