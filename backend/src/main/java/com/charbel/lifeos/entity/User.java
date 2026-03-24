@@ -1,4 +1,4 @@
-package com.LifeOS.LifeOS.entity;
+package com.charbel.lifeos.entity;
 
 import java.time.LocalDateTime;
 
@@ -15,7 +15,6 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 
 @Entity
 @Table(name = "users", indexes = {
@@ -25,14 +24,6 @@ public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @NotBlank @Size(min = 2, max = 100)
-    @Column(name = "first_name", nullable = false, length = 100)
-    private String firstName;
-
-    @NotBlank @Size(min = 2, max = 100)
-    @Column(name = "last_name", nullable = false, length = 100)
-    private String lastName;
 
     @NotBlank @Email
     @Column(nullable = false, unique = true, length = 190)
@@ -54,31 +45,31 @@ public class User {
 
     public User(){
 
-    };
+    }
 
-    public User(Long id, String firstName, String lastName, String email, String password){
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
+    public User(String email, String password){
         this.email = email;
         this.password = password;
     }
 
-    @PrePersist @PreUpdate
-    private void normalize(){
-        if(email != null) email = email.trim().toLowerCase();
-        if(firstName != null) firstName = firstName.trim();
-        if(lastName != null) lastName = lastName.trim();
-    }
-
     @PrePersist
-    void onCreate() {
-        createdAt = LocalDateTime.now();
+    private void onCreate() {
+        normalizeFields();
+        LocalDateTime now = LocalDateTime.now();
+        createdAt = now;
+        updatedAt = now;
     }
 
     @PreUpdate
-    void onUpdate() {
+    private void onUpdate() {
+        normalizeFields();
         updatedAt = LocalDateTime.now();
+    }
+
+    private void normalizeFields() {
+        if (email != null) {
+            email = email.trim().toLowerCase();
+        }
     }
 
     public Long getId(){
@@ -88,25 +79,11 @@ public class User {
         this.id = id;
     }
 
-    public String getFirstName(){
-        return firstName;
-    }
-    public void setFirstName(String firstName){
-        this.firstName = firstName;
-    }
-
-    public String getLastName(){
-        return lastName;
-    }
-    public void setLastName(String lastName){
-        this.lastName = lastName;
-    }
-
     public String getEmail(){
         return email;
     }
     public void setEmail(String email){
-        this.email = email.trim().toLowerCase();
+        this.email = (email == null) ? null : email.trim().toLowerCase();
     }
 
     public String getPassword(){
@@ -121,5 +98,21 @@ public class User {
     }
     public void setRole(Role role){
         this.role = role;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
