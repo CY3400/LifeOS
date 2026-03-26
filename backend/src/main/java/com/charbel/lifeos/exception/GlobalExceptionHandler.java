@@ -22,6 +22,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(buildMap(ex.getMessage(), 401, "Unauthorized"));
     }
 
+    @ExceptionHandler(GoalNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleGoalNotFound(GoalNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(buildMap(ex.getMessage(), 404, "Not Found"));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, Object> body = new HashMap<>();
