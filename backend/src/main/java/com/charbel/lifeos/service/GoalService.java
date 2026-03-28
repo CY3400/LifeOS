@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.charbel.lifeos.entity.Goal;
 import com.charbel.lifeos.entity.User;
-import com.charbel.lifeos.exception.GoalNotFoundException;
+import com.charbel.lifeos.exception.ResourceNotFoundException;
 import com.charbel.lifeos.repository.GoalRepository;
 
 @Service
@@ -48,7 +48,7 @@ public class GoalService {
             throw new IllegalArgumentException("Identifiant requis");
         }
 
-        Goal existing = goalRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new GoalNotFoundException("Objectif introuvable"));
+        Goal existing = goalRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Objectif introuvable"));
 
         existing.setTitle(title);
 
@@ -64,7 +64,7 @@ public class GoalService {
             throw new IllegalArgumentException("Identifiant requis");
         }
 
-        Goal existing = goalRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new GoalNotFoundException("Objectif introuvable"));
+        Goal existing = goalRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Objectif introuvable"));
 
         goalRepository.delete(existing);
     }
@@ -88,6 +88,6 @@ public class GoalService {
             throw new IllegalArgumentException("Identifiant requis");
         }
 
-        return goalRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new GoalNotFoundException("Objectif introuvable"));
+        return goalRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Objectif introuvable"));
     }
 }
