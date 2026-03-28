@@ -22,8 +22,8 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(buildMap(ex.getMessage(), 401, "Unauthorized"));
     }
 
-    @ExceptionHandler(GoalNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleGoalNotFound(GoalNotFoundException ex) {
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(buildMap(ex.getMessage(), 404, "Not Found"));
     }
 
