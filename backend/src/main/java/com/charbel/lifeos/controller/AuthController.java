@@ -60,4 +60,10 @@ public class AuthController {
 
         return ResponseEntity.ok(result.getResponse());
     }
+
+    @PostMapping("/logout")
+    public void logout(HttpServletResponse response) {
+        setCookie(response, null, 0);
+        response.setStatus(HttpServletResponse.SC_OK);
+    }
 }
