@@ -65,6 +65,10 @@ public class AuthService {
         return buildAuthResult(response, token);
     }
 
+    public boolean verify(String email) {
+        return !userRepository.existsByEmailIgnoreCase(normalizeEmail(email));
+    }
+
     private String normalizeEmail(String email) {
         return email == null ? "" : email.trim().toLowerCase();
     }

@@ -3,6 +3,8 @@ package com.charbel.lifeos.controller;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,10 +14,14 @@ import com.charbel.lifeos.dto.AuthResponse;
 import com.charbel.lifeos.dto.AuthResult;
 import com.charbel.lifeos.dto.LoginRequest;
 import com.charbel.lifeos.dto.RegisterRequest;
+import com.charbel.lifeos.entity.User;
+import com.charbel.lifeos.entity.UserPrincipal;
 import com.charbel.lifeos.service.AuthService;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -65,5 +71,27 @@ public class AuthController {
     public void logout(HttpServletResponse response) {
         setCookie(response, null, 0);
         response.setStatus(HttpServletResponse.SC_OK);
+    }
+
+    @PostMapping("/verify")
+    public boolean verify(@RequestBody String email) {
+        return authService.verify(email);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<?> me(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body(Map.of("message", "Non authentifié"));
+        }
+
+        Object principal = authentication.getPrincipal();
+
+        if (!(principal instanceof UserPrincipal userPrincipal)) {
+            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body(Map.of("message", "Non authentifié"));
+        }
+
+        User user = userPrincipal.getUser();
+
+        return ResponseEntity.ok(Map.of("userId", user.getId(), "email", user.getEmail(), "role", user.getRole()));
     }
 }

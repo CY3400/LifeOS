@@ -15,4 +15,22 @@ export class Api {
             withCredentials: true
         });
     }
+
+    register(user: any): Observable<any>{
+        return this.http.post(`${this.baseUrl}/auth/register`, user, {
+            withCredentials: true
+        });
+    }
+
+    verify(email: string): Observable<any>{
+        return this.http.post(`${this.baseUrl}/auth/verify`, email, {
+            withCredentials: true
+        });
+    }
+
+    me(): Observable<any> {
+        return this.http.get(`${this.baseUrl}/auth/me`, {
+            withCredentials: true
+        });
+    }
 }
