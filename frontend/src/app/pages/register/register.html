@@ -6,13 +6,13 @@
     @if(hasErrors()) {
         <div class="error border-danger">
             @if(errors.global) {
-                <span class="text-danger">{{ errors.global }}</span>
+                <span>{{ errors.global }}</span>
             }
             @if(errors.email) {
-                <span class="text-danger">{{ errors.email }}</span>
+                <span>{{ errors.email }}</span>
             }
             @if(errors.password) {
-                <span class="text-danger">{{ errors.password }}</span>
+                <span>{{ errors.password }}</span>
             }
         </div>
     }
