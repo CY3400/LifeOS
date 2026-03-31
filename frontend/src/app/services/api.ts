@@ -16,6 +16,12 @@ export class Api {
         });
     }
 
+    login(user: any): Observable<any>{
+        return this.http.post(`${this.baseUrl}/auth/login`, user, {
+            withCredentials: true
+        });
+    }
+
     register(user: any): Observable<any>{
         return this.http.post(`${this.baseUrl}/auth/register`, user, {
             withCredentials: true
