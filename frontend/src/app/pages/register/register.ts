@@ -103,6 +103,10 @@ export class Register {
         const {email, password} = this.user;
         let isValid = true;
 
+        this.errors.global = '';
+        this.errors.email = '';
+        this.errors.password = '';
+
         if(!this.validEmail(email, this.email_Regex, this.hasLetter)) {
             this.errors.email = email ? "Format d'email invalide" : "L'email ne peut pas être vide";
             isValid = false;
@@ -113,9 +117,6 @@ export class Register {
                 this.errors.email = "Cet email est déjà utilisé";
                 isValid = false;
             }
-            else {
-                this.errors.email = '';
-            }
         }
 
         if(!password.trim()) {
@@ -125,9 +126,6 @@ export class Register {
         else if(!this.passwordRegex.test(password.trim())) {
             this.errors.password = "Le mot de passe doit avoir entre 10 et 20 caractères, avec majuscule, minuscule, chiffre et un caractère spécial";
             isValid = false;
-        }
-        else {
-            this.errors.password = '';
         }
 
         if(!isValid) return;
