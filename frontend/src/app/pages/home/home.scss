@@ -1,0 +1,185 @@
+.welcome-row {
+  max-width: 1400px;
+  margin: 22px auto 14px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+}
+
+.welcome-text h1 {
+  margin: 0 0 6px;
+  color: var(--text-main);
+  font-size: clamp(1.6rem, 3vw, 2.2rem);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.welcome-text p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.96rem;
+  line-height: 1.5;
+}
+
+.kpi-row {
+  max-width: 1400px;
+  margin: 0 auto 24px;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.kpi-card {
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 24px;
+  padding: 24px 22px;
+  min-width: 0;
+  min-height: 100px;
+}
+
+.kpi-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.kpi-label {
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.kpi-value {
+  color: var(--text-main);
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.dashboard-row {
+  max-width: 1400px;
+  margin: 0 auto 28px;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(320px, 0.9fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.task-card,
+.goal-card {
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 24px;
+  padding: 24px;
+  min-width: 0;
+  min-height: 220px;
+}
+
+.card-title {
+  margin: 0 0 18px;
+  color: var(--text-main);
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.task-list,
+.goal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.task-name,
+.goal-name {
+  color: var(--text-main);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.task-name.completed {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.task-list p,
+.goal-list p {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 0.96rem;
+  line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+  .welcome-row,
+  .dashboard-row,
+  .kpi-row {
+    padding: 0 16px;
+  }
+
+  .kpi-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+
+  .kpi-card {
+    padding: 20px 18px;
+    border-radius: 20px;
+  }
+
+  .dashboard-row {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .task-card,
+  .goal-card {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .card-title {
+    margin-bottom: 18px;
+  }
+
+  .task-name,
+  .goal-name {
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .welcome-row {
+    padding: 0 16px;
+    margin: 20px auto 14px;
+  }
+
+  .welcome-text h1 {
+    font-size: 1.45rem;
+  }
+
+  .welcome-text p {
+    font-size: 0.95rem;
+  }
+
+  .kpi-row {
+    grid-template-columns: 1fr;
+  }
+
+  .card-title {
+    font-size: 1.25rem;
+  }
+}

@@ -1,0 +1,67 @@
+<section class="welcome-row">
+    <div class="welcome-text">
+        <h1>Bienvenue sur LifeOS</h1>
+        <p>Organisez votre quotidien et suivez votre progression.</p>
+    </div>
+</section>
+
+<section class="kpi-row">
+    <div class="kpi-card">
+        <div class="kpi-content">
+            <span class="kpi-label">Tâches du jour</span>
+            <strong class="kpi-value">{{ totalTasks }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-content">
+            <span class="kpi-label">Tâches complétées</span>
+            <strong class="kpi-value">{{ completedTasks }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-content">
+            <span class="kpi-label">Taux de complétion</span>
+            <strong class="kpi-value">{{ completionRate | number:'1.0-2' }}%</strong>
+        </div>
+    </div>
+</section>
+
+<section class="dashboard-row">
+    <div class="task-card">
+        <h2 class="card-title">Tâches du jour</h2>
+        <div class="task-list">
+            @if(totalTasks === 0) {
+                <p>Aucune tâche prévue pour aujourd'hui.</p>
+            }
+            @else {
+                @for(task of dailyTasks; track task.id) {
+                    @if(task.startTime != null && task.endTime != null) {
+                        <span class="task-name" [class.completed]="task.completed">{{ task.title }} ({{task.startTime}} - {{task.endTime}})</span>
+                    }
+                    @else if(task.startTime != null && task.endTime == null) {
+                        <span class="task-name" [class.completed]="task.completed">{{ task.title }} ({{task.startTime}})</span>
+                    }
+                    @else {
+                        <span class="task-name" [class.completed]="task.completed">{{ task.title }}</span>
+                    }
+                }
+            }
+        </div>
+    </div>
+
+    <div class="goal-card">
+        <h2 class="card-title">Objectifs</h2>
+        <div class="goal-list">
+            @if(goals.length === 0) {
+                <p>Aucun objectif défini.</p>
+            }
+            @else {
+                @for(goal of goals; track goal.id) {
+                    <span class="goal-name">{{ goal.title }}</span>
+                }
+            }
+        </div>
+    </div>
+</section>
