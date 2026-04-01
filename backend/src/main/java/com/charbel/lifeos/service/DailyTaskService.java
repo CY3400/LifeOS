@@ -34,6 +34,16 @@ public class DailyTaskService {
         }
     }
 
+    private void validateTaskTimes(LocalTime startTime, LocalTime endTime) {
+        if (startTime == null && endTime != null) {
+            throw new IllegalArgumentException("L'heure de fin ne peut pas être renseignée sans heure de début");
+        }
+
+        if (startTime != null && endTime != null && !endTime.isAfter(startTime)) {
+            throw new IllegalArgumentException("L'heure de fin doit être après l'heure de début");
+        }
+    }
+
     public DailyTask createDailyTask(User user, String title, LocalDate taskDate, LocalTime startTime, LocalTime endTime, Long goalId) {
         if(user == null) {
             throw new IllegalArgumentException("Utilisateur requis");
@@ -46,6 +56,8 @@ public class DailyTaskService {
         if(taskDate == null) {
             throw new IllegalArgumentException("Date requise");
         }
+
+        validateTaskTimes(startTime, endTime);
 
         Goal goal = resolveGoalForUser(goalId, user);
 
@@ -72,6 +84,8 @@ public class DailyTaskService {
         if(taskDate == null) {
             throw new IllegalArgumentException("Date requise");
         }
+
+        validateTaskTimes(startTime, endTime);
 
         if(id == null) {
             throw new IllegalArgumentException("Identifiant requis");

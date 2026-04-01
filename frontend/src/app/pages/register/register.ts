@@ -1,7 +1,7 @@
 import { CommonModule } from "@angular/common";
 import { Component } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { Api } from "../../services/api";
+import { Api, RegisterRequest } from "../../services/api";
 import { Router } from "@angular/router";
 import { finalize, firstValueFrom } from "rxjs";
 
@@ -23,7 +23,7 @@ export class Register {
 
     isSubmitting = false;
 
-    user = {
+    user: RegisterRequest = {
         email: '',
         password: ''
     };

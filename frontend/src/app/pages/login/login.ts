@@ -2,7 +2,7 @@ import { CommonModule } from "@angular/common";
 import { Component } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Router } from "@angular/router";
-import { Api } from "../../services/api";
+import { Api, LoginRequest } from "../../services/api";
 import { finalize } from "rxjs";
 
 @Component({
@@ -25,7 +25,7 @@ export class Login {
 
     constructor(private router: Router, private api: Api) {}
 
-    user = {
+    user: LoginRequest = {
         email: '',
         password: ''
     };
