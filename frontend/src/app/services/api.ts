@@ -1,4 +1,3 @@
-import { DecimalPipe } from "@angular/common";
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
@@ -89,6 +88,24 @@ export class Api {
 
     today(): Observable<Dashboard> {
         return this.http.get<Dashboard>(`${this.baseUrl}/dashboard/today`, {
+            withCredentials: true
+        });
+    }
+
+    addGoal(title: string): Observable<Goal> {
+        return this.http.post<Goal>(`${this.baseUrl}/goals`, { title }, {
+            withCredentials: true
+        });
+    }
+
+    modifyGoal(id: number, title: string): Observable<Goal> {
+        return this.http.put<Goal>(`${this.baseUrl}/goals/${id}`, { title }, {
+            withCredentials: true
+        });
+    }
+
+    deleteGoal(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/goals/${id}`, {
             withCredentials: true
         });
     }
