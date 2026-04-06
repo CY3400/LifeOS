@@ -91,15 +91,39 @@ public class DailyTaskService {
             throw new IllegalArgumentException("Identifiant requis");
         }
 
-        Goal goal = resolveGoalForUser(goalId, user);
-
         DailyTask existing = dailyTaskRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Tâche introuvable"));
+
+        if(existing.isCompleted()) {
+            throw new IllegalStateException("Impossible de modifier une tâche complétée. Veuillez d'abord la marquer comme non complétée.");
+        }
+
+        Goal goal = resolveGoalForUser(goalId, user);
 
         existing.setTitle(title);
         existing.setTaskDate(taskDate);
         existing.setStartTime(startTime);
         existing.setEndTime(endTime);
         existing.setGoal(goal);
+
+        return dailyTaskRepository.save(existing);
+    }
+
+    public DailyTask completeDailyTask(Long id, User user, Boolean completed) {
+        if(user == null) {
+            throw new IllegalArgumentException("Utilisateur requis");
+        }
+
+        if(id == null) {
+            throw new IllegalArgumentException("Identifiant requis");
+        }
+
+        if (completed == null) {
+            throw new IllegalArgumentException("Le statut completed est requis");
+        }
+
+        DailyTask existing = dailyTaskRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Tâche introuvable"));
+
+        existing.setCompleted(completed);
 
         return dailyTaskRepository.save(existing);
     }
@@ -114,6 +138,10 @@ public class DailyTaskService {
         }
 
         DailyTask existing = dailyTaskRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Tâche introuvable"));
+
+        if(existing.isCompleted()) {
+            throw new IllegalStateException("Impossible de supprimer une tâche complétée. Veuillez d'abord la marquer comme non complétée.");
+        }
 
         dailyTaskRepository.delete(existing);
     }

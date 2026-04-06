@@ -15,6 +15,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.charbel.lifeos.dto.CompleteDailyTaskRequest;
 import com.charbel.lifeos.dto.CreateDailyTaskRequest;
 import com.charbel.lifeos.dto.DailyTaskResponse;
 import com.charbel.lifeos.dto.UpdateDailyTaskRequest;
@@ -66,6 +67,15 @@ public class DailyTaskController {
         User user = getUserByAuthentication(auth);
         
         DailyTask updated = dailyTaskService.updateDailyTask(id, user, req.getTitle(), req.getTaskDate(), req.getStartTime(), req.getEndTime(), req.getGoalId());
+
+        return ResponseEntity.ok(toResponse(updated));
+    }
+
+    @PutMapping("/{id}/complete")
+    public ResponseEntity<DailyTaskResponse> complete(@PathVariable Long id, Authentication auth, @RequestBody CompleteDailyTaskRequest req) {
+        User user = getUserByAuthentication(auth);
+
+        DailyTask updated = dailyTaskService.completeDailyTask(id, user, req.getCompleted());
 
         return ResponseEntity.ok(toResponse(updated));
     }

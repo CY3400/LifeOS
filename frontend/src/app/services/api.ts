@@ -109,4 +109,28 @@ export class Api {
             withCredentials: true
         });
     }
+
+    createTask(title: string, taskDate: string, startTime: string | null, endTime: string | null, goalId: number | null): Observable<DailyTask> {
+        return this.http.post<DailyTask>(`${this.baseUrl}/tasks`, { title, taskDate, startTime, endTime, goalId }, {
+            withCredentials: true
+        });
+    }
+
+    completeTask(id: number, completed: boolean): Observable<DailyTask> {
+        return this.http.put<DailyTask>(`${this.baseUrl}/tasks/${id}/complete`, { completed }, {
+            withCredentials: true
+        });
+    }
+
+    updateTask(id: number, title: string, taskDate: string, startTime: string | null, endTime: string | null, goalId: number | null): Observable<DailyTask> {
+        return this.http.put<DailyTask>(`${this.baseUrl}/tasks/${id}`, { title, taskDate, startTime, endTime, goalId }, {
+            withCredentials: true
+        });
+    }
+
+    deleteTask(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/tasks/${id}`, {
+            withCredentials: true
+        });
+    }
 }
