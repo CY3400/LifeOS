@@ -104,7 +104,6 @@ public class DailyTaskService {
         return dailyTaskRepository.save(existing);
     }
 
-    @SuppressWarnings("null")
     public void deleteDailyTask(Long id, User user) {
         if(user == null) {
             throw new IllegalArgumentException("Utilisateur requis");

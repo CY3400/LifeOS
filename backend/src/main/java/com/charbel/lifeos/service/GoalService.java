@@ -55,7 +55,6 @@ public class GoalService {
         return goalRepository.save(existing);
     }
 
-    @SuppressWarnings("null")
     public void deleteGoal(Long id, User user) {
         if(user == null) {
             throw new IllegalArgumentException("Utilisateur requis");
