@@ -1,7 +1,5 @@
 package com.charbel.lifeos.entity;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
@@ -18,24 +16,14 @@ import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name = "daily_tasks")
-public class DailyTask {
+@Table(name = "tasks")
+public class Task {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false, length = 200)
     private String title;
-
-    @Column(nullable = false)
-    private boolean completed;
-
-    @Column(nullable = false)
-    private LocalDate taskDate;
-
-    private LocalTime startTime;
-
-    private LocalTime endTime;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name="user_id", nullable = false, foreignKey = @ForeignKey(name="fk_task_user"))
@@ -45,29 +33,17 @@ public class DailyTask {
     @JoinColumn(name="goal_id", foreignKey = @ForeignKey(name="fk_task_goal"))
     private Goal goal;
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public DailyTask(){
-
-    }
-
-    public DailyTask(User user, String title, LocalDate taskDate, LocalTime startTime, LocalTime endTime, Goal goal){
-        this.user = user;
-        this.title = title;
-        this.taskDate = taskDate;
-        this.startTime = startTime;
-        this.endTime = endTime;
-        this.goal = goal;
-    }
+    public Task(){}
 
     @PrePersist
     private void onCreate() {
         LocalDateTime now = LocalDateTime.now();
-        completed = false;
         createdAt = now;
         updatedAt = now;
     }
@@ -89,34 +65,6 @@ public class DailyTask {
     }
     public void setTitle(String title){
         this.title = title;
-    }
-
-    public boolean isCompleted(){
-        return completed;
-    }
-    public void setCompleted(boolean completed){
-        this.completed = completed;
-    }
-
-    public LocalDate getTaskDate(){
-        return taskDate;
-    }
-    public void setTaskDate(LocalDate taskDate){
-        this.taskDate = taskDate;
-    }
-
-    public LocalTime getStartTime(){
-        return startTime;
-    }
-    public void setStartTime(LocalTime startTime){
-        this.startTime = startTime;
-    }
-
-    public LocalTime getEndTime(){
-        return endTime;
-    }
-    public void setEndTime(LocalTime endTime){
-        this.endTime = endTime;
     }
 
     public User getUser(){

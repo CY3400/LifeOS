@@ -29,7 +29,7 @@ public class DashboardController {
     public ResponseEntity<DashboardResponse> getTodayDashboardForUser(Authentication auth) {
         User user = getUserByAuthentication(auth);
 
-        DashboardResponse dr = dashboardService.getTodayDashboardForUser(user);
+        DashboardResponse dr = dashboardService.getDashboardForUser(user);
 
         return ResponseEntity.ok(dr);
     }

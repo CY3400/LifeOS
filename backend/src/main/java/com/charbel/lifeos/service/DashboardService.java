@@ -6,22 +6,25 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.charbel.lifeos.dto.DailyTaskResponse;
 import com.charbel.lifeos.dto.DashboardResponse;
 import com.charbel.lifeos.dto.GoalResponse;
-import com.charbel.lifeos.entity.DailyTask;
+import com.charbel.lifeos.dto.TaskResponse;
 import com.charbel.lifeos.entity.Goal;
+import com.charbel.lifeos.entity.Task;
+import com.charbel.lifeos.entity.TaskSchedule;
 import com.charbel.lifeos.entity.User;
 
 @Service
 @Transactional
 public class DashboardService {
     private final GoalService goalService;
-    private final DailyTaskService dailyTaskService;
+    private final TaskService taskService;
+    private final TaskScheduleService taskScheduleService;
 
-    public DashboardService(GoalService goalService, DailyTaskService dailyTaskService) {
-        this.dailyTaskService = dailyTaskService;
+    public DashboardService(GoalService goalService, TaskService taskService, TaskScheduleService taskScheduleService) {
         this.goalService = goalService;
+        this.taskService = taskService;
+        this.taskScheduleService = taskScheduleService;
     }
 
     private GoalResponse toGoalResponse(Goal goal) {
@@ -31,47 +34,34 @@ public class DashboardService {
         return response;
     }
 
-    private DailyTaskResponse toDailyTaskResponse(DailyTask dailyTask) {
-        DailyTaskResponse response = new DailyTaskResponse();
-        response.setId(dailyTask.getId());
-        response.setTitle(dailyTask.getTitle());
-        response.setCompleted(dailyTask.isCompleted());
-        response.setTaskDate(dailyTask.getTaskDate());
-        response.setStartTime(dailyTask.getStartTime());
-        response.setEndTime(dailyTask.getEndTime());
-        response.setGoalId(dailyTask.getGoal() != null ? dailyTask.getGoal().getId() : null);
-
+    private TaskResponse toTaskResponse(Task task) {
+        TaskResponse response = new TaskResponse();
+        response.setId(task.getId());
+        response.setTitle(task.getTitle());
+        response.setGoalId(task.getGoal() != null ? task.getGoal().getId() : null);
         return response;
     }
 
     @Transactional(readOnly = true)
-    public DashboardResponse getTodayDashboardForUser(User user) {
-        if(user == null) {
+    public DashboardResponse getDashboardForUser(User user) {
+        if (user == null) {
             throw new IllegalArgumentException("Utilisateur requis");
         }
 
-        List<Goal> goals = goalService.getGoalsForUser(user);
-        List<DailyTask> dailyTasks = dailyTaskService.getDailyTasksByTaskDateForUser(user, LocalDate.now());
-        int totalTasks = dailyTasks.size();
-        int completedTasks = 0;
-        double completionRate;
-        for(DailyTask task: dailyTasks) {
-            if(task.isCompleted()) {
-                completedTasks ++;
-            }
-        }
+        LocalDate today = LocalDate.now();
 
-        if(totalTasks == 0) {
-            completionRate = 0.0;
-        }
-        else {
-            completionRate = (completedTasks * 100.0)/totalTasks;
-        }
+        List<Goal> goals = goalService.getGoalsForUser(user);
+        List<Task> tasks = taskService.getTasksForUser(user);
+        List<TaskSchedule> todaySchedules = taskScheduleService.getTaskSchedulesByTaskDateForUser(user, today);
+
+        int totalTasks = todaySchedules.size();
+        int completedTasks = (int) todaySchedules.stream().filter(TaskSchedule::isCompleted).count();
+
+        double completionRate = totalTasks > 0 ? (completedTasks * 100.0) / totalTasks : 0.0;
 
         DashboardResponse dr = new DashboardResponse();
-
         dr.setGoals(goals.stream().map(this::toGoalResponse).toList());
-        dr.setDailyTasks(dailyTasks.stream().map(this::toDailyTaskResponse).toList());
+        dr.setTasks(tasks.stream().map(this::toTaskResponse).toList());
         dr.setTotalTasks(totalTasks);
         dr.setCompletedTasks(completedTasks);
         dr.setCompletionRate(completionRate);

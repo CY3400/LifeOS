@@ -1,6 +1,6 @@
 package com.charbel.lifeos.dto;
 
-public class CompleteDailyTaskRequest {
+public class CompleteTaskScheduleRequest {
     private Boolean completed;
 
     public Boolean getCompleted() {

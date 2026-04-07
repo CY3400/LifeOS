@@ -30,21 +30,26 @@ export type Goal = {
     title: string
 }
 
-export type DailyTask = {
+export type Task = {
     id: number,
     title: string,
-    completed: boolean,
+    goalId: number | null
+}
+
+export type TaskSchedule = {
+    id: number,
+    taskId: number,
     taskDate: string,
     startTime: string | null,
     endTime: string | null,
-    goalId: number | null
+    completed: boolean
 }
 
 export type Dashboard = {
     goals: Goal[]
-    dailyTasks: DailyTask[]
-    totalTasks: number,
-    completedTasks: number,
+    tasks: Task[]
+    totalTasks: number
+    completedTasks: number
     completionRate: number
 }
 
@@ -110,26 +115,50 @@ export class Api {
         });
     }
 
-    createTask(title: string, taskDate: string, startTime: string | null, endTime: string | null, goalId: number | null): Observable<DailyTask> {
-        return this.http.post<DailyTask>(`${this.baseUrl}/tasks`, { title, taskDate, startTime, endTime, goalId }, {
+    createTask(title: string, goalId: number | null): Observable<Task> {
+        return this.http.post<Task>(`${this.baseUrl}/tasks`, { title, goalId }, {
             withCredentials: true
         });
     }
 
-    completeTask(id: number, completed: boolean): Observable<DailyTask> {
-        return this.http.put<DailyTask>(`${this.baseUrl}/tasks/${id}/complete`, { completed }, {
-            withCredentials: true
-        });
-    }
-
-    updateTask(id: number, title: string, taskDate: string, startTime: string | null, endTime: string | null, goalId: number | null): Observable<DailyTask> {
-        return this.http.put<DailyTask>(`${this.baseUrl}/tasks/${id}`, { title, taskDate, startTime, endTime, goalId }, {
+    updateTask(id: number, title: string, goalId: number | null): Observable<Task> {
+        return this.http.put<Task>(`${this.baseUrl}/tasks/${id}`, { title, goalId }, {
             withCredentials: true
         });
     }
 
     deleteTask(id: number): Observable<void> {
         return this.http.delete<void>(`${this.baseUrl}/tasks/${id}`, {
+            withCredentials: true
+        });
+    }
+
+    getTaskSchedulesByDate(taskDate: string): Observable<TaskSchedule[]> {
+        return this.http.get<TaskSchedule[]>(`${this.baseUrl}/task-schedules/date/${taskDate}`, {
+            withCredentials: true
+        });
+    }
+
+    createTaskSchedule(taskId: number, taskDate: string, startTime: string | null, endTime: string | null): Observable<TaskSchedule> {
+        return this.http.post<TaskSchedule>(`${this.baseUrl}/task-schedules`, { taskId, taskDate, startTime, endTime }, {
+            withCredentials: true
+        });
+    }
+
+    updateTaskSchedule(id: number, taskId: number, taskDate: string, startTime: string | null, endTime: string | null): Observable<TaskSchedule> {
+        return this.http.put<TaskSchedule>(`${this.baseUrl}/task-schedules/${id}`, { taskId, taskDate, startTime, endTime }, {
+            withCredentials: true
+        });
+    }
+
+    completeTaskSchedule(id: number, completed: boolean): Observable<TaskSchedule> {
+        return this.http.put<TaskSchedule>(`${this.baseUrl}/task-schedules/${id}/complete`, { completed }, {
+            withCredentials: true
+        });
+    }
+
+    deleteTaskSchedule(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/task-schedules/${id}`, {
             withCredentials: true
         });
     }

@@ -93,8 +93,15 @@
   align-items: start;
 }
 
+.dashboard-side {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .task-card,
-.goal-card {
+.goal-card,
+.schedule-card {
   background: var(--bg-card);
   border: 1px solid var(--bg-card-border);
   box-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
@@ -488,8 +495,13 @@
     gap: 16px;
   }
 
+  .dashboard-side {
+    gap: 16px;
+  }
+
   .task-card,
-  .goal-card {
+  .goal-card,
+  .schedule-card {
     padding: 20px;
     border-radius: 20px;
   }
