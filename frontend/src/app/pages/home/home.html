@@ -45,14 +45,7 @@
             <h2>{{ modifyTaskId ? 'Modifier une tâche' : 'Ajouter une tâche' }}</h2>
 
             <label for="taskInput">Nom</label>
-            <input
-                name="taskInput"
-                type="text"
-                id="taskInput"
-                [disabled]="taskSubmit"
-                [(ngModel)]="taskTitle"
-                placeholder="Ajouter une nouvelle tâche..."
-            >
+            <input name="taskInput" type="text" id="taskInput" [disabled]="taskSubmit" [(ngModel)]="taskTitle" placeholder="Ajouter une nouvelle tâche...">
 
             <label for="taskGoalSelect">Objectif</label>
             <select name="taskGoalSelect" id="taskGoalSelect" [(ngModel)]="selectedGoalId">
@@ -89,6 +82,15 @@
                     @if(scheduleErrors.endTime) {
                         <span>{{ scheduleErrors.endTime }}</span>
                     }
+                    @if(scheduleErrors.startDate) {
+                        <span>{{ scheduleErrors.startDate }}</span>
+                    }
+                    @if(scheduleErrors.endDate) {
+                        <span>{{ scheduleErrors.endDate }}</span>
+                    }
+                    @if(scheduleErrors.daysChosen) {
+                        <span>{{ scheduleErrors.daysChosen }}</span>
+                    }
                 </div>
             }
 
@@ -102,29 +104,71 @@
                 }
             </select>
 
-            <label for="scheduleDate">Date</label>
-            <input
-                name="scheduleDate"
-                type="date"
-                id="scheduleDate"
-                [(ngModel)]="scheduleDate"
-            >
+            <div class="repeat-toggle">
+                <span>Répéter sur plusieurs jours</span>
+                <label class="switch">
+                    <input type="checkbox" [checked]="repeatSchedule" (change)="switchRepeatSchedule()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            @if(!repeatSchedule) {
+                <label for="scheduleDate">Date</label>
+                <input name="scheduleDate" type="date" id="scheduleDate" [(ngModel)]="scheduleDate">
+            }
+            @else {
+                <div class="repeat-section">
+                    <label for="startDate">Date de début</label>
+                    <input name="startDate" type="date" id="startDate" [(ngModel)]="startDate">
+                    <label for="endDate">Date de fin</label>
+                    <input name="endDate" type="date" id="endDate" [(ngModel)]="endDate">
+
+                    <div class="repeat-days">
+                        <span class="repeat-days-title">Jours de répétition</span>
+
+                        <label class="repeat-day-option" for="day-1">
+                            <input id="day-1" type="checkbox" [checked]="daysChosen.includes(1)" (change)="toggleDay(1)">
+                            <span>Lundi</span>
+                        </label>
+
+                        <label class="repeat-day-option" for="day-2">
+                            <input id="day-2" type="checkbox" [checked]="daysChosen.includes(2)" (change)="toggleDay(2)">
+                            <span>Mardi</span>
+                        </label>
+
+                        <label class="repeat-day-option" for="day-3">
+                            <input id="day-3" type="checkbox" [checked]="daysChosen.includes(3)" (change)="toggleDay(3)">
+                            <span>Mercredi</span>
+                        </label>
+
+                        <label class="repeat-day-option" for="day-4">
+                            <input id="day-4" type="checkbox" [checked]="daysChosen.includes(4)" (change)="toggleDay(4)">
+                            <span>Jeudi</span>
+                        </label>
+
+                        <label class="repeat-day-option" for="day-5">
+                            <input id="day-5" type="checkbox" [checked]="daysChosen.includes(5)" (change)="toggleDay(5)">
+                            <span>Vendredi</span>
+                        </label>
+
+                        <label class="repeat-day-option" for="day-6">
+                            <input id="day-6" type="checkbox" [checked]="daysChosen.includes(6)" (change)="toggleDay(6)">
+                            <span>Samedi</span>
+                        </label>
+
+                        <label class="repeat-day-option" for="day-7">
+                            <input id="day-7" type="checkbox" [checked]="daysChosen.includes(7)" (change)="toggleDay(7)">
+                            <span>Dimanche</span>
+                        </label>
+                    </div>
+                </div>
+            }
 
             <label for="scheduleStartTime">Heure de début</label>
-            <input
-                name="scheduleStartTime"
-                type="time"
-                id="scheduleStartTime"
-                [(ngModel)]="scheduleStartTime"
-            >
+            <input name="scheduleStartTime" type="time" id="scheduleStartTime" [(ngModel)]="scheduleStartTime">
 
             <label for="scheduleEndTime">Heure de fin</label>
-            <input
-                name="scheduleEndTime"
-                type="time"
-                id="scheduleEndTime"
-                [(ngModel)]="scheduleEndTime"
-            >
+            <input name="scheduleEndTime" type="time" id="scheduleEndTime" [(ngModel)]="scheduleEndTime">
 
             <div class="task-modal-actions">
                 <button class="submit-task" type="submit">

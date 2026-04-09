@@ -162,4 +162,10 @@ export class Api {
             withCredentials: true
         });
     }
+
+    repeatTaskSchedules(taskId: number, startDate: string, endDate: string, startTime: string | null, endTime: string | null, daysChosen: number[]): Observable<TaskSchedule[]> {
+        return this.http.post<TaskSchedule[]>(`${this.baseUrl}/task-schedules/repeat`, { taskId, startDate, endDate, startTime, endTime, daysChosen }, {
+            withCredentials: true
+        });
+    }
 }

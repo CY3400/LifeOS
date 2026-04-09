@@ -39,6 +39,12 @@ export class Home implements OnInit {
     scheduleStartTime: string = '';
     scheduleEndTime: string = '';
 
+    repeatSchedule: boolean = false;
+    startDate: string = '';
+    endDate: string = '';
+    daysChosen: number[] = [];
+    daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
     errors = {
         title: '',
         global: ''
@@ -48,6 +54,9 @@ export class Home implements OnInit {
         taskId: '',
         date: '',
         endTime: '',
+        startDate: '',
+        endDate: '',
+        daysChosen: '',
         global: ''
     };
 
@@ -74,6 +83,15 @@ export class Home implements OnInit {
         return `${year}-${month}-${day}`;
     }
 
+    switchRepeatSchedule() {
+        this.repeatSchedule = !this.repeatSchedule;
+        if (!this.repeatSchedule) {
+            this.startDate = '';
+            this.endDate = '';
+            this.daysChosen = [];
+        }
+    }
+
     getTaskTitle(taskId: number): string {
         const task = this.tasks.find(t => t.id === taskId);
         return task ? task.title : 'Tâche inconnue';
@@ -81,6 +99,15 @@ export class Home implements OnInit {
 
     formatTime(time: string | null): string {
         return time ? time.slice(0, 5) : '';
+    }
+
+    toggleDay(day: number): void {
+        if (this.daysChosen.includes(day)) {
+            this.daysChosen = this.daysChosen.filter(d => d !== day);
+        }
+        else {
+            this.daysChosen = [...this.daysChosen, day];
+        }
     }
 
     openModal(isModalOpen: boolean): void {
@@ -103,6 +130,13 @@ export class Home implements OnInit {
         this.scheduleStartTime = '';
         this.scheduleEndTime = '';
         this.modifyScheduleId = null;
+        this.repeatSchedule = false;
+        this.startDate = '';
+        this.endDate = '';
+        this.daysChosen = [];
+        this.scheduleErrors.startDate = '';
+        this.scheduleErrors.endDate = '';
+        this.scheduleErrors.daysChosen = '';
     }
 
     loadDashboard() {
@@ -140,22 +174,17 @@ export class Home implements OnInit {
         const title = this.modifyGoalTitle.trim();
 
         if (title) {
-            this.api.modifyGoal(id, title)
-                .pipe(finalize(() => {
-                    this.modifyGoalId = null;
-                    this.modifyGoalTitle = '';
-                }))
-                .subscribe({
-                    next: (goal) => {
-                        const index = this.goals.findIndex(g => g.id === id);
-                        if (index !== -1) {
-                            this.goals[index] = goal;
-                        }
-                    },
-                    error: () => {
-                        console.error("Error lors de la modification de l'objectif");
+            this.api.modifyGoal(id, title).pipe(finalize(() => {this.modifyGoalId = null; this.modifyGoalTitle = '';})).subscribe({
+                next: (goal) => {
+                    const index = this.goals.findIndex(g => g.id === id);
+                    if (index !== -1) {
+                        this.goals[index] = goal;
                     }
-                });
+                },
+                error: () => {
+                    console.error("Error lors de la modification de l'objectif");
+                }
+            });
         }
     }
 
@@ -175,17 +204,15 @@ export class Home implements OnInit {
 
         if (title) {
             this.goalSubmit = true;
-            this.api.addGoal(title)
-                .pipe(finalize(() => { this.goalSubmit = false; }))
-                .subscribe({
-                    next: (goal) => {
-                        this.goals.push(goal);
-                        this.newGoalTitle = '';
-                    },
-                    error: () => {
-                        console.error("Error lors de l'ajout de l'objectif");
-                    }
-                });
+            this.api.addGoal(title).pipe(finalize(() => { this.goalSubmit = false; })).subscribe({
+                next: (goal) => {
+                    this.goals.push(goal);
+                    this.newGoalTitle = '';
+                },
+                error: () => {
+                    console.error("Error lors de l'ajout de l'objectif");
+                }
+            });
         }
     }
 
@@ -215,38 +242,32 @@ export class Home implements OnInit {
         this.taskSubmit = true;
 
         if (this.modifyTaskId) {
-            this.api.updateTask(this.modifyTaskId, title, goalId)
-                .pipe(finalize(() => {
-                    this.taskSubmit = false;
-                    this.modifyTaskId = null;
-                }))
-                .subscribe({
-                    next: () => {
-                        this.loadDashboard();
-                        this.taskTitle = '';
-                        this.selectedGoalId = null;
-                        this.isTaskModalOpen = false;
-                    },
-                    error: () => {
-                        console.error("Error lors de la modification de la tâche");
-                        this.errors.global = "Une erreur s'est produite lors de la modification de la tâche.";
-                    }
-                });
-        } else {
-            this.api.createTask(title, goalId)
-                .pipe(finalize(() => { this.taskSubmit = false; }))
-                .subscribe({
-                    next: () => {
-                        this.loadDashboard();
-                        this.taskTitle = '';
-                        this.selectedGoalId = null;
-                        this.isTaskModalOpen = false;
-                    },
-                    error: () => {
-                        console.error("Error lors de la création de la tâche");
-                        this.errors.global = "Une erreur s'est produite lors de la création de la tâche.";
-                    }
-                });
+            this.api.updateTask(this.modifyTaskId, title, goalId).pipe(finalize(() => {this.taskSubmit = false; this.modifyTaskId = null;})).subscribe({
+                next: () => {
+                    this.loadDashboard();
+                    this.taskTitle = '';
+                    this.selectedGoalId = null;
+                    this.isTaskModalOpen = false;
+                },
+                error: () => {
+                    console.error("Error lors de la modification de la tâche");
+                    this.errors.global = "Une erreur s'est produite lors de la modification de la tâche.";
+                }
+            });
+        } 
+        else {
+            this.api.createTask(title, goalId).pipe(finalize(() => { this.taskSubmit = false; })).subscribe({
+                next: () => {
+                    this.loadDashboard();
+                    this.taskTitle = '';
+                    this.selectedGoalId = null;
+                    this.isTaskModalOpen = false;
+                },
+                error: () => {
+                    console.error("Error lors de la création de la tâche");
+                    this.errors.global = "Une erreur s'est produite lors de la création de la tâche.";
+                }
+            });
         }
     }
 
@@ -268,6 +289,13 @@ export class Home implements OnInit {
         this.scheduleErrors.date = '';
         this.scheduleErrors.endTime = '';
         this.scheduleErrors.global = '';
+        this.repeatSchedule = false;
+        this.startDate = '';
+        this.endDate = '';
+        this.daysChosen = [];
+        this.scheduleErrors.startDate = '';
+        this.scheduleErrors.endDate = '';
+        this.scheduleErrors.daysChosen = '';
     }
 
     submitSchedule(): void {
@@ -282,14 +310,37 @@ export class Home implements OnInit {
         this.scheduleErrors.date = '';
         this.scheduleErrors.endTime = '';
         this.scheduleErrors.global = '';
+        this.scheduleErrors.startDate = '';
+        this.scheduleErrors.endDate = '';
+        this.scheduleErrors.daysChosen = '';
 
         if (!taskId) {
             this.scheduleErrors.taskId = "La tâche est obligatoire";
             isValid = false;
         }
 
-        if (!taskDate) {
+        if (!taskDate && !this.repeatSchedule) {
             this.scheduleErrors.date = "La date est obligatoire";
+            isValid = false;
+        }
+
+        if (this.repeatSchedule && !this.startDate) {
+            this.scheduleErrors.startDate = "La date de début est obligatoire pour une répétition";
+            isValid = false;
+        }
+
+        if (this.repeatSchedule && !this.endDate) {
+            this.scheduleErrors.endDate = "La date de fin est obligatoire pour une répétition";
+            isValid = false;
+        }
+
+        if (this.repeatSchedule && !this.daysChosen.length) {
+            this.scheduleErrors.daysChosen = "Au moins un jour doit être choisi pour une répétition";
+            isValid = false;
+        }
+
+        if (this.repeatSchedule && this.startDate && this.endDate && this.endDate < this.startDate) {
+            this.scheduleErrors.endDate = "La date de fin doit être après la date de début";
             isValid = false;
         }
 
@@ -308,34 +359,43 @@ export class Home implements OnInit {
         this.scheduleSubmit = true;
 
         if (this.modifyScheduleId) {
-            this.api.updateTaskSchedule(this.modifyScheduleId, taskId!, taskDate, startTime, endTime)
-                .pipe(finalize(() => {
-                    this.scheduleSubmit = false;
-                    this.modifyScheduleId = null;
-                }))
-                .subscribe({
-                    next: () => {
-                        this.loadDashboard();
-                        this.loadTodaySchedules();
-                        this.isScheduleModalOpen = false;
-                    },
-                    error: () => {
-                        this.scheduleErrors.global = "Une erreur s'est produite lors de la modification du planning.";
-                    }
-                });
-        } else {
-            this.api.createTaskSchedule(taskId!, taskDate, startTime, endTime)
-                .pipe(finalize(() => { this.scheduleSubmit = false; }))
-                .subscribe({
-                    next: () => {
-                        this.loadDashboard();
-                        this.loadTodaySchedules();
-                        this.isScheduleModalOpen = false;
-                    },
-                    error: () => {
-                        this.scheduleErrors.global = "Une erreur s'est produite lors de la création du planning.";
-                    }
-                });
+            this.api.updateTaskSchedule(this.modifyScheduleId, taskId!, taskDate, startTime, endTime).pipe(finalize(() => {this.scheduleSubmit = false; this.modifyScheduleId = null;})).subscribe({
+                next: () => {
+                    this.loadDashboard();
+                    this.loadTodaySchedules();
+                    this.isScheduleModalOpen = false;
+                },
+                error: () => {
+                    this.scheduleErrors.global = "Une erreur s'est produite lors de la modification du planning.";
+                }
+            });
+        }
+        else if (!this.repeatSchedule) {
+            this.api.createTaskSchedule(taskId!, taskDate, startTime, endTime).pipe(finalize(() => { this.scheduleSubmit = false; })).subscribe({
+                next: () => {
+                    this.loadDashboard();
+                    this.loadTodaySchedules();
+                    this.isScheduleModalOpen = false;
+                },
+                error: () => {
+                    this.scheduleErrors.global = "Une erreur s'est produite lors de la création du planning.";
+                }
+            });
+        }
+        else {
+            const startDate = this.startDate;
+            const endDate = this.endDate;
+            const daysChosen = this.daysChosen;
+            this.api.repeatTaskSchedules(taskId!, startDate, endDate, startTime, endTime, daysChosen).pipe(finalize(() => { this.scheduleSubmit = false; this.repeatSchedule = false; })).subscribe({
+                next: () => {
+                    this.loadDashboard();
+                    this.loadTodaySchedules();
+                    this.isScheduleModalOpen = false;
+                },
+                error: () => {
+                     this.scheduleErrors.global = "Une erreur s'est produite lors de la création des plannings répétés.";
+                }
+            })
         }
     }
 

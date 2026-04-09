@@ -1,6 +1,7 @@
 package com.charbel.lifeos.repository;
 
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,4 +19,6 @@ public interface TaskScheduleRepository extends JpaRepository<TaskSchedule, Long
     List<TaskSchedule> findByTaskUserIdAndTaskDateOrderByStartTime(Long userId, LocalDate taskDate);
 
     List<TaskSchedule> findByTaskIdAndTaskDateOrderByStartTime(Long taskId, LocalDate taskDate);
+
+    boolean existsByTaskIdAndTaskDateAndStartTimeAndEndTime(Long taskId, LocalDate taskDate, LocalTime startTime, LocalTime endTime);
 }

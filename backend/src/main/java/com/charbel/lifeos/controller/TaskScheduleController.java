@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.charbel.lifeos.dto.CompleteTaskScheduleRequest;
 import com.charbel.lifeos.dto.CreateTaskScheduleRequest;
+import com.charbel.lifeos.dto.RepeatTaskScheduleRequest;
 import com.charbel.lifeos.dto.TaskScheduleResponse;
 import com.charbel.lifeos.dto.UpdateTaskScheduleRequest;
 import com.charbel.lifeos.entity.TaskSchedule;
@@ -121,5 +122,16 @@ public class TaskScheduleController {
         taskScheduleService.deleteTaskSchedule(id, user);
 
         return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/repeat")
+    public ResponseEntity<List<TaskScheduleResponse>> createRepeated(@Valid @RequestBody RepeatTaskScheduleRequest req, Authentication auth) {
+        User user = getUserByAuthentication(auth);
+
+        List<TaskSchedule> createdSchedules = taskScheduleService.createRepeatTaskSchedule(user, req.getTaskId(), req.getStartDate(), req.getEndDate(), req.getStartTime(), req.getEndTime(), req.getDaysChosen());
+
+        List<TaskScheduleResponse> responses = createdSchedules.stream().map(this::toResponse).toList();
+
+        return ResponseEntity.status(201).body(responses);
     }
 }

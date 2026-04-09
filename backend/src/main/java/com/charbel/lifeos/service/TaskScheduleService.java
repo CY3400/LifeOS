@@ -180,4 +180,59 @@ public class TaskScheduleService {
 
         return taskScheduleRepository.findByTaskId(task.getId());
     }
+
+    public List<TaskSchedule> createRepeatTaskSchedule(User user, Long taskId, LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime, List<Integer> daysChosen) {
+        if (user == null) {
+            throw new IllegalArgumentException("Utilisateur requis");
+        }
+
+        if (startDate == null) {
+            throw new IllegalArgumentException("Date de début requise");
+        }
+
+        if (endDate == null) {
+            throw new IllegalArgumentException("Date de fin requise");
+        }
+
+        if (daysChosen == null || daysChosen.isEmpty()) {
+            throw new IllegalArgumentException("Les jours de répétition sont obligatoires");
+        }
+
+        validateTaskTimes(startTime, endTime);
+
+        Task task = resolveTaskForUser(taskId, user);
+
+        for (Integer day : daysChosen) {
+            if (day < 1 || day > 7) {
+                throw new IllegalArgumentException("Les jours de répétition doivent être compris entre 1 (lundi) et 7 (dimanche)");
+            }
+        }
+
+        if(endDate.isBefore(startDate)) {
+            throw new IllegalArgumentException("La date de fin doit être après ou égale à la date de début");
+        }
+
+        List<TaskSchedule> createdSchedules = new java.util.ArrayList<>();
+
+        LocalDate currentDate = startDate;
+        while (!currentDate.isAfter(endDate)) {
+            int currentDayOfWeek = currentDate.getDayOfWeek().getValue();
+            if (daysChosen.contains(currentDayOfWeek)) {
+                boolean exists = taskScheduleRepository.existsByTaskIdAndTaskDateAndStartTimeAndEndTime(task.getId(), currentDate, startTime, endTime);
+                
+                if(!exists) {
+                    TaskSchedule schedule = new TaskSchedule();
+                    schedule.setTask(task);
+                    schedule.setTaskDate(currentDate);
+                    schedule.setStartTime(startTime);
+                    schedule.setEndTime(endTime);
+                    
+                    TaskSchedule saved = taskScheduleRepository.save(schedule);
+                    createdSchedules.add(saved);
+                }
+            }
+            currentDate = currentDate.plusDays(1);
+        }
+        return createdSchedules;
+    }
 }
