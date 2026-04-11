@@ -28,6 +28,48 @@
     </div>
 </section>
 
+@if(isDeleteModalOpen) {
+    <section class="modal">
+        <div class="delete-modal">
+            @if(hasDeleteErrors()) {
+                <div class="error border-danger">
+                    @if(deleteErrors.global) {
+                        <span>{{ deleteErrors.global }}</span>
+                    }
+                </div>
+            }
+            
+            <p>Souhaitez-vous supprimer cette tâche seule ou celle-ci et les suivantes?</p>
+            <div class="delete-modal-actions">
+                <button type="button" class="delete-one" (click)="deleteSchedule(selectedScheduleId)">Supprimer celle-ci</button>
+                <button type="button" class="delete-following" (click)="deleteScheduleFollowing(selectedScheduleId)">Supprimer celle-ci et les suivantes</button>
+                <button type="button" class="cancel-delete" (click)="openDeleteModal(false, 0)">Annuler</button>
+            </div>
+        </div>
+    </section>
+}
+
+@if(isUpdateModalOpen) {
+    <section class="modal">
+        <div class="update-modal">
+            @if(hasUpdateErrors()) {
+                <div class="error border-danger">
+                    @if(updateErrors.global) {
+                        <span>{{ updateErrors.global }}</span>
+                    }
+                </div>
+            }
+            
+            <p>Souhaitez-vous modifier cette tâche seule ou celle-ci et les suivantes?</p>
+            <div class="update-modal-actions">
+                <button type="button" class="update-one" (click)="updateSchedule(selectedScheduleId)">Modifier celle-ci</button>
+                <button type="button" class="update-following" (click)="updateScheduleFollowing(selectedScheduleId)">Modifier celle-ci et les suivantes</button>
+                <button type="button" class="cancel-update" (click)="openUpdateModal(false, 0)">Annuler</button>
+            </div>
+        </div>
+    </section>
+}
+
 @if(isTaskModalOpen) {
     <section class="modal">
         <form class="task-modal" (ngSubmit)="submitTask()">
@@ -114,14 +156,14 @@
 
             @if(!repeatSchedule) {
                 <label for="scheduleDate">Date</label>
-                <input name="scheduleDate" type="date" id="scheduleDate" [(ngModel)]="scheduleDate">
+                <input name="scheduleDate" type="date" id="scheduleDate" [(ngModel)]="scheduleDate" [min]="todayDate | date:'yyyy-MM-dd'">
             }
             @else {
                 <div class="repeat-section">
                     <label for="startDate">Date de début</label>
-                    <input name="startDate" type="date" id="startDate" [(ngModel)]="startDate">
+                    <input name="startDate" type="date" id="startDate" [(ngModel)]="startDate" [min]="todayDate | date:'yyyy-MM-dd'">
                     <label for="endDate">Date de fin</label>
-                    <input name="endDate" type="date" id="endDate" [(ngModel)]="endDate">
+                    <input name="endDate" type="date" id="endDate" [(ngModel)]="endDate" [min]="todayDate | date:'yyyy-MM-dd'">
 
                     <div class="repeat-days">
                         <span class="repeat-days-title">Jours de répétition</span>
@@ -171,9 +213,7 @@
             <input name="scheduleEndTime" type="time" id="scheduleEndTime" [(ngModel)]="scheduleEndTime">
 
             <div class="task-modal-actions">
-                <button class="submit-task" type="submit">
-                    {{ modifyScheduleId ? 'Modifier' : 'Ajouter' }}
-                </button>
+                <button class="submit-task" type="submit">{{ modifyScheduleId ? 'Modifier' : 'Ajouter' }}</button>
                 <button type="button" class="cancel-task" (click)="openScheduleModal(false)">Annuler</button>
             </div>
         </form>
@@ -220,7 +260,7 @@
                                         <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
                                     </svg>
                                 </button>
-                                <button type="button" class="task-trash" (click)="deleteSchedule(schedule.id)">
+                                <button type="button" class="task-trash" (click)="schedule.seriesId == null ? deleteSchedule(schedule.id) : openDeleteModal(true, schedule.id)">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                                     </svg>

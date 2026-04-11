@@ -38,6 +38,9 @@ public class TaskSchedule {
 
     private LocalTime endTime;
 
+    @Column(name = "series_id")
+    private String seriesId;
+
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
@@ -102,6 +105,14 @@ public class TaskSchedule {
 
     public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
+    }
+
+    public String getSeriesId() {
+        return seriesId;
+    }
+
+    public void setSeriesId(String seriesId) {
+        this.seriesId = seriesId;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -2,7 +2,9 @@ package com.charbel.lifeos.service;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -90,12 +92,67 @@ public class TaskScheduleService {
 
         Task task = resolveTaskForUser(taskId, user);
 
-        existing.setTask(task);
-        existing.setTaskDate(taskDate);
-        existing.setStartTime(startTime);
-        existing.setEndTime(endTime);
+        LocalDate today = LocalDate.now();
 
-        return taskScheduleRepository.save(existing);
+        if(!existing.getTaskDate().isBefore(today)) {
+            existing.setTask(task);
+            existing.setTaskDate(taskDate);
+            existing.setStartTime(startTime);
+            existing.setEndTime(endTime);
+
+            return taskScheduleRepository.save(existing);
+        }
+        else {
+            throw new IllegalArgumentException("Il n'est plus possible de modifier une tâche passée");
+        }
+    }
+
+    public void updateTaskScheduleAndTheFollowing(Long id, User user, Long taskId, LocalDate taskDate, LocalTime startTime, LocalTime endTime) {
+        if (user == null) {
+            throw new IllegalArgumentException("Utilisateur requis");
+        }
+
+        if (id == null) {
+            throw new IllegalArgumentException("Identifiant requis");
+        }
+
+        if (taskDate == null) {
+            throw new IllegalArgumentException("Date requise");
+        }
+
+        validateTaskTimes(startTime, endTime);
+
+        TaskSchedule existing = taskScheduleRepository.findByIdAndTaskUserId(id, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Planning introuvable"));
+
+        Task task = resolveTaskForUser(taskId, user);
+
+        LocalDate today = LocalDate.now();
+
+        if(existing.getSeriesId() == null) {
+            updateTaskSchedule(id, user, taskId, taskDate, startTime, endTime);
+            return;
+        }
+
+        if (existing.getTaskDate().isBefore(today)) {
+            throw new IllegalArgumentException("Il n'est plus possible de modifier une ou plusieurs tâches passées");
+        }
+
+        List<TaskSchedule> repeatTasks = taskScheduleRepository.findByTaskUserIdAndSeriesIdAndTaskDateGreaterThanEqual(user.getId(), existing.getSeriesId(), existing.getTaskDate());
+
+        long deltaDays = ChronoUnit.DAYS.between(existing.getTaskDate(), taskDate);
+
+        for(TaskSchedule rt : repeatTasks) {
+            LocalDate newDate = rt.getTaskDate().plusDays(deltaDays);
+            if(newDate.isBefore(today)) {
+                throw new IllegalArgumentException("La modification déplacerait une ou plusieurs tâches dans le passé");
+            }
+            rt.setTask(task);
+            rt.setTaskDate(newDate);
+            rt.setStartTime(startTime);
+            rt.setEndTime(endTime);
+        }
+
+        taskScheduleRepository.saveAll(repeatTasks);
     }
 
     public TaskSchedule completeTaskSchedule(Long id, User user, Boolean completed) {
@@ -131,7 +188,39 @@ public class TaskScheduleService {
         TaskSchedule existing = taskScheduleRepository.findByIdAndTaskUserId(id, user.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Planning introuvable"));
 
-        taskScheduleRepository.delete(existing);
+        LocalDate today = LocalDate.now();
+
+        if(!existing.getTaskDate().isBefore(today)) {
+            taskScheduleRepository.delete(existing);
+        }
+        else {
+            throw new IllegalArgumentException("Il n'est plus possible de supprimer une tâche passée");
+        }
+    }
+
+    public void deleteTaskScheduleAndTheFollowing(Long id, User user) {
+        if (user == null) {
+            throw new IllegalArgumentException("Utilisateur requis");
+        }
+
+        if (id == null) {
+            throw new IllegalArgumentException("Identifiant requis");
+        }
+
+        TaskSchedule existing = taskScheduleRepository.findByIdAndTaskUserId(id, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Planning introuvable"));
+        LocalDate today = LocalDate.now();
+
+        if(existing.getSeriesId() == null) {
+            deleteTaskSchedule(id, user);
+        }
+        else if (!existing.getTaskDate().isBefore(today)) {
+            List<TaskSchedule> repeatTasks = taskScheduleRepository.findByTaskUserIdAndSeriesIdAndTaskDateGreaterThanEqual(user.getId(), existing.getSeriesId(), existing.getTaskDate());
+
+            taskScheduleRepository.deleteAll(repeatTasks);
+        }
+        else {
+            throw new IllegalArgumentException("Il n'est plus possible de supprimer une ou plusieurs tâches passées");
+        }
     }
 
     @Transactional(readOnly = true)
@@ -214,6 +303,8 @@ public class TaskScheduleService {
 
         List<TaskSchedule> createdSchedules = new java.util.ArrayList<>();
 
+        String seriesId = UUID.randomUUID().toString();
+
         LocalDate currentDate = startDate;
         while (!currentDate.isAfter(endDate)) {
             int currentDayOfWeek = currentDate.getDayOfWeek().getValue();
@@ -226,6 +317,7 @@ public class TaskScheduleService {
                     schedule.setTaskDate(currentDate);
                     schedule.setStartTime(startTime);
                     schedule.setEndTime(endTime);
+                    schedule.setSeriesId(seriesId);
                     
                     TaskSchedule saved = taskScheduleRepository.save(schedule);
                     createdSchedules.add(saved);

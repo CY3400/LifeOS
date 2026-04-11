@@ -48,6 +48,7 @@ public class TaskScheduleController {
         response.setStartTime(schedule.getStartTime());
         response.setEndTime(schedule.getEndTime());
         response.setCompleted(schedule.isCompleted());
+        response.setSeriesId(schedule.getSeriesId());
         return response;
     }
 
@@ -61,14 +62,23 @@ public class TaskScheduleController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<TaskScheduleResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateTaskScheduleRequest req, Authentication auth
-    ) {
+    public ResponseEntity<TaskScheduleResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateTaskScheduleRequest req, Authentication auth) {
         User user = getUserByAuthentication(auth);
 
         TaskSchedule updated = taskScheduleService.updateTaskSchedule(id, user, req.getTaskId(), req.getTaskDate(), req.getStartTime(), req.getEndTime());
 
         return ResponseEntity.ok(toResponse(updated));
     }
+
+    @PutMapping("/{id}/following")
+    public ResponseEntity<Void> updateFollowing(@PathVariable Long id, @Valid @RequestBody UpdateTaskScheduleRequest req, Authentication auth) {
+        User user = getUserByAuthentication(auth);
+
+        taskScheduleService.updateTaskScheduleAndTheFollowing(id, user, req.getTaskId(), req.getTaskDate(), req.getStartTime(), req.getEndTime());
+
+        return ResponseEntity.noContent().build();
+    }
+
 
     @PutMapping("/{id}/complete")
     public ResponseEntity<TaskScheduleResponse> complete(@PathVariable Long id, @RequestBody CompleteTaskScheduleRequest req, Authentication auth) {
@@ -120,6 +130,15 @@ public class TaskScheduleController {
         User user = getUserByAuthentication(auth);
 
         taskScheduleService.deleteTaskSchedule(id, user);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/{id}/following")
+    public ResponseEntity<Void> deleteFollowing(@PathVariable Long id, Authentication auth) {
+        User user = getUserByAuthentication(auth);
+
+        taskScheduleService.deleteTaskScheduleAndTheFollowing(id, user);
 
         return ResponseEntity.noContent().build();
     }

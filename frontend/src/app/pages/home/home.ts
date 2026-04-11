@@ -43,7 +43,13 @@ export class Home implements OnInit {
     startDate: string = '';
     endDate: string = '';
     daysChosen: number[] = [];
-    daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+
+    todayDate: Date = new Date();
+
+    isDeleteModalOpen: boolean = false;
+    selectedScheduleId: number = 0;
+
+    isUpdateModalOpen: boolean = false;
 
     errors = {
         title: '',
@@ -60,6 +66,14 @@ export class Home implements OnInit {
         global: ''
     };
 
+    deleteErrors = {
+        global: ''
+    }
+
+    updateErrors = {
+        global: ''
+    }
+
     constructor(private api: Api) {}
 
     ngOnInit() {
@@ -73,6 +87,14 @@ export class Home implements OnInit {
 
     hasScheduleErrors(): boolean {
         return Object.values(this.scheduleErrors).some(e => e !== '');
+    }
+
+    hasDeleteErrors(): boolean {
+        return Object.values(this.deleteErrors).some(e => e !== '');
+    }
+
+    hasUpdateErrors(): boolean {
+        return Object.values(this.updateErrors).some(e => e !== '');
     }
 
     todayString(): string {
@@ -117,6 +139,28 @@ export class Home implements OnInit {
         this.taskTitle = '';
         this.selectedGoalId = null;
         this.modifyTaskId = null;
+    }
+
+    openUpdateModal(isUpdateModalOpen: boolean, scheduleId: number): void {
+        this.isUpdateModalOpen = isUpdateModalOpen;
+        this.updateErrors.global = '';
+        if(!isUpdateModalOpen) {
+            this.selectedScheduleId = 0;
+        }
+        else {
+            this.selectedScheduleId = scheduleId;
+        }
+    }
+
+    openDeleteModal(isDeleteModalOpen: boolean, scheduleId: number): void {
+        this.isDeleteModalOpen = isDeleteModalOpen;
+        this.deleteErrors.global = '';
+        if(!isDeleteModalOpen) {
+            this.selectedScheduleId = 0;
+        }
+        else {
+            this.selectedScheduleId = scheduleId;
+        }
     }
 
     openScheduleModal(isOpen: boolean): void {
@@ -359,16 +403,10 @@ export class Home implements OnInit {
         this.scheduleSubmit = true;
 
         if (this.modifyScheduleId) {
-            this.api.updateTaskSchedule(this.modifyScheduleId, taskId!, taskDate, startTime, endTime).pipe(finalize(() => {this.scheduleSubmit = false; this.modifyScheduleId = null;})).subscribe({
-                next: () => {
-                    this.loadDashboard();
-                    this.loadTodaySchedules();
-                    this.isScheduleModalOpen = false;
-                },
-                error: () => {
-                    this.scheduleErrors.global = "Une erreur s'est produite lors de la modification du planning.";
-                }
-            });
+            this.isScheduleModalOpen = false;
+            this.scheduleSubmit = false;
+            this.openUpdateModal(true, this.modifyScheduleId);
+            return;
         }
         else if (!this.repeatSchedule) {
             this.api.createTaskSchedule(taskId!, taskDate, startTime, endTime).pipe(finalize(() => { this.scheduleSubmit = false; })).subscribe({
@@ -399,14 +437,98 @@ export class Home implements OnInit {
         }
     }
 
-    deleteSchedule(id: number): void {
-        this.api.deleteTaskSchedule(id).subscribe({
+    updateSchedule(id: number): void {
+        const taskId = this.selectedTaskId ? parseInt(this.selectedTaskId, 10) : null;
+        const taskDate = this.scheduleDate;
+        const startTime = this.scheduleStartTime || null;
+        const endTime = this.scheduleEndTime || null;
+
+        this.updateErrors.global = '';
+
+        if (!id || !taskId) {
+            this.updateErrors.global = "Une erreur s'est produite lors de la modification du planning.";
+            return;
+        }
+
+        this.api.updateTaskSchedule(id, taskId, taskDate, startTime, endTime).subscribe({
             next: () => {
                 this.loadDashboard();
                 this.loadTodaySchedules();
+                this.isUpdateModalOpen = false;
+                this.selectedScheduleId = 0;
+                this.modifyScheduleId = null;
             },
             error: () => {
-                console.error("Error lors de la suppression du planning");
+                console.error("Une erreur s'est produite lors de la modification du planning.");
+                this.updateErrors.global = "Une erreur s'est produite lors de la modification du planning.";
+            }
+        });
+    }
+
+    deleteSchedule(id: number): void {
+        if(id != 0) {
+            this.api.deleteTaskSchedule(id).subscribe({
+                next: () => {
+                    this.loadDashboard();
+                    this.loadTodaySchedules();
+                    this.isDeleteModalOpen = false;
+                    this.selectedScheduleId = 0;
+                },
+                error: () => {
+                    console.error("Une erreur s'est produite lors de la suppression du planning.");
+                    this.deleteErrors.global = "Une erreur s'est produite lors de la suppression du planning.";
+                }
+            });
+        }
+        else {
+            this.deleteErrors.global = "Une erreur s'est produite lors de la suppression du planning.";
+        }
+    }
+
+    deleteScheduleFollowing(id: number): void {
+        if(id != 0) {
+            this.api.deleteFollowing(id).subscribe({
+                next: () => {
+                    this.loadDashboard();
+                    this.loadTodaySchedules();
+                    this.isDeleteModalOpen = false;
+                    this.selectedScheduleId = 0;
+                },
+                error: () => {
+                    console.error("Une erreur s'est produite lors de la suppression du planning.");
+                    this.deleteErrors.global = "Une erreur s'est produite lors de la suppression du planning.";
+                }
+            });
+        }
+        else {
+            this.deleteErrors.global = "Une erreur s'est produite lors de la suppression du planning.";
+        }
+    }
+
+    updateScheduleFollowing(id: number): void {
+        const taskId = this.selectedTaskId ? parseInt(this.selectedTaskId, 10) : null;
+        const taskDate = this.scheduleDate;
+        const startTime = this.scheduleStartTime || null;
+        const endTime = this.scheduleEndTime || null;
+
+        this.updateErrors.global = '';
+
+        if (!id || !taskId) {
+            this.updateErrors.global = "Une erreur s'est produite lors de la modification du planning.";
+            return;
+        }
+
+        this.api.updateFollowing(id, taskId, taskDate, startTime, endTime).subscribe({
+            next: () => {
+                this.loadDashboard();
+                this.loadTodaySchedules();
+                this.isUpdateModalOpen = false;
+                this.selectedScheduleId = 0;
+                this.modifyScheduleId = null;
+            },
+            error: () => {
+                console.error("Une erreur s'est produite lors de la modification du planning.");
+                this.updateErrors.global = "Une erreur s'est produite lors de la modification du planning.";
             }
         });
     }

@@ -42,7 +42,8 @@ export type TaskSchedule = {
     taskDate: string,
     startTime: string | null,
     endTime: string | null,
-    completed: boolean
+    completed: boolean,
+    seriesId: string | null;
 }
 
 export type Dashboard = {
@@ -151,6 +152,12 @@ export class Api {
         });
     }
 
+    updateFollowing(id: number, taskId: number, taskDate: string, startTime: string | null, endTime: string | null): Observable<void> {
+        return this.http.put<void>(`${this.baseUrl}/task-schedules/${id}/following`, { taskId, taskDate, startTime, endTime }, {
+            withCredentials: true
+        });
+    }
+
     completeTaskSchedule(id: number, completed: boolean): Observable<TaskSchedule> {
         return this.http.put<TaskSchedule>(`${this.baseUrl}/task-schedules/${id}/complete`, { completed }, {
             withCredentials: true
@@ -165,6 +172,12 @@ export class Api {
 
     repeatTaskSchedules(taskId: number, startDate: string, endDate: string, startTime: string | null, endTime: string | null, daysChosen: number[]): Observable<TaskSchedule[]> {
         return this.http.post<TaskSchedule[]>(`${this.baseUrl}/task-schedules/repeat`, { taskId, startDate, endDate, startTime, endTime, daysChosen }, {
+            withCredentials: true
+        });
+    }
+
+    deleteFollowing(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/task-schedules/${id}/following`, {
             withCredentials: true
         });
     }

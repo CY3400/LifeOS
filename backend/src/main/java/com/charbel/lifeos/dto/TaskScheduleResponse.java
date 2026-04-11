@@ -10,6 +10,7 @@ public class TaskScheduleResponse {
     private LocalTime startTime;
     private LocalTime endTime;
     private boolean completed;
+    private String seriesId;
 
     public Long getId() {
         return id;
@@ -57,5 +58,13 @@ public class TaskScheduleResponse {
 
     public void setCompleted(boolean completed) {
         this.completed = completed;
+    }
+
+    public String getSeriesId() {
+        return seriesId;
+    }
+
+    public void setSeriesId(String seriesId) {
+        this.seriesId = seriesId;
     }
 }

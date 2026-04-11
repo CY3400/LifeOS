@@ -587,6 +587,130 @@ input:checked + .slider:before {
   margin: 0;
 }
 
+.delete-modal {
+  width: min(520px, 100%);
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.delete-modal p {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.delete-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.delete-one,
+.delete-following,
+.cancel-delete {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.delete-one,
+.delete-following {
+  background: rgba(239, 68, 68, 0.14);
+  color: #fecaca;
+  border: 1px solid rgba(239, 68, 68, 0.22);
+}
+
+.delete-one:hover,
+.delete-following:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: translateY(-1px);
+}
+
+.cancel-delete {
+  background: rgba(51, 65, 85, 0.92);
+  color: var(--text-main);
+}
+
+.cancel-delete:hover {
+  background: rgba(71, 85, 105, 0.95);
+  transform: translateY(-1px);
+}
+
+.update-modal {
+  width: min(520px, 100%);
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  border-radius: 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.update-modal p {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.update-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.update-one,
+.update-following,
+.cancel-update {
+  width: 100%;
+  border: none;
+  border-radius: 14px;
+  padding: 14px 16px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.update-one,
+.update-following {
+  background: rgba(59, 130, 246, 0.14);
+  color: #bfdbfe;
+  border: 1px solid rgba(59, 130, 246, 0.22);
+}
+
+.update-one:hover,
+.update-following:hover {
+  background: rgba(59, 130, 246, 0.2);
+  transform: translateY(-1px);
+}
+
+.cancel-update {
+  background: rgba(51, 65, 85, 0.92);
+  color: var(--text-main);
+}
+
+.cancel-update:hover {
+  background: rgba(71, 85, 105, 0.95);
+  transform: translateY(-1px);
+}
+
 @media (max-width: 768px) {
   .welcome-row,
   .dashboard-row,
@@ -668,5 +792,23 @@ input:checked + .slider:before {
   .submit-task,
   .cancel-task {
     width: 100%;
+  }
+
+  .delete-modal {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .delete-modal p {
+    font-size: 0.95rem;
+  }
+
+  .update-modal {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .update-modal p {
+    font-size: 0.95rem;
   }
 }
