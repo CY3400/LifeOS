@@ -1,15 +1,15 @@
 package com.charbel.lifeos.dto;
 
 public class AuthResult {
-    private AuthResponse authResponse;
+    private AuthResponse response;
     private String token;
 
     public AuthResponse getResponse(){
-        return authResponse;
+        return response;
     }
 
-    public void setResponse(AuthResponse authResponse) {
-        this.authResponse = authResponse;
+    public void setResponse(AuthResponse response) {
+        this.response = response;
     }
 
     public String getToken(){

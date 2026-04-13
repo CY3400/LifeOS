@@ -4,12 +4,12 @@ import java.util.List;
 
 public class DashboardResponse {
     private List<GoalResponse> goals;
-    private List<DailyTaskResponse> dailyTasks;
+    private List<TaskResponse> tasks;
     private int totalTasks;
     private int completedTasks;
     private double completionRate;
 
-    public List<GoalResponse> getGoals(){
+    public List<GoalResponse> getGoals() {
         return goals;
     }
 
@@ -17,15 +17,15 @@ public class DashboardResponse {
         this.goals = goals;
     }
 
-    public List<DailyTaskResponse> getDailyTasks(){
-        return dailyTasks;
+    public List<TaskResponse> getTasks() {
+        return tasks;
     }
 
-    public void setDailyTasks(List<DailyTaskResponse> dailyTasks) {
-        this.dailyTasks = dailyTasks;
+    public void setTasks(List<TaskResponse> tasks) {
+        this.tasks = tasks;
     }
 
-    public int getTotalTasks(){
+    public int getTotalTasks() {
         return totalTasks;
     }
 
@@ -33,7 +33,7 @@ public class DashboardResponse {
         this.totalTasks = totalTasks;
     }
 
-    public int getCompletedTasks(){
+    public int getCompletedTasks() {
         return completedTasks;
     }
 
@@ -41,7 +41,7 @@ public class DashboardResponse {
         this.completedTasks = completedTasks;
     }
 
-    public double getCompletionRate(){
+    public double getCompletionRate() {
         return completionRate;
     }
 

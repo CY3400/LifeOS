@@ -8,29 +8,26 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.charbel.lifeos.dto.DashboardResponse;
 import com.charbel.lifeos.entity.User;
-import com.charbel.lifeos.entity.UserPrincipal;
+import com.charbel.lifeos.service.CurrentUserService;
 import com.charbel.lifeos.service.DashboardService;
 
 @RestController
 @RequestMapping("/api/dashboard")
 public class DashboardController {
     private final DashboardService dashboardService;
+    private final CurrentUserService currentUserService;
 
-    public DashboardController(DashboardService dashboardService) {
+    public DashboardController(DashboardService dashboardService, CurrentUserService currentUserService) {
         this.dashboardService = dashboardService;
-    }
-
-    private User getUserByAuthentication(Authentication auth) {
-        UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
-        return principal.getUser();
+        this.currentUserService = currentUserService;
     }
 
     @GetMapping("/today")
     public ResponseEntity<DashboardResponse> getTodayDashboardForUser(Authentication auth) {
-        User user = getUserByAuthentication(auth);
+        User user = currentUserService.getCurrentUser(auth);
 
-        DashboardResponse dr = dashboardService.getTodayDashboardForUser(user);
+        DashboardResponse response = dashboardService.getDashboardForUser(user);
 
-        return ResponseEntity.ok(dr);
+        return ResponseEntity.ok(response);
     }
 }

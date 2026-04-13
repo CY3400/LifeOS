@@ -1,0 +1,49 @@
+package com.charbel.lifeos.dto;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+import jakarta.validation.constraints.NotNull;
+
+public class CreateTaskScheduleRequest {
+    @NotNull(message = "La tâche est obligatoire")
+    private Long taskId;
+
+    @NotNull(message = "La date est obligatoire")
+    private LocalDate taskDate;
+
+    private LocalTime startTime;
+    private LocalTime endTime;
+
+    public Long getTaskId() {
+        return taskId;
+    }
+
+    public void setTaskId(Long taskId) {
+        this.taskId = taskId;
+    }
+
+    public LocalDate getTaskDate() {
+        return taskDate;
+    }
+
+    public void setTaskDate(LocalDate taskDate) {
+        this.taskDate = taskDate;
+    }
+
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalTime endTime) {
+        this.endTime = endTime;
+    }
+}

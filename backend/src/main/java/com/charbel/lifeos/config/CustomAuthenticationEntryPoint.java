@@ -19,12 +19,15 @@ public class CustomAuthenticationEntryPoint implements AuthenticationEntryPoint 
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
 
-        response.getWriter().write("""
-                {
-                    "status": 401,
-                    "error": "Unauthorized",
-                    "message": "Authentification requise"
-                }
-                """);
+        String body = """
+                        {
+                            "timestamp": "%s",
+                            "status": 401,
+                            "error": "Unauthorized",
+                            "message": "Authentification requise"
+                        }
+                        """.formatted(java.time.OffsetDateTime.now());
+
+        response.getWriter().write(body);
     }
 }
