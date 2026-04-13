@@ -18,13 +18,7 @@ public interface TaskScheduleRepository extends JpaRepository<TaskSchedule, Long
 
     List<TaskSchedule> findByTaskUserIdAndTaskDateOrderByStartTime(Long userId, LocalDate taskDate);
 
-    List<TaskSchedule> findByTaskIdAndTaskDateOrderByStartTime(Long taskId, LocalDate taskDate);
-
     boolean existsByTaskIdAndTaskDateAndStartTimeAndEndTime(Long taskId, LocalDate taskDate, LocalTime startTime, LocalTime endTime);
 
-    List<TaskSchedule> findByTaskUserIdAndSeriesId(Long userId, String seriesId);
-
     List<TaskSchedule> findByTaskUserIdAndSeriesIdAndTaskDateGreaterThanEqual(Long userId, String seriesId, LocalDate taskDate);
-
-    List<TaskSchedule> findByTaskUserIdAndSeriesIdAndTaskDateLessThanEqual(Long userId, String seriesId, LocalDate taskDate);
 }

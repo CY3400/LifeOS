@@ -11,6 +11,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.charbel.lifeos.exception.BadRequestException;
 import com.charbel.lifeos.service.JwtService;
 import com.charbel.lifeos.service.MyUserDetailsService;
 
@@ -53,7 +54,7 @@ public class JwtFilter extends OncePerRequestFilter {
                     }
                 }
             }
-            catch (IllegalArgumentException ex) {
+            catch (BadRequestException ex) {
                 SecurityContextHolder.clearContext();
             }
         }

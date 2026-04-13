@@ -13,30 +13,32 @@ import org.springframework.web.bind.annotation.RestController;
 import com.charbel.lifeos.dto.AuthResponse;
 import com.charbel.lifeos.dto.AuthResult;
 import com.charbel.lifeos.dto.LoginRequest;
+import com.charbel.lifeos.dto.MeResponse;
 import com.charbel.lifeos.dto.RegisterRequest;
+import com.charbel.lifeos.dto.VerifyRequest;
 import com.charbel.lifeos.entity.User;
-import com.charbel.lifeos.entity.UserPrincipal;
 import com.charbel.lifeos.service.AuthService;
+import com.charbel.lifeos.service.CurrentUserService;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService authService;
     private static final int COOKIE_AGE_SECONDS = 86400;
+    private final CurrentUserService currentUserService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, CurrentUserService currentUserService) {
         this.authService = authService;
+        this.currentUserService = currentUserService;
     }
 
     private void setCookie(HttpServletResponse response, String value, int maxAgeSeconds) {
         ResponseCookie cookie = ResponseCookie.from("jwt_token", value == null ? "" : value)
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)
                 .path("/")
                 .maxAge(maxAgeSeconds)
                 .sameSite("Lax")
@@ -68,30 +70,29 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public void logout(HttpServletResponse response) {
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
         setCookie(response, null, 0);
-        response.setStatus(HttpServletResponse.SC_OK);
+
+        return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/verify")
-    public boolean verify(@RequestBody String email) {
-        return authService.verify(email);
+    public ResponseEntity<Boolean> verify(@Valid @RequestBody VerifyRequest res) {
+        Boolean response = authService.verify(res.getEmail());
+
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/me")
-    public ResponseEntity<?> me(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body(Map.of("message", "Non authentifié"));
-        }
+    public ResponseEntity<MeResponse> me(Authentication authentication) {
+        User user = currentUserService.getCurrentUser(authentication);
 
-        Object principal = authentication.getPrincipal();
+        MeResponse response = new MeResponse();
 
-        if (!(principal instanceof UserPrincipal userPrincipal)) {
-            return ResponseEntity.status(HttpServletResponse.SC_UNAUTHORIZED).body(Map.of("message", "Non authentifié"));
-        }
+        response.setEmail(user.getEmail());
+        response.setRole(user.getRole());
+        response.setUserId(user.getId());
 
-        User user = userPrincipal.getUser();
-
-        return ResponseEntity.ok(Map.of("userId", user.getId(), "email", user.getEmail(), "role", user.getRole()));
+        return ResponseEntity.ok(response);
     }
 }

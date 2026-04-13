@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.charbel.lifeos.entity.Task;
 import com.charbel.lifeos.entity.TaskSchedule;
 import com.charbel.lifeos.entity.User;
+import com.charbel.lifeos.exception.BadRequestException;
 import com.charbel.lifeos.exception.ResourceNotFoundException;
 import com.charbel.lifeos.repository.TaskRepository;
 import com.charbel.lifeos.repository.TaskScheduleRepository;
@@ -27,37 +28,52 @@ public class TaskScheduleService {
         this.taskRepository = taskRepository;
     }
 
+    private void validateUser(User user) {
+        if(user == null) {
+            throw new BadRequestException("Utilisateur requis");
+        }
+    }
+
+    private void validateScheduleId(Long id) {
+        if(id == null) {
+            throw new BadRequestException("Identifiant requis");
+        }
+    }
+
+    private void validateTaskDate(LocalDate taskDate) {
+        if (taskDate == null) {
+            throw new BadRequestException("Date requise");
+        }
+    }
+
     private Task resolveTaskForUser(Long taskId, User user) {
         if (taskId == null) {
-            throw new IllegalArgumentException("La tâche est obligatoire");
+            throw new BadRequestException("La tâche est obligatoire");
         }
 
-        if (user == null) {
-            throw new IllegalArgumentException("Utilisateur requis");
-        }
+        validateUser(user);
 
-        return taskRepository.findByIdAndUserId(taskId, user.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Tâche introuvable"));
+        return taskRepository.findByIdAndUserId(taskId, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Tâche introuvable"));
+    }
+
+    private TaskSchedule resolveTaskScheduleForUser(Long id, Long userId) {
+        return taskScheduleRepository.findByIdAndTaskUserId(id, userId).orElseThrow(() -> new ResourceNotFoundException("Planning introuvable"));
     }
 
     private void validateTaskTimes(LocalTime startTime, LocalTime endTime) {
         if (startTime == null && endTime != null) {
-            throw new IllegalArgumentException("L'heure de fin ne peut pas être renseignée sans heure de début");
+            throw new BadRequestException("L'heure de fin ne peut pas être renseignée sans heure de début");
         }
 
         if (startTime != null && endTime != null && !endTime.isAfter(startTime)) {
-            throw new IllegalArgumentException("L'heure de fin doit être après l'heure de début");
+            throw new BadRequestException("L'heure de fin doit être après l'heure de début");
         }
     }
 
     public TaskSchedule createTaskSchedule(User user, Long taskId, LocalDate taskDate, LocalTime startTime, LocalTime endTime) {
-        if (user == null) {
-            throw new IllegalArgumentException("Utilisateur requis");
-        }
+        validateUser(user);
 
-        if (taskDate == null) {
-            throw new IllegalArgumentException("Date requise");
-        }
+        validateTaskDate(taskDate);
 
         validateTaskTimes(startTime, endTime);
 
@@ -73,22 +89,15 @@ public class TaskScheduleService {
     }
 
     public TaskSchedule updateTaskSchedule(Long id, User user, Long taskId, LocalDate taskDate, LocalTime startTime, LocalTime endTime) {
-        if (user == null) {
-            throw new IllegalArgumentException("Utilisateur requis");
-        }
+        validateUser(user);
 
-        if (id == null) {
-            throw new IllegalArgumentException("Identifiant requis");
-        }
+        validateScheduleId(id);
 
-        if (taskDate == null) {
-            throw new IllegalArgumentException("Date requise");
-        }
+        validateTaskDate(taskDate);
 
         validateTaskTimes(startTime, endTime);
 
-        TaskSchedule existing = taskScheduleRepository.findByIdAndTaskUserId(id, user.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Planning introuvable"));
+        TaskSchedule existing = resolveTaskScheduleForUser(id, user.getId());
 
         Task task = resolveTaskForUser(taskId, user);
 
@@ -103,26 +112,20 @@ public class TaskScheduleService {
             return taskScheduleRepository.save(existing);
         }
         else {
-            throw new IllegalArgumentException("Il n'est plus possible de modifier une tâche passée");
+            throw new BadRequestException("Il n'est plus possible de modifier une tâche passée");
         }
     }
 
-    public void updateTaskScheduleAndTheFollowing(Long id, User user, Long taskId, LocalDate taskDate, LocalTime startTime, LocalTime endTime) {
-        if (user == null) {
-            throw new IllegalArgumentException("Utilisateur requis");
-        }
+    public void updateTaskScheduleAndFollowing(Long id, User user, Long taskId, LocalDate taskDate, LocalTime startTime, LocalTime endTime) {
+        validateUser(user);
 
-        if (id == null) {
-            throw new IllegalArgumentException("Identifiant requis");
-        }
+        validateScheduleId(id);
 
-        if (taskDate == null) {
-            throw new IllegalArgumentException("Date requise");
-        }
+        validateTaskDate(taskDate);
 
         validateTaskTimes(startTime, endTime);
 
-        TaskSchedule existing = taskScheduleRepository.findByIdAndTaskUserId(id, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Planning introuvable"));
+        TaskSchedule existing = resolveTaskScheduleForUser(id, user.getId());
 
         Task task = resolveTaskForUser(taskId, user);
 
@@ -134,7 +137,7 @@ public class TaskScheduleService {
         }
 
         if (existing.getTaskDate().isBefore(today)) {
-            throw new IllegalArgumentException("Il n'est plus possible de modifier une ou plusieurs tâches passées");
+            throw new BadRequestException("Il n'est plus possible de modifier une ou plusieurs tâches passées");
         }
 
         List<TaskSchedule> repeatTasks = taskScheduleRepository.findByTaskUserIdAndSeriesIdAndTaskDateGreaterThanEqual(user.getId(), existing.getSeriesId(), existing.getTaskDate());
@@ -144,7 +147,7 @@ public class TaskScheduleService {
         for(TaskSchedule rt : repeatTasks) {
             LocalDate newDate = rt.getTaskDate().plusDays(deltaDays);
             if(newDate.isBefore(today)) {
-                throw new IllegalArgumentException("La modification déplacerait une ou plusieurs tâches dans le passé");
+                throw new BadRequestException("La modification déplacerait une ou plusieurs tâches dans le passé");
             }
             rt.setTask(task);
             rt.setTaskDate(newDate);
@@ -156,20 +159,15 @@ public class TaskScheduleService {
     }
 
     public TaskSchedule completeTaskSchedule(Long id, User user, Boolean completed) {
-        if (user == null) {
-            throw new IllegalArgumentException("Utilisateur requis");
-        }
+        validateUser(user);
 
-        if (id == null) {
-            throw new IllegalArgumentException("Identifiant requis");
-        }
+        validateScheduleId(id);
 
         if (completed == null) {
-            throw new IllegalArgumentException("Le statut completed est requis");
+            throw new BadRequestException("Le statut completed est requis");
         }
 
-        TaskSchedule existing = taskScheduleRepository.findByIdAndTaskUserId(id, user.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Planning introuvable"));
+        TaskSchedule existing = resolveTaskScheduleForUser(id, user.getId());
 
         existing.setCompleted(completed);
 
@@ -177,16 +175,11 @@ public class TaskScheduleService {
     }
 
     public void deleteTaskSchedule(Long id, User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("Utilisateur requis");
-        }
+        validateUser(user);
 
-        if (id == null) {
-            throw new IllegalArgumentException("Identifiant requis");
-        }
+        validateScheduleId(id);
 
-        TaskSchedule existing = taskScheduleRepository.findByIdAndTaskUserId(id, user.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Planning introuvable"));
+        TaskSchedule existing = resolveTaskScheduleForUser(id, user.getId());
 
         LocalDate today = LocalDate.now();
 
@@ -194,20 +187,16 @@ public class TaskScheduleService {
             taskScheduleRepository.delete(existing);
         }
         else {
-            throw new IllegalArgumentException("Il n'est plus possible de supprimer une tâche passée");
+            throw new BadRequestException("Il n'est plus possible de supprimer une tâche passée");
         }
     }
 
-    public void deleteTaskScheduleAndTheFollowing(Long id, User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("Utilisateur requis");
-        }
+    public void deleteTaskScheduleAndFollowing(Long id, User user) {
+        validateUser(user);
 
-        if (id == null) {
-            throw new IllegalArgumentException("Identifiant requis");
-        }
+        validateScheduleId(id);
 
-        TaskSchedule existing = taskScheduleRepository.findByIdAndTaskUserId(id, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Planning introuvable"));
+        TaskSchedule existing = resolveTaskScheduleForUser(id, user.getId());
         LocalDate today = LocalDate.now();
 
         if(existing.getSeriesId() == null) {
@@ -219,72 +208,57 @@ public class TaskScheduleService {
             taskScheduleRepository.deleteAll(repeatTasks);
         }
         else {
-            throw new IllegalArgumentException("Il n'est plus possible de supprimer une ou plusieurs tâches passées");
+            throw new BadRequestException("Il n'est plus possible de supprimer une ou plusieurs tâches passées");
         }
     }
 
     @Transactional(readOnly = true)
     public List<TaskSchedule> getTaskSchedulesForUser(User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("Utilisateur requis");
-        }
+        validateUser(user);
 
         return taskScheduleRepository.findByTaskUserId(user.getId());
     }
 
     @Transactional(readOnly = true)
     public TaskSchedule getTaskScheduleByIdForUser(User user, Long id) {
-        if (user == null) {
-            throw new IllegalArgumentException("Utilisateur requis");
-        }
+        validateUser(user);
 
-        if (id == null) {
-            throw new IllegalArgumentException("Identifiant requis");
-        }
+        validateScheduleId(id);
 
-        return taskScheduleRepository.findByIdAndTaskUserId(id, user.getId())
-                .orElseThrow(() -> new ResourceNotFoundException("Planning introuvable"));
+        return resolveTaskScheduleForUser(id, user.getId());
     }
 
     @Transactional(readOnly = true)
-    public List<TaskSchedule> getTaskSchedulesByTaskDateForUser(User user, LocalDate taskDate) {
-        if (user == null) {
-            throw new IllegalArgumentException("Utilisateur requis");
-        }
+    public List<TaskSchedule> getTaskSchedulesByDateForUser(User user, LocalDate taskDate) {
+        validateUser(user);
 
-        if (taskDate == null) {
-            throw new IllegalArgumentException("Date requise");
-        }
+        validateTaskDate(taskDate);
 
         return taskScheduleRepository.findByTaskUserIdAndTaskDateOrderByStartTime(user.getId(), taskDate);
     }
 
     @Transactional(readOnly = true)
-    public List<TaskSchedule> getTaskSchedulesForTask(User user, Long taskId) {
-        if (user == null) {
-            throw new IllegalArgumentException("Utilisateur requis");
-        }
+    public List<TaskSchedule> getTaskSchedulesByTaskIdForUser(User user, Long taskId) {
+        validateUser(user);
 
         Task task = resolveTaskForUser(taskId, user);
 
         return taskScheduleRepository.findByTaskId(task.getId());
     }
 
-    public List<TaskSchedule> createRepeatTaskSchedule(User user, Long taskId, LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime, List<Integer> daysChosen) {
-        if (user == null) {
-            throw new IllegalArgumentException("Utilisateur requis");
-        }
+    public List<TaskSchedule> createRepeatedTaskSchedules(User user, Long taskId, LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime, List<Integer> daysChosen) {
+        validateUser(user);
 
         if (startDate == null) {
-            throw new IllegalArgumentException("Date de début requise");
+            throw new BadRequestException("Date de début requise");
         }
 
         if (endDate == null) {
-            throw new IllegalArgumentException("Date de fin requise");
+            throw new BadRequestException("Date de fin requise");
         }
 
         if (daysChosen == null || daysChosen.isEmpty()) {
-            throw new IllegalArgumentException("Les jours de répétition sont obligatoires");
+            throw new BadRequestException("Les jours de répétition sont obligatoires");
         }
 
         validateTaskTimes(startTime, endTime);
@@ -293,12 +267,12 @@ public class TaskScheduleService {
 
         for (Integer day : daysChosen) {
             if (day < 1 || day > 7) {
-                throw new IllegalArgumentException("Les jours de répétition doivent être compris entre 1 (lundi) et 7 (dimanche)");
+                throw new BadRequestException("Les jours de répétition doivent être compris entre 1 (lundi) et 7 (dimanche)");
             }
         }
 
         if(endDate.isBefore(startDate)) {
-            throw new IllegalArgumentException("La date de fin doit être après ou égale à la date de début");
+            throw new BadRequestException("La date de fin doit être après ou égale à la date de début");
         }
 
         List<TaskSchedule> createdSchedules = new java.util.ArrayList<>();

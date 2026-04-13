@@ -19,7 +19,8 @@ import com.charbel.lifeos.dto.TaskResponse;
 import com.charbel.lifeos.dto.UpdateTaskRequest;
 import com.charbel.lifeos.entity.Task;
 import com.charbel.lifeos.entity.User;
-import com.charbel.lifeos.entity.UserPrincipal;
+import com.charbel.lifeos.mapper.TaskMapper;
+import com.charbel.lifeos.service.CurrentUserService;
 import com.charbel.lifeos.service.TaskService;
 
 import jakarta.validation.Valid;
@@ -28,64 +29,54 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/tasks")
 public class TaskController {
     private final TaskService taskService;
+    private final CurrentUserService currentUserService;
+    private final TaskMapper taskMapper;
 
-    public TaskController(TaskService taskService) {
+    public TaskController(TaskService taskService, CurrentUserService currentUserService, TaskMapper taskMapper) {
         this.taskService = taskService;
-    }
-
-    private TaskResponse toResponse(Task task) {
-        TaskResponse response = new TaskResponse();
-        response.setId(task.getId());
-        response.setTitle(task.getTitle());
-        response.setGoalId(task.getGoal() != null ? task.getGoal().getId() : null);
-
-        return response;
-    }
-
-    private User getUserByAuthentication(Authentication auth) {
-        UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
-        return principal.getUser();
+        this.currentUserService = currentUserService;
+        this.taskMapper = taskMapper;
     }
 
     @PostMapping
     public ResponseEntity<TaskResponse> create(@Valid @RequestBody CreateTaskRequest req, Authentication auth) {
-        User user = getUserByAuthentication(auth);
+        User user = currentUserService.getCurrentUser(auth);
         
         Task created = taskService.createTask(user, req.getTitle(), req.getGoalId());
 
-        return ResponseEntity.status(201).body(toResponse(created));
+        return ResponseEntity.status(201).body(taskMapper.toResponse(created));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<TaskResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateTaskRequest req, Authentication auth) {
-        User user = getUserByAuthentication(auth);
+        User user = currentUserService.getCurrentUser(auth);
         
         Task updated = taskService.updateTask(id, user, req.getTitle(), req.getGoalId());
 
-        return ResponseEntity.ok(toResponse(updated));
+        return ResponseEntity.ok(taskMapper.toResponse(updated));
     }
 
     @GetMapping
     public ResponseEntity<List<TaskResponse>> getTasks(Authentication auth) {
-        User user = getUserByAuthentication(auth);
+        User user = currentUserService.getCurrentUser(auth);
 
-        List<TaskResponse> tasks = taskService.getTasksForUser(user).stream().map(this::toResponse).toList();
+        List<TaskResponse> tasks = taskService.getTasksForUser(user).stream().map(taskMapper::toResponse).toList();
 
         return ResponseEntity.ok(tasks);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<TaskResponse> getTaskById(@PathVariable Long id, Authentication auth) {
-        User user = getUserByAuthentication(auth);
+        User user = currentUserService.getCurrentUser(auth);
 
         Task task = taskService.getTaskByIdForUser(user, id);
 
-        return ResponseEntity.ok(toResponse(task));
+        return ResponseEntity.ok(taskMapper.toResponse(task));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, Authentication auth) {
-        User user = getUserByAuthentication(auth);
+        User user = currentUserService.getCurrentUser(auth);
 
         taskService.deleteTask(id, user);
 

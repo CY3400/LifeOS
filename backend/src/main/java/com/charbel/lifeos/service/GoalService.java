@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.charbel.lifeos.entity.Goal;
 import com.charbel.lifeos.entity.User;
+import com.charbel.lifeos.exception.BadRequestException;
 import com.charbel.lifeos.exception.ResourceNotFoundException;
 import com.charbel.lifeos.repository.GoalRepository;
 
@@ -19,14 +20,32 @@ public class GoalService {
         this.goalRepository = goalRepository;
     }
 
-    public Goal createGoal(User user, String title) {
+    private void validateUser(User user) {
         if(user == null) {
-            throw new IllegalArgumentException("Utilisateur requis");
+            throw new BadRequestException("Utilisateur requis");
         }
+    }
 
-        if(title == null || title.isBlank()) {
-            throw new IllegalArgumentException("Titre requis");
+    private void validateGoalId(Long id) {
+        if(id == null) {
+            throw new BadRequestException("Identifiant requis");
         }
+    }
+
+    private void validateTitle(String title) {
+        if(title == null || title.isBlank()) {
+            throw new BadRequestException("Titre requis");
+        }
+    }
+
+    private Goal resolveGoalForUser(Long id, Long userId) {
+        return goalRepository.findByIdAndUserId(id, userId).orElseThrow(() -> new ResourceNotFoundException("Objectif introuvable"));
+    }
+
+    public Goal createGoal(User user, String title) {
+        validateUser(user);
+
+        validateTitle(title);
 
         Goal g = new Goal();
         g.setUser(user);
@@ -36,19 +55,13 @@ public class GoalService {
     }
 
     public Goal updateGoal(Long id, User user, String title) {
-        if(user == null) {
-            throw new IllegalArgumentException("Utilisateur requis");
-        }
+        validateUser(user);
 
-        if(title == null || title.isBlank()) {
-            throw new IllegalArgumentException("Titre requis");
-        }
+        validateTitle(title);
 
-        if(id == null) {
-            throw new IllegalArgumentException("Identifiant requis");
-        }
+        validateGoalId(id);
 
-        Goal existing = goalRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Objectif introuvable"));
+        Goal existing = resolveGoalForUser(id, user.getId());
 
         existing.setTitle(title);
 
@@ -56,38 +69,28 @@ public class GoalService {
     }
 
     public void deleteGoal(Long id, User user) {
-        if(user == null) {
-            throw new IllegalArgumentException("Utilisateur requis");
-        }
+        validateUser(user);
 
-        if(id == null) {
-            throw new IllegalArgumentException("Identifiant requis");
-        }
+        validateGoalId(id);
 
-        Goal existing = goalRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Objectif introuvable"));
+        Goal existing = resolveGoalForUser(id, user.getId());
 
         goalRepository.delete(existing);
     }
 
     @Transactional(readOnly = true)
     public List<Goal> getGoalsForUser(User user) {
-        if(user == null) {
-            throw new IllegalArgumentException("Utilisateur requis");
-        }
+        validateUser(user);
 
         return goalRepository.findByUserId(user.getId());
     }
 
     @Transactional(readOnly = true)
     public Goal getGoalByIdForUser(User user, Long id) {
-        if(user == null) {
-            throw new IllegalArgumentException("Utilisateur requis");
-        }
+        validateUser(user);
 
-        if(id == null) {
-            throw new IllegalArgumentException("Identifiant requis");
-        }
+        validateGoalId(id);
 
-        return goalRepository.findByIdAndUserId(id, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Objectif introuvable"));
+        return resolveGoalForUser(id, user.getId());
     }
 }

@@ -18,7 +18,8 @@ import com.charbel.lifeos.dto.GoalResponse;
 import com.charbel.lifeos.dto.UpdateGoalRequest;
 import com.charbel.lifeos.entity.Goal;
 import com.charbel.lifeos.entity.User;
-import com.charbel.lifeos.entity.UserPrincipal;
+import com.charbel.lifeos.mapper.GoalMapper;
+import com.charbel.lifeos.service.CurrentUserService;
 import com.charbel.lifeos.service.GoalService;
 
 import jakarta.validation.Valid;
@@ -27,63 +28,54 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/goals")
 public class GoalController {
     private final GoalService goalService;
+    private final CurrentUserService currentUserService;
+    private final GoalMapper goalMapper;
 
-    public GoalController(GoalService goalService) {
+    public GoalController(GoalService goalService, CurrentUserService currentUserService, GoalMapper goalMapper) {
         this.goalService = goalService;
+        this.currentUserService = currentUserService;
+        this.goalMapper = goalMapper;
     }
-
-    private GoalResponse toResponse(Goal goal) {
-        GoalResponse response = new GoalResponse();
-        response.setId(goal.getId());
-        response.setTitle(goal.getTitle());
-        return response;
-    }
-
-    private User getUserByAuthentication(Authentication auth) {
-        UserPrincipal principal = (UserPrincipal) auth.getPrincipal();
-        return principal.getUser();
-    }
-
 
     @PostMapping
     public ResponseEntity<GoalResponse> create(@Valid @RequestBody CreateGoalRequest req, Authentication auth) {
-        User user = getUserByAuthentication(auth);
+        User user = currentUserService.getCurrentUser(auth);
         
         Goal created = goalService.createGoal(user, req.getTitle());
 
-        return ResponseEntity.status(201).body(toResponse(created));
+        return ResponseEntity.status(201).body(goalMapper.toResponse(created));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<GoalResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateGoalRequest req, Authentication auth) {
-        User user = getUserByAuthentication(auth);
+        User user = currentUserService.getCurrentUser(auth);
         
         Goal updated = goalService.updateGoal(id, user, req.getTitle());
 
-        return ResponseEntity.ok(toResponse(updated));
+        return ResponseEntity.ok(goalMapper.toResponse(updated));
     }
 
     @GetMapping
     public ResponseEntity<List<GoalResponse>> getGoals(Authentication auth) {
-        User user = getUserByAuthentication(auth);
+        User user = currentUserService.getCurrentUser(auth);
 
-        List<GoalResponse> goals = goalService.getGoalsForUser(user).stream().map(this::toResponse).toList();
+        List<GoalResponse> goals = goalService.getGoalsForUser(user).stream().map(goalMapper::toResponse).toList();
 
         return ResponseEntity.ok(goals);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<GoalResponse> getGoalById(@PathVariable Long id, Authentication auth) {
-        User user = getUserByAuthentication(auth);
+        User user = currentUserService.getCurrentUser(auth);
 
         Goal goal = goalService.getGoalByIdForUser(user, id);
 
-        return ResponseEntity.ok(toResponse(goal));
+        return ResponseEntity.ok(goalMapper.toResponse(goal));
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id, Authentication auth) {
-        User user = getUserByAuthentication(auth);
+        User user = currentUserService.getCurrentUser(auth);
 
         goalService.deleteGoal(id, user);
 
