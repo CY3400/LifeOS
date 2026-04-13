@@ -1,0 +1,22 @@
+<header class="header">
+  <a class="brand" routerLink="/accueil" aria-label="Aller à l'accueil">
+    <img src="/icon.png" alt="LifeOS" />
+    <span class="brand-text">LifeOS</span>
+  </a>
+
+  <button #burgerBtn class="nav-toggle" type="button" aria-label="Ouvrir le menu" [attr.aria-expanded]="isMenuOpen" aria-controls="primary-nav" (click)="toggleMenu()">
+    <svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true">
+      <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+    </svg>
+  </button>
+
+  <nav class="nav" [class.open]="isMenuOpen" id="primary-nav" aria-label="Navigation principale">
+    <ul class="nav-links">
+      <li><a routerLink="/accueil" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu(false)">Accueil</a></li>
+    </ul>
+  </nav>
+</header>
+
+@if(isMenuOpen){
+  <div class="nav-overlay" (click)="closeMenu(true)" aria-hidden="true"></div>
+}

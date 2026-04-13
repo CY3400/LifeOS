@@ -1,6 +1,8 @@
 package com.charbel.lifeos.service;
 
 import com.charbel.lifeos.config.AppProps;
+import com.charbel.lifeos.exception.AppConfigurationException;
+import com.charbel.lifeos.exception.BadRequestException;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
@@ -41,9 +43,14 @@ public class JwtService {
     }
 
     private void ensureStrongKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(props.getJwt().getSecret());
-        if(keyBytes.length < 32) {
-            throw new IllegalStateException("app.jwt.secret doit être une clé Base64 d'au moins 256 bits (32 octets).");
+        try {
+            byte[] keyBytes = Decoders.BASE64.decode(props.getJwt().getSecret());
+
+            if (keyBytes.length < 32) {
+                throw new AppConfigurationException("app.jwt.secret doit être une clé Base64 d'au moins 256 bits (32 octets).");
+            }
+        } catch (IllegalArgumentException ex) {
+            throw new AppConfigurationException("app.jwt.secret doit être une clé Base64 valide.");
         }
     }
 
@@ -73,7 +80,7 @@ public class JwtService {
             return claimsResolver.apply(claims);
         }
         catch (JwtException | IllegalArgumentException ex) {
-            throw new IllegalArgumentException("JWT invalide: " + ex.getMessage(), ex);
+            throw new BadRequestException("JWT invalide: " + ex.getMessage());
         }
     }
 
@@ -90,7 +97,7 @@ public class JwtService {
             String subject = extractEmail(token);
             return expectedEmail.equalsIgnoreCase(subject) && !isTokenExpired(token);
         }
-        catch (IllegalArgumentException ex) {
+        catch (BadRequestException ex) {
             return false;
         }
     }

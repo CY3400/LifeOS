@@ -19,6 +19,8 @@
   --success: #22C55E;
   --warning: #F59E0B;
   --danger: #EF4444;
+
+  --danger-text: #E53935;
 }
 
 * {
@@ -39,4 +41,12 @@ body {
   background-attachment: fixed;
   color: var(--text-main);
   font-family: Roboto, sans-serif;
+}
+
+.border-danger {
+  border: 1px solid var(--danger);
+}
+
+.text-danger {
+  color: var(--danger-text);
 }

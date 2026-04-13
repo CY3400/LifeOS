@@ -27,6 +27,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(buildMap(ex.getMessage(), 404, "Not Found"));
     }
 
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<Map<String, Object>> handleBadRequests(BadRequestException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(buildMap(ex.getMessage(), 400, "Bad Request"));
+    }
+
+    @ExceptionHandler(AppConfigurationException.class)
+    public ResponseEntity<Map<String, Object>> handleAppConfiguration(AppConfigurationException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(buildMap(ex.getMessage(), 500, "Internal Server Error"));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidationErrors(MethodArgumentNotValidException ex) {
         Map<String, Object> body = new HashMap<>();

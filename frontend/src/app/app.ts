@@ -2,10 +2,11 @@ import { Component, signal } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
+import { Header } from './pages/header/header';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
+  imports: [RouterOutlet, Header],
   templateUrl: './app.html',
   styleUrls: ['./app.scss','../styles.scss'],
   standalone: true

@@ -3,6 +3,8 @@ package com.charbel.lifeos.controller;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -11,8 +13,12 @@ import org.springframework.web.bind.annotation.RestController;
 import com.charbel.lifeos.dto.AuthResponse;
 import com.charbel.lifeos.dto.AuthResult;
 import com.charbel.lifeos.dto.LoginRequest;
+import com.charbel.lifeos.dto.MeResponse;
 import com.charbel.lifeos.dto.RegisterRequest;
+import com.charbel.lifeos.dto.VerifyRequest;
+import com.charbel.lifeos.entity.User;
 import com.charbel.lifeos.service.AuthService;
+import com.charbel.lifeos.service.CurrentUserService;
 
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -22,15 +28,17 @@ import jakarta.validation.Valid;
 public class AuthController {
     private final AuthService authService;
     private static final int COOKIE_AGE_SECONDS = 86400;
+    private final CurrentUserService currentUserService;
 
-    public AuthController(AuthService authService) {
+    public AuthController(AuthService authService, CurrentUserService currentUserService) {
         this.authService = authService;
+        this.currentUserService = currentUserService;
     }
 
     private void setCookie(HttpServletResponse response, String value, int maxAgeSeconds) {
         ResponseCookie cookie = ResponseCookie.from("jwt_token", value == null ? "" : value)
                 .httpOnly(true)
-                .secure(false)
+                .secure(true)
                 .path("/")
                 .maxAge(maxAgeSeconds)
                 .sameSite("Lax")
@@ -62,8 +70,29 @@ public class AuthController {
     }
 
     @PostMapping("/logout")
-    public void logout(HttpServletResponse response) {
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
         setCookie(response, null, 0);
-        response.setStatus(HttpServletResponse.SC_OK);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/verify")
+    public ResponseEntity<Boolean> verify(@Valid @RequestBody VerifyRequest res) {
+        Boolean response = authService.verify(res.getEmail());
+
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<MeResponse> me(Authentication authentication) {
+        User user = currentUserService.getCurrentUser(authentication);
+
+        MeResponse response = new MeResponse();
+
+        response.setEmail(user.getEmail());
+        response.setRole(user.getRole());
+        response.setUserId(user.getId());
+
+        return ResponseEntity.ok(response);
     }
 }
