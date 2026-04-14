@@ -68,17 +68,44 @@ export class Home implements OnInit {
 
     deleteErrors = {
         global: ''
-    }
+    };
 
     updateErrors = {
         global: ''
-    }
+    };
 
     constructor(private api: Api) {}
 
     ngOnInit() {
+        this.refreshHome();
+    }
+
+    refreshHome() {
         this.loadDashboard();
         this.loadTodaySchedules();
+    }
+
+    private resetTaskErrors(): void {
+        this.errors.title = '';
+        this.errors.global = '';
+    }
+
+    private resetScheduleErrors(): void {
+        this.scheduleErrors.taskId = '';
+        this.scheduleErrors.date = '';
+        this.scheduleErrors.endTime = '';
+        this.scheduleErrors.startDate = '';
+        this.scheduleErrors.endDate = '';
+        this.scheduleErrors.daysChosen = '';
+        this.scheduleErrors.global = '';
+    }
+
+    private resetDeleteErrors(): void {
+        this.deleteErrors.global = '';
+    }
+
+    private resetUpdateErrors(): void {
+        this.updateErrors.global = '';
     }
 
     hasErrors(): boolean {
@@ -134,8 +161,7 @@ export class Home implements OnInit {
 
     openModal(isModalOpen: boolean): void {
         this.isTaskModalOpen = isModalOpen;
-        this.errors.global = '';
-        this.errors.title = '';
+        this.resetTaskErrors();
         this.taskTitle = '';
         this.selectedGoalId = null;
         this.modifyTaskId = null;
@@ -143,7 +169,7 @@ export class Home implements OnInit {
 
     openUpdateModal(isUpdateModalOpen: boolean, scheduleId: number): void {
         this.isUpdateModalOpen = isUpdateModalOpen;
-        this.updateErrors.global = '';
+        this.resetUpdateErrors();
         if(!isUpdateModalOpen) {
             this.selectedScheduleId = 0;
         }
@@ -154,7 +180,7 @@ export class Home implements OnInit {
 
     openDeleteModal(isDeleteModalOpen: boolean, scheduleId: number): void {
         this.isDeleteModalOpen = isDeleteModalOpen;
-        this.deleteErrors.global = '';
+        this.resetDeleteErrors();
         if(!isDeleteModalOpen) {
             this.selectedScheduleId = 0;
         }
@@ -165,10 +191,7 @@ export class Home implements OnInit {
 
     openScheduleModal(isOpen: boolean): void {
         this.isScheduleModalOpen = isOpen;
-        this.scheduleErrors.taskId = '';
-        this.scheduleErrors.date = '';
-        this.scheduleErrors.endTime = '';
-        this.scheduleErrors.global = '';
+        this.resetScheduleErrors();
         this.selectedTaskId = null;
         this.scheduleDate = this.todayString();
         this.scheduleStartTime = '';
@@ -178,9 +201,6 @@ export class Home implements OnInit {
         this.startDate = '';
         this.endDate = '';
         this.daysChosen = [];
-        this.scheduleErrors.startDate = '';
-        this.scheduleErrors.endDate = '';
-        this.scheduleErrors.daysChosen = '';
     }
 
     loadDashboard() {
@@ -263,7 +283,7 @@ export class Home implements OnInit {
     deleteTask(id: number): void {
         this.api.deleteTask(id).subscribe({
             next: () => {
-                this.loadDashboard();
+                this.refreshHome();
             },
             error: () => {
                 console.error("Error lors de la suppression de la tâche");
@@ -275,8 +295,7 @@ export class Home implements OnInit {
         const title = this.taskTitle.trim();
         const goalId = this.selectedGoalId !== '' && this.selectedGoalId ? parseInt(this.selectedGoalId, 10) : null;
 
-        this.errors.title = '';
-        this.errors.global = '';
+        this.resetTaskErrors();
 
         if (title === '') {
             this.errors.title = "Le titre ne peut pas être vide";
@@ -288,7 +307,7 @@ export class Home implements OnInit {
         if (this.modifyTaskId) {
             this.api.updateTask(this.modifyTaskId, title, goalId).pipe(finalize(() => {this.taskSubmit = false; this.modifyTaskId = null;})).subscribe({
                 next: () => {
-                    this.loadDashboard();
+                    this.refreshHome();
                     this.taskTitle = '';
                     this.selectedGoalId = null;
                     this.isTaskModalOpen = false;
@@ -302,7 +321,7 @@ export class Home implements OnInit {
         else {
             this.api.createTask(title, goalId).pipe(finalize(() => { this.taskSubmit = false; })).subscribe({
                 next: () => {
-                    this.loadDashboard();
+                    this.refreshHome();
                     this.taskTitle = '';
                     this.selectedGoalId = null;
                     this.isTaskModalOpen = false;
@@ -329,17 +348,11 @@ export class Home implements OnInit {
         this.scheduleDate = schedule.taskDate;
         this.scheduleStartTime = schedule.startTime || '';
         this.scheduleEndTime = schedule.endTime || '';
-        this.scheduleErrors.taskId = '';
-        this.scheduleErrors.date = '';
-        this.scheduleErrors.endTime = '';
-        this.scheduleErrors.global = '';
         this.repeatSchedule = false;
         this.startDate = '';
         this.endDate = '';
         this.daysChosen = [];
-        this.scheduleErrors.startDate = '';
-        this.scheduleErrors.endDate = '';
-        this.scheduleErrors.daysChosen = '';
+        this.resetScheduleErrors();
     }
 
     submitSchedule(): void {
@@ -350,13 +363,7 @@ export class Home implements OnInit {
 
         let isValid = true;
 
-        this.scheduleErrors.taskId = '';
-        this.scheduleErrors.date = '';
-        this.scheduleErrors.endTime = '';
-        this.scheduleErrors.global = '';
-        this.scheduleErrors.startDate = '';
-        this.scheduleErrors.endDate = '';
-        this.scheduleErrors.daysChosen = '';
+        this.resetScheduleErrors();
 
         if (!taskId) {
             this.scheduleErrors.taskId = "La tâche est obligatoire";
@@ -411,8 +418,7 @@ export class Home implements OnInit {
         else if (!this.repeatSchedule) {
             this.api.createTaskSchedule(taskId!, taskDate, startTime, endTime).pipe(finalize(() => { this.scheduleSubmit = false; })).subscribe({
                 next: () => {
-                    this.loadDashboard();
-                    this.loadTodaySchedules();
+                    this.refreshHome();
                     this.isScheduleModalOpen = false;
                 },
                 error: () => {
@@ -426,8 +432,7 @@ export class Home implements OnInit {
             const daysChosen = this.daysChosen;
             this.api.repeatTaskSchedules(taskId!, startDate, endDate, startTime, endTime, daysChosen).pipe(finalize(() => { this.scheduleSubmit = false; this.repeatSchedule = false; })).subscribe({
                 next: () => {
-                    this.loadDashboard();
-                    this.loadTodaySchedules();
+                    this.refreshHome();
                     this.isScheduleModalOpen = false;
                 },
                 error: () => {
@@ -443,7 +448,7 @@ export class Home implements OnInit {
         const startTime = this.scheduleStartTime || null;
         const endTime = this.scheduleEndTime || null;
 
-        this.updateErrors.global = '';
+        this.resetUpdateErrors();
 
         if (!id || !taskId) {
             this.updateErrors.global = "Une erreur s'est produite lors de la modification du planning.";
@@ -452,8 +457,7 @@ export class Home implements OnInit {
 
         this.api.updateTaskSchedule(id, taskId, taskDate, startTime, endTime).subscribe({
             next: () => {
-                this.loadDashboard();
-                this.loadTodaySchedules();
+                this.refreshHome();
                 this.isUpdateModalOpen = false;
                 this.selectedScheduleId = 0;
                 this.modifyScheduleId = null;
@@ -467,10 +471,11 @@ export class Home implements OnInit {
 
     deleteSchedule(id: number): void {
         if(id != 0) {
+            this.resetDeleteErrors();
+
             this.api.deleteTaskSchedule(id).subscribe({
                 next: () => {
-                    this.loadDashboard();
-                    this.loadTodaySchedules();
+                    this.refreshHome();
                     this.isDeleteModalOpen = false;
                     this.selectedScheduleId = 0;
                 },
@@ -487,10 +492,11 @@ export class Home implements OnInit {
 
     deleteScheduleFollowing(id: number): void {
         if(id != 0) {
+            this.resetDeleteErrors();
+
             this.api.deleteFollowing(id).subscribe({
                 next: () => {
-                    this.loadDashboard();
-                    this.loadTodaySchedules();
+                    this.refreshHome();
                     this.isDeleteModalOpen = false;
                     this.selectedScheduleId = 0;
                 },
@@ -511,7 +517,7 @@ export class Home implements OnInit {
         const startTime = this.scheduleStartTime || null;
         const endTime = this.scheduleEndTime || null;
 
-        this.updateErrors.global = '';
+        this.resetUpdateErrors();
 
         if (!id || !taskId) {
             this.updateErrors.global = "Une erreur s'est produite lors de la modification du planning.";
@@ -520,8 +526,7 @@ export class Home implements OnInit {
 
         this.api.updateFollowing(id, taskId, taskDate, startTime, endTime).subscribe({
             next: () => {
-                this.loadDashboard();
-                this.loadTodaySchedules();
+                this.refreshHome();
                 this.isUpdateModalOpen = false;
                 this.selectedScheduleId = 0;
                 this.modifyScheduleId = null;
@@ -536,8 +541,7 @@ export class Home implements OnInit {
     completeSchedule(id: number, completed: boolean): void {
         this.api.completeTaskSchedule(id, completed).subscribe({
             next: () => {
-                this.loadDashboard();
-                this.loadTodaySchedules();
+                this.refreshHome();
             },
             error: () => {
                 console.error("Error lors de la complétion du planning");

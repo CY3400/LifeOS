@@ -1,8 +1,9 @@
-import { Component, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { Title } from '@angular/platform-browser';
 import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { Header } from './pages/header/header';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-root',
@@ -12,19 +13,20 @@ import { Header } from './pages/header/header';
   standalone: true
 })
 export class App {
-  protected readonly title = signal('frontend');
-  protected readonly showHeader = signal(true);
+  protected readonly showHeader = signal(false);
 
+  private destroyRef = inject(DestroyRef);
+  
   constructor(private router: Router, private titleService: Title) {
     this.router.events.pipe(
-      filter(event => event instanceof NavigationEnd)
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      takeUntilDestroyed(this.destroyRef)
     ).subscribe(() => {
-      const currentRoute = this.router.routerState.root;
-      let route = currentRoute;
+      let route = this.router.routerState.root;
       while (route.firstChild) {
         route = route.firstChild;
       }
-      const title = route.snapshot.data['title'];
+      const title = route.snapshot.title;
       if(title){
         this.titleService.setTitle(title);
       }

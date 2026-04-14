@@ -1,29 +1,24 @@
-import { Component, ElementRef, HostListener, ViewChild } from '@angular/core';
+import { Component, DestroyRef, ElementRef, HostListener, inject, ViewChild } from '@angular/core';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 @Component({
   selector: 'app-header',
   standalone: true,
   imports: [CommonModule, RouterLink, RouterLinkActive],
   templateUrl: './header.html',
-  styleUrls: ['./header.css']
+  styleUrls: ['./header.scss']
 })
 export class Header {
   isMenuOpen = false;
   @ViewChild('burgerBtn', { static: false }) burgerBtn?: ElementRef<HTMLButtonElement>;
 
+  private destroyRef = inject(DestroyRef);
+
   constructor(private router: Router){
-    this.router.events.subscribe(() => this.isMenuOpen = false);
+    this.router.events.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.isMenuOpen = false);
   }
-
-  /*myAccount(): void {
-    this.router.navigate(['/mon-compte']);
-  }
-
-  homePage():void {
-    this.router.navigate(['/accueil']);
-  }*/
 
   toggleMenu(): void{
     this.isMenuOpen = !this.isMenuOpen;

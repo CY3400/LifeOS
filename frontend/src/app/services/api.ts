@@ -1,6 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
+import { environment } from "../../environments/environment";
 
 export type LoginRequest = {
   email: string;
@@ -58,7 +59,7 @@ export type Dashboard = {
   providedIn: 'root'
 })
 export class Api {
-    private baseUrl = 'http://localhost:8080/api';
+    private baseUrl = environment.apiBaseUrl;
 
     constructor(private http: HttpClient){}
 
@@ -81,7 +82,7 @@ export class Api {
     }
 
     verify(email: string): Observable<boolean>{
-        return this.http.post<boolean>(`${this.baseUrl}/auth/verify`, email, {
+        return this.http.post<boolean>(`${this.baseUrl}/auth/verify`, { email }, {
             withCredentials: true
         });
     }

@@ -4,6 +4,8 @@ import { FormsModule } from "@angular/forms";
 import { Api, RegisterRequest } from "../../services/api";
 import { Router } from "@angular/router";
 import { finalize, firstValueFrom } from "rxjs";
+import { Common } from "../../services/common";
+import { AuthErrors, emptyAuthErrors } from "../../types/auth-errors";
 
 @Component({
     selector: 'app-register',
@@ -13,80 +15,34 @@ import { finalize, firstValueFrom } from "rxjs";
     imports: [CommonModule, FormsModule]
 })
 export class Register {
-    protected allowedKeys = ['Backspace', 'Tab', 'ArrowLeft', 'ArrowRight', 'Delete'];
-    protected hasLetter = /[A-Za-zÀ-ÖØ-öø-ÿ]/;
-    protected email_Regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-    protected emailRegex = /^[a-zA-Z0-9@._+-]$/;
     protected passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*()_+=?.,:;{}\[\]<>\-]).{10,20}$/;
 
-    private passwordVisibility = new Map<string, boolean>();
-
     isSubmitting = false;
+    showPassword = false;
 
     user: RegisterRequest = {
         email: '',
         password: ''
     };
 
-    errors = {
-        email: '',
-        password: '',
-        global: ''
-    };
+    errors:AuthErrors = emptyAuthErrors();
 
-    showPassword = false;
-
-    constructor(private api: Api, private router: Router){}
+    constructor(private api: Api, private router: Router, protected common: Common){}
 
     hasErrors(): boolean {
         return Object.values(this.errors).some(e => e !== '');
     }
 
-    togglePasswordVisibility(key: string): void {
-        const current = this.passwordVisibility.get(key) ?? false;
-        this.passwordVisibility.set(key, !current);
-    }
-
-    isPasswordVisible(key: string): boolean {
-        return this.passwordVisibility.get(key) ?? false;
-    }
-
-    toggleAndGetVisibility(key: string): boolean {
-        this.togglePasswordVisibility(key);
-        return this.isPasswordVisible(key);
+    private resetErrors() {
+        this.errors = emptyAuthErrors();
     }
 
     togglePassword(): void {
-        this.showPassword = this.toggleAndGetVisibility('register-password');
+        this.showPassword = !this.showPassword;
     }
 
     redirection(location: string): void{
         this.router.navigate([location]);
-    }
-
-    validEmail(name: string, regex: RegExp, letter: RegExp): boolean {
-        return regex.test(name.trim()) && letter.test(name.trim());
-    }
-
-    validateKey(event: KeyboardEvent, allowedKeys: string[], regex: RegExp): void {
-        if(!allowedKeys.includes(event.key) && !regex.test(event.key)) {
-            event.preventDefault();
-        }
-    }
-
-    validatePaste(event: ClipboardEvent, regex: RegExp): void {
-        event.preventDefault();
-        const pasted = (event.clipboardData ?? (window as any).clipboardData)?.getData('text') ?? '';
-        const sanitized = [...pasted].filter(c => regex.test(c)).join('');
-        const input = event.target as HTMLInputElement;
-        const start = input.selectionStart ?? 0;
-        const end = input.selectionEnd ?? 0;
-
-        const newValue = input.value.slice(0, start) + sanitized + input.value.slice(end);
-        input.value = newValue;
-
-        const newCursor = start + sanitized.length;
-        input.setSelectionRange(newCursor, newCursor);
     }
 
     async isEmailUnique(email: string): Promise<boolean> {
@@ -103,11 +59,9 @@ export class Register {
         const {email, password} = this.user;
         let isValid = true;
 
-        this.errors.global = '';
-        this.errors.email = '';
-        this.errors.password = '';
+        this.resetErrors();
 
-        if(!this.validEmail(email, this.email_Regex, this.hasLetter)) {
+        if(!this.common.validEmail(email)) {
             this.errors.email = email ? "Format d'email invalide" : "L'email ne peut pas être vide";
             isValid = false;
         }

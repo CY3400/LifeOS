@@ -6,8 +6,8 @@ import { MeResolver } from './resolvers/me-resolver';
 import { Login } from './pages/login/login';
 
 export const routes: Routes = [
-    {path: '', component: Welcome, data: {public: true}},
-    {path:'bienvenue', component: Welcome, data: {public: true}},
+    {path: '', component: Welcome, title: 'LifeOS - Bienvenue', data: {public: true}},
+    {path:'bienvenue', component: Welcome, title: 'LifeOS - Bienvenue', data: {public: true}},
     {path:'s-enregistrer', component: Register, title: 'LifeOS - Inscription', data: {public: true}},
     {path:'se-connecter', component: Login, title: 'LifeOS - Connexion', data: {public: true}},
     {path:'accueil', component: Home, title: 'LifeOS - Accueil', resolve: {me: MeResolver}}
