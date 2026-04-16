@@ -304,7 +304,7 @@ export class Home implements OnInit {
 
         this.taskSubmit = true;
 
-        if (this.modifyTaskId) {
+        if (this.modifyTaskId != null) {
             this.api.updateTask(this.modifyTaskId, title, goalId).pipe(finalize(() => {this.taskSubmit = false; this.modifyTaskId = null;})).subscribe({
                 next: () => {
                     this.refreshHome();
@@ -409,7 +409,7 @@ export class Home implements OnInit {
 
         this.scheduleSubmit = true;
 
-        if (this.modifyScheduleId) {
+        if (this.modifyScheduleId != null) {
             this.isScheduleModalOpen = false;
             this.scheduleSubmit = false;
             this.openUpdateModal(true, this.modifyScheduleId);
