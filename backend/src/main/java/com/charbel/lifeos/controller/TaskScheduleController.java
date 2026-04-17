@@ -3,6 +3,7 @@ package com.charbel.lifeos.controller;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.charbel.lifeos.dto.CompleteTaskScheduleRequest;
@@ -100,6 +102,15 @@ public class TaskScheduleController {
         User user = currentUserService.getCurrentUser(auth);
 
         List<TaskScheduleResponse> schedules = taskScheduleService.getTaskSchedulesByDateForUser(user, taskDate).stream().map(taskScheduleMapper::toResponse).toList();
+
+        return ResponseEntity.ok(schedules);
+    }
+
+    @GetMapping("/date/between")
+    public ResponseEntity<List<TaskScheduleResponse>> getBetweenDates(@RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate, @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate, Authentication auth) {
+        User user = currentUserService.getCurrentUser(auth);
+
+        List<TaskScheduleResponse> schedules = taskScheduleService.getTaskSchedulesBetweenDates(user, startDate, endDate).stream().map(taskScheduleMapper::toResponse).toList();
 
         return ResponseEntity.ok(schedules);
     }

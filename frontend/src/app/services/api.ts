@@ -141,6 +141,16 @@ export class Api {
         });
     }
 
+    getTaskSchedulesBetweenDates(startDate: string, endDate: string): Observable<TaskSchedule[]> {
+        return this.http.get<TaskSchedule[]>(`${this.baseUrl}/task-schedules/date/between`, {
+            params: {
+                startDate,
+                endDate
+            },
+            withCredentials: true
+        });
+    }
+
     createTaskSchedule(taskId: number, taskDate: string, startTime: string | null, endTime: string | null): Observable<TaskSchedule> {
         return this.http.post<TaskSchedule>(`${this.baseUrl}/task-schedules`, { taskId, taskDate, startTime, endTime }, {
             withCredentials: true

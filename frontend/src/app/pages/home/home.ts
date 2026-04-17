@@ -3,18 +3,19 @@ import { Component, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Api, Task, Goal, TaskSchedule } from "../../services/api";
 import { finalize } from "rxjs";
+import { CalendarEvent, CalendarWeekViewComponent, CalendarView, CalendarMonthViewComponent, CalendarDayViewComponent, CalendarDatePipe } from "angular-calendar";
+import { addDays, addWeeks, addMonths, subDays, subWeeks, subMonths } from "date-fns";
 
 @Component({
     selector: 'app-home',
     templateUrl: './home.html',
     styleUrls: ['./home.scss'],
     standalone: true,
-    imports: [CommonModule, FormsModule]
+    imports: [CommonModule, FormsModule, CalendarWeekViewComponent, CalendarMonthViewComponent, CalendarDayViewComponent, CalendarDatePipe]
 })
 export class Home implements OnInit {
     goals: Goal[] = [];
     tasks: Task[] = [];
-    schedules: TaskSchedule[] = [];
 
     totalTasks: number = 0;
     completedTasks: number = 0;
@@ -51,6 +52,18 @@ export class Home implements OnInit {
 
     isUpdateModalOpen: boolean = false;
 
+    viewDate: Date = new Date();
+    view: CalendarView = CalendarView.Week;
+    CalendarView = CalendarView;
+    selectedDate: Date = new Date();
+
+    selectedDateSchedules: TaskSchedule[] = [];
+    calendarEvents: CalendarEvent[] = [];
+    locale: string = 'fr';
+
+    startDateBetween: Date = new Date();
+    endDateBetween: Date = new Date();
+
     errors = {
         title: '',
         global: ''
@@ -81,8 +94,50 @@ export class Home implements OnInit {
     }
 
     refreshHome() {
-        this.loadDashboard();
-        this.loadTodaySchedules();
+        this.api.today().subscribe({
+            next: (dashboard) => {
+                this.goals = dashboard.goals;
+                this.tasks = dashboard.tasks;
+                this.totalTasks = dashboard.totalTasks;
+                this.completedTasks = dashboard.completedTasks;
+                this.completionRate = dashboard.completionRate;
+
+                this.loadSchedulesByDate(this.selectedDate);
+                this.updateVisibleRange();
+                this.loadSchedulesBetweenDates(this.startDateBetween, this.endDateBetween);
+            },
+            error: () => {
+                console.error("Error lors du chargement du dashboard");
+            }
+        });
+    }
+
+    private updateVisibleRange(): void {
+        const current = new Date(this.viewDate);
+        const year = current.getFullYear();
+        const month = current.getMonth();
+
+        if (this.view === CalendarView.Month) {
+            this.startDateBetween = new Date(year, month, 1);
+            this.endDateBetween = new Date(year, month + 1, 0);
+            return;
+        }
+
+        if (this.view === CalendarView.Week) {
+            const current = new Date(this.viewDate);
+            const dayOfWeek = current.getDay();
+            const diffToSunday = -dayOfWeek;
+
+            this.startDateBetween = new Date(current);
+            this.startDateBetween.setDate(current.getDate() + diffToSunday);
+
+            this.endDateBetween = new Date(this.startDateBetween);
+            this.endDateBetween.setDate(this.startDateBetween.getDate() + 6);
+            return;
+        }
+
+        this.startDateBetween = new Date(this.viewDate);
+        this.endDateBetween = new Date(this.viewDate);
     }
 
     private resetTaskErrors(): void {
@@ -146,6 +201,13 @@ export class Home implements OnInit {
         return task ? task.title : 'Tâche inconnue';
     }
 
+    formatDate(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
     formatTime(time: string | null): string {
         return time ? time.slice(0, 5) : '';
     }
@@ -201,32 +263,6 @@ export class Home implements OnInit {
         this.startDate = '';
         this.endDate = '';
         this.daysChosen = [];
-    }
-
-    loadDashboard() {
-        this.api.today().subscribe({
-            next: (dashboard) => {
-                this.goals = dashboard.goals;
-                this.tasks = dashboard.tasks;
-                this.totalTasks = dashboard.totalTasks;
-                this.completedTasks = dashboard.completedTasks;
-                this.completionRate = dashboard.completionRate;
-            },
-            error: () => {
-                console.error("Error lors du chargement du dashboard");
-            }
-        });
-    }
-
-    loadTodaySchedules() {
-        this.api.getTaskSchedulesByDate(this.todayString()).subscribe({
-            next: (schedules) => {
-                this.schedules = schedules;
-            },
-            error: () => {
-                console.error("Error lors du chargement des plannings");
-            }
-        });
     }
 
     setModifyInput(id: number | null, title: string | null): void {
@@ -547,5 +583,99 @@ export class Home implements OnInit {
                 console.error("Error lors de la complétion du planning");
             }
         });
+    }
+
+    setView(view: CalendarView): void{
+        this.view = view;
+        this.updateVisibleRange();
+        this.loadSchedulesBetweenDates(this.startDateBetween, this.endDateBetween);
+    }
+
+    loadSchedulesByDate(date: Date): void {
+        const formattedDate = this.formatDate(date);
+
+        this.api.getTaskSchedulesByDate(formattedDate).subscribe({
+            next: (schedules) => {
+                this.selectedDateSchedules = schedules;
+            },
+            error: () => {
+                console.error("Erreur lors du chargement des plannings pour la date sélectionnée");
+            }
+        });
+    }
+
+    loadSchedulesBetweenDates(startDate: Date, endDate: Date): void {
+        const formattedStartDate = this.formatDate(startDate);
+        const formattedEndDate = this.formatDate(endDate);
+
+        this.api.getTaskSchedulesBetweenDates(formattedStartDate, formattedEndDate).subscribe({
+            next: (schedules) => {
+                this.calendarEvents = schedules.map((schedule): CalendarEvent => {
+                    const title = this.getTaskTitle(schedule.taskId);
+
+                    if (schedule.startTime) {
+                        const start = new Date(`${schedule.taskDate}T${schedule.startTime}`);
+                        const end = schedule.endTime ? new Date(`${schedule.taskDate}T${schedule.endTime}`) : start;
+
+                        return { id: schedule.id, start, end, cssClass: schedule.completed ? 'completed-event' : '', title, color: schedule.completed ? { primary: '#64748B', secondary: '#CBD5E1'} : { primary: '#3B82F6', secondary: '#BFDBFE'}, meta: schedule };
+                    }
+
+                    return { id: schedule.id,  start: new Date(`${schedule.taskDate}T00:00:00`), cssClass: schedule.completed ? 'completed-event' : '', title, allDay: true, color: schedule.completed ? { primary: '#64748B', secondary: '#CBD5E1'} : { primary: '#3B82F6', secondary: '#BFDBFE'}, meta: schedule };
+                });
+            },
+            error: () => {
+                console.error("Erreur lors du chargement des plannings pour la date sélectionnée");
+            }
+        });
+    }
+
+    onDayClicked(date: Date): void {
+        this.selectedDate = date;
+        this.viewDate = date;
+        this.loadSchedulesByDate(date);
+    }
+
+    goToPrevious(): void {
+        if (this.view === CalendarView.Month) {
+            this.viewDate = subMonths(this.viewDate, 1);
+        }
+        else if (this.view === CalendarView.Week) {
+            this.viewDate = subWeeks(this.viewDate, 1);
+        }
+        else {
+            this.viewDate = subDays(this.viewDate, 1);
+            this.selectedDate = this.viewDate;
+            this.loadSchedulesByDate(this.selectedDate);
+        }
+
+        this.updateVisibleRange();
+        this.loadSchedulesBetweenDates(this.startDateBetween, this.endDateBetween);
+    }
+
+    goToNext(): void {
+        if (this.view === CalendarView.Month) {
+            this.viewDate = addMonths(this.viewDate, 1);
+        }
+        else if (this.view === CalendarView.Week) {
+            this.viewDate = addWeeks(this.viewDate, 1);
+        }
+        else {
+            this.viewDate = addDays(this.viewDate, 1);
+            this.selectedDate = this.viewDate;
+            this.loadSchedulesByDate(this.selectedDate);
+        }
+
+        this.updateVisibleRange();
+        this.loadSchedulesBetweenDates(this.startDateBetween, this.endDateBetween);
+    }
+
+    goToToday(): void {
+        const today = new Date();
+        this.viewDate = today;
+        this.selectedDate = today;
+
+        this.loadSchedulesByDate(today);
+        this.updateVisibleRange();
+        this.loadSchedulesBetweenDates(this.startDateBetween, this.endDateBetween);
     }
 }

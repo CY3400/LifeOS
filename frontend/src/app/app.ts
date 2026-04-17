@@ -4,13 +4,21 @@ import { NavigationEnd, Router, RouterOutlet } from '@angular/router';
 import { filter } from 'rxjs';
 import { Header } from './pages/header/header';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DateAdapter, provideCalendar } from 'angular-calendar';
+import { adapterFactory } from 'angular-calendar/date-adapters/date-fns';
 
 @Component({
   selector: 'app-root',
   imports: [RouterOutlet, Header],
   templateUrl: './app.html',
   styleUrls: ['./app.scss','../styles.scss'],
-  standalone: true
+  standalone: true,
+  providers: [
+    provideCalendar({
+      provide: DateAdapter,
+      useFactory: adapterFactory,
+    }),
+  ],
 })
 export class App {
   protected readonly showHeader = signal(false);

@@ -234,7 +234,26 @@ public class TaskScheduleService {
 
         validateTaskDate(taskDate);
 
-        return taskScheduleRepository.findByTaskUserIdAndTaskDateOrderByStartTime(user.getId(), taskDate);
+        return taskScheduleRepository.findByTaskUserIdAndTaskDateOrderByStartTimeAscTaskTitleAsc(user.getId(), taskDate);
+    }
+
+    @Transactional(readOnly = true)
+    public List<TaskSchedule> getTaskSchedulesBetweenDates(User user, LocalDate startDate, LocalDate endDate) {
+        validateUser(user);
+        
+        if (startDate == null) {
+            throw new BadRequestException("Date de début requise");
+        }
+
+        if (endDate == null) {
+            throw new BadRequestException("Date de fin requise");
+        }
+
+        if(endDate.isBefore(startDate)) {
+            throw new BadRequestException("La date de fin doit être après ou égale à la date de début");
+        }
+
+        return taskScheduleRepository.getTaskSchedulesBetweenDates(user.getId(), startDate, endDate);
     }
 
     @Transactional(readOnly = true)
