@@ -2,7 +2,7 @@ import { CommonModule } from "@angular/common";
 import { Component, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Api, Task, Goal, TaskSchedule } from "../../services/api";
-import { finalize } from "rxjs";
+import { finalize, Observable } from "rxjs";
 import { CalendarEvent, CalendarWeekViewComponent, CalendarView, CalendarMonthViewComponent, CalendarDayViewComponent, CalendarDatePipe } from "angular-calendar";
 import { addDays, addWeeks, addMonths, subDays, subWeeks, subMonths } from "date-fns";
 
@@ -35,7 +35,7 @@ export class Home implements OnInit {
     isScheduleModalOpen: boolean = false;
     scheduleSubmit: boolean = false;
     modifyScheduleId: number | null = null;
-    selectedTaskId: string | null = null;
+    selectedTaskId: string =  '';
     scheduleDate: string = '';
     scheduleStartTime: string = '';
     scheduleEndTime: string = '';
@@ -64,10 +64,14 @@ export class Home implements OnInit {
     startDateBetween: Date = new Date();
     endDateBetween: Date = new Date();
 
-    errors = {
+    taskErrors = {
         title: '',
         global: ''
     };
+
+    goalErrors = {
+        global: ''
+    }
 
     scheduleErrors = {
         taskId: '',
@@ -93,7 +97,7 @@ export class Home implements OnInit {
         this.refreshHome();
     }
 
-    refreshHome() {
+    private refreshHome() {
         this.api.today().subscribe({
             next: (dashboard) => {
                 this.goals = dashboard.goals;
@@ -107,24 +111,24 @@ export class Home implements OnInit {
                 this.loadSchedulesBetweenDates(this.startDateBetween, this.endDateBetween);
             },
             error: () => {
-                console.error("Error lors du chargement du dashboard");
+                console.error("Erreur lors du chargement du dashboard");
             }
         });
     }
 
     private updateVisibleRange(): void {
         const current = new Date(this.viewDate);
-        const year = current.getFullYear();
-        const month = current.getMonth();
 
         if (this.view === CalendarView.Month) {
+            const year = current.getFullYear();
+            const month = current.getMonth();
+
             this.startDateBetween = new Date(year, month, 1);
             this.endDateBetween = new Date(year, month + 1, 0);
             return;
         }
 
         if (this.view === CalendarView.Week) {
-            const current = new Date(this.viewDate);
             const dayOfWeek = current.getDay();
             const diffToSunday = -dayOfWeek;
 
@@ -141,8 +145,8 @@ export class Home implements OnInit {
     }
 
     private resetTaskErrors(): void {
-        this.errors.title = '';
-        this.errors.global = '';
+        this.taskErrors.title = '';
+        this.taskErrors.global = '';
     }
 
     private resetScheduleErrors(): void {
@@ -155,39 +159,27 @@ export class Home implements OnInit {
         this.scheduleErrors.global = '';
     }
 
-    private resetDeleteErrors(): void {
-        this.deleteErrors.global = '';
-    }
+    private resetModalErrors(type: 'delete' | 'update'): void {
+        if (type === 'delete') {
+            this.deleteErrors.global = '';
+            return;
+        }
 
-    private resetUpdateErrors(): void {
         this.updateErrors.global = '';
     }
 
-    hasErrors(): boolean {
-        return Object.values(this.errors).some(e => e !== '');
+    protected hasAnyErrors(errors: Record<string, string>): boolean {
+        return Object.values(errors).some(e => e !== '');
     }
 
-    hasScheduleErrors(): boolean {
-        return Object.values(this.scheduleErrors).some(e => e !== '');
-    }
-
-    hasDeleteErrors(): boolean {
-        return Object.values(this.deleteErrors).some(e => e !== '');
-    }
-
-    hasUpdateErrors(): boolean {
-        return Object.values(this.updateErrors).some(e => e !== '');
-    }
-
-    todayString(): string {
-        const today = new Date();
-        const year = today.getFullYear();
-        const month = String(today.getMonth() + 1).padStart(2, '0');
-        const day = String(today.getDate()).padStart(2, '0');
+    private formatDate(date: Date): string {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
         return `${year}-${month}-${day}`;
     }
 
-    switchRepeatSchedule() {
+    protected toggleRepeatSchedule(): void {
         this.repeatSchedule = !this.repeatSchedule;
         if (!this.repeatSchedule) {
             this.startDate = '';
@@ -196,23 +188,16 @@ export class Home implements OnInit {
         }
     }
 
-    getTaskTitle(taskId: number): string {
+    protected getTaskTitle(taskId: number): string {
         const task = this.tasks.find(t => t.id === taskId);
         return task ? task.title : 'Tâche inconnue';
     }
 
-    formatDate(date: Date): string {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
-
-    formatTime(time: string | null): string {
+    protected formatTime(time: string | null): string {
         return time ? time.slice(0, 5) : '';
     }
 
-    toggleDay(day: number): void {
+    protected toggleDay(day: number): void {
         if (this.daysChosen.includes(day)) {
             this.daysChosen = this.daysChosen.filter(d => d !== day);
         }
@@ -221,41 +206,151 @@ export class Home implements OnInit {
         }
     }
 
-    openModal(isModalOpen: boolean): void {
-        this.isTaskModalOpen = isModalOpen;
+    protected setTaskModalState(isOpen: boolean): void {
+        this.isTaskModalOpen = isOpen;
         this.resetTaskErrors();
         this.taskTitle = '';
         this.selectedGoalId = null;
         this.modifyTaskId = null;
     }
 
-    openUpdateModal(isUpdateModalOpen: boolean, scheduleId: number): void {
-        this.isUpdateModalOpen = isUpdateModalOpen;
-        this.resetUpdateErrors();
-        if(!isUpdateModalOpen) {
-            this.selectedScheduleId = 0;
+    protected setScheduleActionModalState(type: 'delete' | 'update', isOpen: boolean, scheduleId: number = 0): void {
+        if (type === 'delete') {
+            this.isDeleteModalOpen = isOpen;
         }
         else {
-            this.selectedScheduleId = scheduleId;
+            this.isUpdateModalOpen = isOpen;
+        }
+
+        if (type === 'update' && isOpen === false) {
+            this.modifyScheduleId = null;
+        }
+
+        this.resetModalErrors(type);
+        this.selectedScheduleId = isOpen ? scheduleId : 0;
+    }
+
+    protected setGoalToModify(id: number | null, title: string | null): void {
+        this.modifyGoalId = id;
+        this.modifyGoalTitle = title || '';
+    }
+
+    protected modifyGoal(id: number): void {
+        const title = this.modifyGoalTitle.trim();
+
+        if (title) {
+            this.api.modifyGoal(id, title).pipe(
+                finalize(() => {
+                    this.modifyGoalId = null;
+                    this.modifyGoalTitle = '';
+                })
+            ).subscribe({
+                next: (goal) => {
+                    const index = this.goals.findIndex(g => g.id === id);
+                    if (index !== -1) {
+                        this.goals[index] = goal;
+                    }
+                },
+                error: () => {
+                    this.goalErrors.global = "Erreur lors de la modification de l'objectif";
+                }
+            });
         }
     }
 
-    openDeleteModal(isDeleteModalOpen: boolean, scheduleId: number): void {
-        this.isDeleteModalOpen = isDeleteModalOpen;
-        this.resetDeleteErrors();
-        if(!isDeleteModalOpen) {
-            this.selectedScheduleId = 0;
-        }
-        else {
-            this.selectedScheduleId = scheduleId;
+    protected deleteGoal(id: number): void {
+        this.api.deleteGoal(id).subscribe({
+            next: () => {
+                this.goals = this.goals.filter(g => g.id !== id);
+            },
+            error: () => {
+                this.goalErrors.global = "Erreur lors de la suppression de l'objectif";
+            }
+        });
+    }
+
+    protected submitGoal(): void {
+        const title = this.newGoalTitle.trim();
+
+        if (title) {
+            this.goalSubmit = true;
+            this.api.addGoal(title).pipe(
+                finalize(() => {
+                    this.goalSubmit = false;
+                })
+            ).subscribe({
+                next: (goal) => {
+                    this.goals.push(goal);
+                    this.newGoalTitle = '';
+                },
+                error: () => {
+                    this.goalErrors.global = "Erreur lors de l'ajout de l'objectif";
+                }
+            });
         }
     }
 
-    openScheduleModal(isOpen: boolean): void {
-        this.isScheduleModalOpen = isOpen;
+    protected deleteTask(id: number): void {
+        this.api.deleteTask(id).subscribe({
+            next: () => {
+                this.refreshHome();
+            },
+            error: () => {
+                this.taskErrors.global = "Erreur lors de la suppression de la tâche";
+            }
+        });
+    }
+
+    private performTaskSave(request$: Observable<Task>, errorMessage: string): void {
+        request$.pipe(
+            finalize(() => {
+                this.taskSubmit = false;
+            })
+        ).subscribe({
+            next: () => {
+                this.refreshHome();
+                this.setTaskModalState(false);
+            },
+            error: () => {
+                this.taskErrors.global = errorMessage;
+            }
+        });
+    }
+
+    protected saveTask(): void {
+        const title = this.taskTitle.trim();
+        const goalId = this.selectedGoalId !== '' && this.selectedGoalId ? parseInt(this.selectedGoalId, 10) : null;
+
+        this.resetTaskErrors();
+
+        if (title === '') {
+            this.taskErrors.title = "Le titre ne peut pas être vide";
+            return;
+        }
+
+        this.taskSubmit = true;
+
+        if (this.modifyTaskId !== null) {
+            this.performTaskSave(this.api.updateTask(this.modifyTaskId, title, goalId), "Une erreur s'est produite lors de la modification de la tâche.");
+        } 
+        else {
+            this.performTaskSave(this.api.createTask(title, goalId), "Une erreur s'est produite lors de la création de la tâche.");
+        }
+    }
+
+    protected setModifyTask(id: number, title: string, goalId: number | null): void {
+        this.setTaskModalState(true);
+        this.taskTitle = title;
+        this.selectedGoalId = goalId?.toString() || null;
+        this.modifyTaskId = id;
+    }
+
+    private resetScheduleModalForm(): void {
+        const today = new Date();
+
         this.resetScheduleErrors();
-        this.selectedTaskId = null;
-        this.scheduleDate = this.todayString();
+        this.selectedTaskId = '';
+        this.scheduleDate = this.formatDate(today);
         this.scheduleStartTime = '';
         this.scheduleEndTime = '';
         this.modifyScheduleId = null;
@@ -265,133 +360,37 @@ export class Home implements OnInit {
         this.daysChosen = [];
     }
 
-    setModifyInput(id: number | null, title: string | null): void {
-        this.modifyGoalId = id;
-        this.modifyGoalTitle = title || '';
+    protected setScheduleModalState(isOpen: boolean): void {
+        this.isScheduleModalOpen = isOpen;
+        this.resetScheduleModalForm();
     }
 
-    modifyGoal(id: number): void {
-        const title = this.modifyGoalTitle.trim();
-
-        if (title) {
-            this.api.modifyGoal(id, title).pipe(finalize(() => {this.modifyGoalId = null; this.modifyGoalTitle = '';})).subscribe({
-                next: (goal) => {
-                    const index = this.goals.findIndex(g => g.id === id);
-                    if (index !== -1) {
-                        this.goals[index] = goal;
-                    }
-                },
-                error: () => {
-                    console.error("Error lors de la modification de l'objectif");
-                }
-            });
-        }
-    }
-
-    deleteGoal(id: number): void {
-        this.api.deleteGoal(id).subscribe({
-            next: () => {
-                this.goals = this.goals.filter(g => g.id !== id);
-            },
-            error: () => {
-                console.error("Error lors de la suppression de l'objectif");
-            }
-        });
-    }
-
-    onSubmit(): void {
-        const title = this.newGoalTitle.trim();
-
-        if (title) {
-            this.goalSubmit = true;
-            this.api.addGoal(title).pipe(finalize(() => { this.goalSubmit = false; })).subscribe({
-                next: (goal) => {
-                    this.goals.push(goal);
-                    this.newGoalTitle = '';
-                },
-                error: () => {
-                    console.error("Error lors de l'ajout de l'objectif");
-                }
-            });
-        }
-    }
-
-    deleteTask(id: number): void {
-        this.api.deleteTask(id).subscribe({
-            next: () => {
-                this.refreshHome();
-            },
-            error: () => {
-                console.error("Error lors de la suppression de la tâche");
-            }
-        });
-    }
-
-    submitTask(): void {
-        const title = this.taskTitle.trim();
-        const goalId = this.selectedGoalId !== '' && this.selectedGoalId ? parseInt(this.selectedGoalId, 10) : null;
-
-        this.resetTaskErrors();
-
-        if (title === '') {
-            this.errors.title = "Le titre ne peut pas être vide";
-            return;
-        }
-
-        this.taskSubmit = true;
-
-        if (this.modifyTaskId != null) {
-            this.api.updateTask(this.modifyTaskId, title, goalId).pipe(finalize(() => {this.taskSubmit = false; this.modifyTaskId = null;})).subscribe({
-                next: () => {
-                    this.refreshHome();
-                    this.taskTitle = '';
-                    this.selectedGoalId = null;
-                    this.isTaskModalOpen = false;
-                },
-                error: () => {
-                    console.error("Error lors de la modification de la tâche");
-                    this.errors.global = "Une erreur s'est produite lors de la modification de la tâche.";
-                }
-            });
-        } 
-        else {
-            this.api.createTask(title, goalId).pipe(finalize(() => { this.taskSubmit = false; })).subscribe({
-                next: () => {
-                    this.refreshHome();
-                    this.taskTitle = '';
-                    this.selectedGoalId = null;
-                    this.isTaskModalOpen = false;
-                },
-                error: () => {
-                    console.error("Error lors de la création de la tâche");
-                    this.errors.global = "Une erreur s'est produite lors de la création de la tâche.";
-                }
-            });
-        }
-    }
-
-    setModifyTask(id: number, title: string, goalId: number | null): void {
-        this.isTaskModalOpen = true;
-        this.taskTitle = title;
-        this.selectedGoalId = goalId?.toString() || null;
-        this.modifyTaskId = id;
-    }
-
-    setModifySchedule(schedule: TaskSchedule): void {
-        this.isScheduleModalOpen = true;
+    protected setModifySchedule(schedule: TaskSchedule): void {
+        this.setScheduleModalState(true);
         this.modifyScheduleId = schedule.id;
         this.selectedTaskId = schedule.taskId.toString();
         this.scheduleDate = schedule.taskDate;
         this.scheduleStartTime = schedule.startTime || '';
         this.scheduleEndTime = schedule.endTime || '';
-        this.repeatSchedule = false;
-        this.startDate = '';
-        this.endDate = '';
-        this.daysChosen = [];
-        this.resetScheduleErrors();
     }
 
-    submitSchedule(): void {
+    private performScheduleSave(request$: Observable<unknown>, errorMessage: string): void {
+        request$.pipe(
+            finalize(() => {
+                this.scheduleSubmit = false;
+            })
+        ).subscribe({
+            next: () => {
+                this.refreshHome();
+                this.setScheduleModalState(false);
+            },
+            error: () => {
+                this.scheduleErrors.global = errorMessage;
+            }
+        });
+    }
+
+    private validateScheduleRequest(): boolean {
         const taskId = this.selectedTaskId ? parseInt(this.selectedTaskId, 10) : null;
         const taskDate = this.scheduleDate;
         const startTime = this.scheduleStartTime || null;
@@ -441,157 +440,116 @@ export class Home implements OnInit {
             isValid = false;
         }
 
-        if (!isValid) return;
+        return isValid;
+    }
+
+    protected saveSchedule(): void {
+        const taskId = this.selectedTaskId ? parseInt(this.selectedTaskId, 10) : null;
+        const taskDate = this.scheduleDate;
+        const startTime = this.scheduleStartTime || null;
+        const endTime = this.scheduleEndTime || null;
+
+        if (!this.validateScheduleRequest()) return;
 
         this.scheduleSubmit = true;
 
-        if (this.modifyScheduleId != null) {
-            this.isScheduleModalOpen = false;
+        if (this.modifyScheduleId !== null) {
+            const modifyScheduleId = this.modifyScheduleId;
+
+            this.setScheduleModalState(false);
             this.scheduleSubmit = false;
-            this.openUpdateModal(true, this.modifyScheduleId);
+            this.setScheduleActionModalState('update', true, modifyScheduleId);
             return;
         }
-        else if (!this.repeatSchedule) {
-            this.api.createTaskSchedule(taskId!, taskDate, startTime, endTime).pipe(finalize(() => { this.scheduleSubmit = false; })).subscribe({
-                next: () => {
-                    this.refreshHome();
-                    this.isScheduleModalOpen = false;
-                },
-                error: () => {
-                    this.scheduleErrors.global = "Une erreur s'est produite lors de la création du planning.";
-                }
-            });
+        
+        if (!this.repeatSchedule) {
+            this.performScheduleSave(this.api.createTaskSchedule(taskId!, taskDate, startTime, endTime), "Une erreur s'est produite lors de la création du planning.");
+            return;
         }
-        else {
-            const startDate = this.startDate;
-            const endDate = this.endDate;
-            const daysChosen = this.daysChosen;
-            this.api.repeatTaskSchedules(taskId!, startDate, endDate, startTime, endTime, daysChosen).pipe(finalize(() => { this.scheduleSubmit = false; this.repeatSchedule = false; })).subscribe({
+
+        const startDate = this.startDate;
+        const endDate = this.endDate;
+        const daysChosen = this.daysChosen;
+
+        this.performScheduleSave(this.api.repeatTaskSchedules(taskId!, startDate, endDate, startTime, endTime, daysChosen), "Une erreur s'est produite lors de la création des plannings répétés.");
+    }
+
+    private deleteSchedule(id: number, request$: Observable<void>): void {
+        if (id !== 0) {
+            this.resetModalErrors('delete');
+
+            request$.subscribe({
                 next: () => {
                     this.refreshHome();
-                    this.isScheduleModalOpen = false;
+                    this.setScheduleActionModalState('delete', false);
                 },
                 error: () => {
-                     this.scheduleErrors.global = "Une erreur s'est produite lors de la création des plannings répétés.";
+                    this.deleteErrors.global = "Une erreur s'est produite lors de la suppression du planning.";
                 }
             })
         }
+        else {
+            this.deleteErrors.global = "Une erreur s'est produite lors de la suppression du planning.";
+        }
     }
 
-    updateSchedule(id: number): void {
+    private updateSchedule(id: number, requestFactory: (taskId: number, startTime: string | null, endTime: string | null) => Observable<unknown>): void {
         const taskId = this.selectedTaskId ? parseInt(this.selectedTaskId, 10) : null;
-        const taskDate = this.scheduleDate;
         const startTime = this.scheduleStartTime || null;
         const endTime = this.scheduleEndTime || null;
 
-        this.resetUpdateErrors();
+        this.resetModalErrors('update');
 
         if (!id || !taskId) {
             this.updateErrors.global = "Une erreur s'est produite lors de la modification du planning.";
             return;
         }
 
-        this.api.updateTaskSchedule(id, taskId, taskDate, startTime, endTime).subscribe({
+        requestFactory(taskId, startTime, endTime).subscribe({
             next: () => {
                 this.refreshHome();
-                this.isUpdateModalOpen = false;
-                this.selectedScheduleId = 0;
-                this.modifyScheduleId = null;
+                this.setScheduleActionModalState('update', false);
             },
             error: () => {
-                console.error("Une erreur s'est produite lors de la modification du planning.");
                 this.updateErrors.global = "Une erreur s'est produite lors de la modification du planning.";
             }
         });
     }
 
-    deleteSchedule(id: number): void {
-        if(id != 0) {
-            this.resetDeleteErrors();
-
-            this.api.deleteTaskSchedule(id).subscribe({
-                next: () => {
-                    this.refreshHome();
-                    this.isDeleteModalOpen = false;
-                    this.selectedScheduleId = 0;
-                },
-                error: () => {
-                    console.error("Une erreur s'est produite lors de la suppression du planning.");
-                    this.deleteErrors.global = "Une erreur s'est produite lors de la suppression du planning.";
-                }
-            });
-        }
-        else {
-            this.deleteErrors.global = "Une erreur s'est produite lors de la suppression du planning.";
-        }
+    protected deleteOneSchedule(id: number): void {
+        this.deleteSchedule(id, this.api.deleteTaskSchedule(id));
     }
 
-    deleteScheduleFollowing(id: number): void {
-        if(id != 0) {
-            this.resetDeleteErrors();
-
-            this.api.deleteFollowing(id).subscribe({
-                next: () => {
-                    this.refreshHome();
-                    this.isDeleteModalOpen = false;
-                    this.selectedScheduleId = 0;
-                },
-                error: () => {
-                    console.error("Une erreur s'est produite lors de la suppression du planning.");
-                    this.deleteErrors.global = "Une erreur s'est produite lors de la suppression du planning.";
-                }
-            });
-        }
-        else {
-            this.deleteErrors.global = "Une erreur s'est produite lors de la suppression du planning.";
-        }
+    protected deleteScheduleFollowing(id: number): void {
+        this.deleteSchedule(id, this.api.deleteFollowing(id));
     }
 
-    updateScheduleFollowing(id: number): void {
-        const taskId = this.selectedTaskId ? parseInt(this.selectedTaskId, 10) : null;
-        const taskDate = this.scheduleDate;
-        const startTime = this.scheduleStartTime || null;
-        const endTime = this.scheduleEndTime || null;
-
-        this.resetUpdateErrors();
-
-        if (!id || !taskId) {
-            this.updateErrors.global = "Une erreur s'est produite lors de la modification du planning.";
-            return;
-        }
-
-        this.api.updateFollowing(id, taskId, taskDate, startTime, endTime).subscribe({
-            next: () => {
-                this.refreshHome();
-                this.isUpdateModalOpen = false;
-                this.selectedScheduleId = 0;
-                this.modifyScheduleId = null;
-            },
-            error: () => {
-                console.error("Une erreur s'est produite lors de la modification du planning.");
-                this.updateErrors.global = "Une erreur s'est produite lors de la modification du planning.";
-            }
-        });
+    protected updateOneSchedule(id: number): void {
+        this.updateSchedule(id, (taskId, startTime, endTime) => this.api.updateTaskSchedule(id, taskId, this.scheduleDate, startTime, endTime));
     }
 
-    completeSchedule(id: number, completed: boolean): void {
+    protected updateScheduleFollowing(id: number): void {
+        this.updateSchedule(id, (taskId, startTime, endTime) => this.api.updateFollowing(id, taskId, this.scheduleDate, startTime, endTime));
+    }
+
+    protected completeSchedule(id: number, completed: boolean): void {
         this.api.completeTaskSchedule(id, completed).subscribe({
             next: () => {
                 this.refreshHome();
             },
             error: () => {
-                console.error("Error lors de la complétion du planning");
+                this.scheduleErrors.global = "Erreur lors de la complétion du planning";
             }
         });
     }
 
-    setView(view: CalendarView): void{
+    protected setView(view: CalendarView): void {
         this.view = view;
         this.updateVisibleRange();
         this.loadSchedulesBetweenDates(this.startDateBetween, this.endDateBetween);
     }
 
-    loadSchedulesByDate(date: Date): void {
+    private loadSchedulesByDate(date: Date): void {
         const formattedDate = this.formatDate(date);
 
         this.api.getTaskSchedulesByDate(formattedDate).subscribe({
@@ -599,12 +557,12 @@ export class Home implements OnInit {
                 this.selectedDateSchedules = schedules;
             },
             error: () => {
-                console.error("Erreur lors du chargement des plannings pour la date sélectionnée");
+                this.scheduleErrors.global = "Erreur lors du chargement des plannings pour la date sélectionnée";
             }
         });
     }
 
-    loadSchedulesBetweenDates(startDate: Date, endDate: Date): void {
+    private loadSchedulesBetweenDates(startDate: Date, endDate: Date): void {
         const formattedStartDate = this.formatDate(startDate);
         const formattedEndDate = this.formatDate(endDate);
 
@@ -617,25 +575,52 @@ export class Home implements OnInit {
                         const start = new Date(`${schedule.taskDate}T${schedule.startTime}`);
                         const end = schedule.endTime ? new Date(`${schedule.taskDate}T${schedule.endTime}`) : start;
 
-                        return { id: schedule.id, start, end, cssClass: schedule.completed ? 'completed-event' : '', title, color: schedule.completed ? { primary: '#64748B', secondary: '#CBD5E1'} : { primary: '#3B82F6', secondary: '#BFDBFE'}, meta: schedule };
+                        return {
+                            id: schedule.id,
+                            start,
+                            end,
+                            cssClass: schedule.completed ? 'completed-event' : '',
+                            title,
+                            color: schedule.completed ? { primary: '#64748B', secondary: '#CBD5E1'} : { primary: '#3B82F6', secondary: '#BFDBFE'},
+                            meta: schedule
+                        };
                     }
 
-                    return { id: schedule.id,  start: new Date(`${schedule.taskDate}T00:00:00`), cssClass: schedule.completed ? 'completed-event' : '', title, allDay: true, color: schedule.completed ? { primary: '#64748B', secondary: '#CBD5E1'} : { primary: '#3B82F6', secondary: '#BFDBFE'}, meta: schedule };
+                    return {
+                        id: schedule.id,
+                        start: new Date(`${schedule.taskDate}T00:00:00`),
+                        cssClass: schedule.completed ? 'completed-event' : '',
+                        title,
+                        allDay: true,
+                        color: schedule.completed ? { primary: '#64748B', secondary: '#CBD5E1'} : { primary: '#3B82F6', secondary: '#BFDBFE'},
+                        meta: schedule
+                    };
                 });
             },
             error: () => {
-                console.error("Erreur lors du chargement des plannings pour la date sélectionnée");
+                this.scheduleErrors.global = "Erreur lors du chargement des plannings pour la date sélectionnée";
             }
         });
     }
 
-    onDayClicked(date: Date): void {
+    protected onDayClicked(date: Date): void {
         this.selectedDate = date;
         this.viewDate = date;
         this.loadSchedulesByDate(date);
     }
 
-    goToPrevious(): void {
+    private runViewRequest(): void {
+        this.updateVisibleRange();
+        this.loadSchedulesBetweenDates(this.startDateBetween, this.endDateBetween);
+    }
+
+    private setSelectedDay(viewDate: Date): void {
+        this.viewDate = viewDate;
+        this.selectedDate = viewDate;
+        this.loadSchedulesByDate(viewDate);
+    }
+
+    protected goToPrevious(): void {
         if (this.view === CalendarView.Month) {
             this.viewDate = subMonths(this.viewDate, 1);
         }
@@ -643,16 +628,13 @@ export class Home implements OnInit {
             this.viewDate = subWeeks(this.viewDate, 1);
         }
         else {
-            this.viewDate = subDays(this.viewDate, 1);
-            this.selectedDate = this.viewDate;
-            this.loadSchedulesByDate(this.selectedDate);
+            this.setSelectedDay(subDays(this.viewDate, 1));
         }
 
-        this.updateVisibleRange();
-        this.loadSchedulesBetweenDates(this.startDateBetween, this.endDateBetween);
+        this.runViewRequest();
     }
 
-    goToNext(): void {
+    protected goToNext(): void {
         if (this.view === CalendarView.Month) {
             this.viewDate = addMonths(this.viewDate, 1);
         }
@@ -660,22 +642,15 @@ export class Home implements OnInit {
             this.viewDate = addWeeks(this.viewDate, 1);
         }
         else {
-            this.viewDate = addDays(this.viewDate, 1);
-            this.selectedDate = this.viewDate;
-            this.loadSchedulesByDate(this.selectedDate);
+            this.setSelectedDay(addDays(this.viewDate, 1));
         }
 
-        this.updateVisibleRange();
-        this.loadSchedulesBetweenDates(this.startDateBetween, this.endDateBetween);
+        this.runViewRequest();
     }
 
-    goToToday(): void {
+    protected goToToday(): void {
         const today = new Date();
-        this.viewDate = today;
-        this.selectedDate = today;
-
-        this.loadSchedulesByDate(today);
-        this.updateVisibleRange();
-        this.loadSchedulesBetweenDates(this.startDateBetween, this.endDateBetween);
+        this.setSelectedDay(today);
+        this.runViewRequest();
     }
 }
