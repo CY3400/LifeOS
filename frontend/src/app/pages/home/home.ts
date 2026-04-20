@@ -168,6 +168,10 @@ export class Home implements OnInit {
         this.updateErrors.global = '';
     }
 
+    private resetGoalErrors(): void {
+        this.goalErrors.global = '';
+    }
+
     protected hasAnyErrors(errors: Record<string, string>): boolean {
         return Object.values(errors).some(e => e !== '');
     }
@@ -238,8 +242,10 @@ export class Home implements OnInit {
     protected modifyGoal(id: number): void {
         const title = this.modifyGoalTitle.trim();
 
+        this.resetGoalErrors();
+
         if (title) {
-            this.api.modifyGoal(id, title).pipe(
+            this.api.updateGoal(id, title).pipe(
                 finalize(() => {
                     this.modifyGoalId = null;
                     this.modifyGoalTitle = '';
@@ -259,6 +265,8 @@ export class Home implements OnInit {
     }
 
     protected deleteGoal(id: number): void {
+        this.resetGoalErrors();
+
         this.api.deleteGoal(id).subscribe({
             next: () => {
                 this.goals = this.goals.filter(g => g.id !== id);
@@ -272,9 +280,11 @@ export class Home implements OnInit {
     protected submitGoal(): void {
         const title = this.newGoalTitle.trim();
 
+        this.resetGoalErrors();
+
         if (title) {
             this.goalSubmit = true;
-            this.api.addGoal(title).pipe(
+            this.api.createGoal(title).pipe(
                 finalize(() => {
                     this.goalSubmit = false;
                 })
@@ -463,7 +473,7 @@ export class Home implements OnInit {
         }
         
         if (!this.repeatSchedule) {
-            this.performScheduleSave(this.api.createTaskSchedule(taskId!, taskDate, startTime, endTime), "Une erreur s'est produite lors de la création du planning.");
+            this.performScheduleSave(this.api.createTaskSchedule({taskId: taskId!, taskDate, startTime, endTime}), "Une erreur s'est produite lors de la création du planning.");
             return;
         }
 
@@ -525,11 +535,13 @@ export class Home implements OnInit {
     }
 
     protected updateOneSchedule(id: number): void {
-        this.updateSchedule(id, (taskId, startTime, endTime) => this.api.updateTaskSchedule(id, taskId, this.scheduleDate, startTime, endTime));
+        this.updateSchedule(id, (taskId, startTime, endTime) =>
+    this.api.updateTaskSchedule(id, {taskId, taskDate: this.scheduleDate, startTime, endTime}));
     }
 
     protected updateScheduleFollowing(id: number): void {
-        this.updateSchedule(id, (taskId, startTime, endTime) => this.api.updateFollowing(id, taskId, this.scheduleDate, startTime, endTime));
+        this.updateSchedule(id, (taskId, startTime, endTime) =>
+    this.api.updateFollowing(id, {taskId, taskDate: this.scheduleDate, startTime, endTime}));
     }
 
     protected completeSchedule(id: number, completed: boolean): void {
@@ -598,7 +610,7 @@ export class Home implements OnInit {
                 });
             },
             error: () => {
-                this.scheduleErrors.global = "Erreur lors du chargement des plannings pour la date sélectionnée";
+                this.scheduleErrors.global = "Erreur lors du chargement des plannings pour la plage de dates sélectionnées";
             }
         });
     }

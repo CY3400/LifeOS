@@ -35,7 +35,7 @@ export type Task = {
     id: number,
     title: string,
     goalId: number | null
-}
+};
 
 export type TaskSchedule = {
     id: number,
@@ -45,7 +45,14 @@ export type TaskSchedule = {
     endTime: string | null,
     completed: boolean,
     seriesId: string | null;
-}
+};
+
+export type TaskScheduleRequest = {
+  taskId: number;
+  taskDate: string;
+  startTime: string | null;
+  endTime: string | null;
+};
 
 export type Dashboard = {
     goals: Goal[]
@@ -53,13 +60,13 @@ export type Dashboard = {
     totalTasks: number
     completedTasks: number
     completionRate: number
-}
+};
 
 @Injectable({
   providedIn: 'root'
 })
 export class Api {
-    private baseUrl = environment.apiBaseUrl;
+    private readonly baseUrl = environment.apiBaseUrl;
 
     constructor(private http: HttpClient){}
 
@@ -99,13 +106,13 @@ export class Api {
         });
     }
 
-    addGoal(title: string): Observable<Goal> {
+    createGoal(title: string): Observable<Goal> {
         return this.http.post<Goal>(`${this.baseUrl}/goals`, { title }, {
             withCredentials: true
         });
     }
 
-    modifyGoal(id: number, title: string): Observable<Goal> {
+    updateGoal(id: number, title: string): Observable<Goal> {
         return this.http.put<Goal>(`${this.baseUrl}/goals/${id}`, { title }, {
             withCredentials: true
         });
@@ -151,20 +158,20 @@ export class Api {
         });
     }
 
-    createTaskSchedule(taskId: number, taskDate: string, startTime: string | null, endTime: string | null): Observable<TaskSchedule> {
-        return this.http.post<TaskSchedule>(`${this.baseUrl}/task-schedules`, { taskId, taskDate, startTime, endTime }, {
+    createTaskSchedule(payload: TaskScheduleRequest): Observable<TaskSchedule> {
+        return this.http.post<TaskSchedule>(`${this.baseUrl}/task-schedules`, payload, {
             withCredentials: true
         });
     }
 
-    updateTaskSchedule(id: number, taskId: number, taskDate: string, startTime: string | null, endTime: string | null): Observable<TaskSchedule> {
-        return this.http.put<TaskSchedule>(`${this.baseUrl}/task-schedules/${id}`, { taskId, taskDate, startTime, endTime }, {
+    updateTaskSchedule(id: number, payload: TaskScheduleRequest): Observable<TaskSchedule> {
+        return this.http.put<TaskSchedule>(`${this.baseUrl}/task-schedules/${id}`, payload, {
             withCredentials: true
         });
     }
 
-    updateFollowing(id: number, taskId: number, taskDate: string, startTime: string | null, endTime: string | null): Observable<void> {
-        return this.http.put<void>(`${this.baseUrl}/task-schedules/${id}/following`, { taskId, taskDate, startTime, endTime }, {
+    updateFollowing(id: number, payload: TaskScheduleRequest): Observable<void> {
+        return this.http.put<void>(`${this.baseUrl}/task-schedules/${id}/following`, payload, {
             withCredentials: true
         });
     }
