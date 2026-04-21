@@ -4,11 +4,45 @@ import { Register } from './pages/register/register';
 import { Home } from './pages/home/home';
 import { MeResolver } from './resolvers/me-resolver';
 import { Login } from './pages/login/login';
+import { AuthGuard } from './guards/auth-guard';
+import { GuestGuard } from './guards/guest-guard';
 
 export const routes: Routes = [
-    {path: '', component: Welcome, title: 'LifeOS - Bienvenue', data: {public: true}},
-    {path:'bienvenue', component: Welcome, title: 'LifeOS - Bienvenue', data: {public: true}},
-    {path:'s-enregistrer', component: Register, title: 'LifeOS - Inscription', data: {public: true}},
-    {path:'se-connecter', component: Login, title: 'LifeOS - Connexion', data: {public: true}},
-    {path:'accueil', component: Home, title: 'LifeOS - Accueil', resolve: {me: MeResolver}}
+    {
+        path: '',
+        component: Welcome,
+        title: 'LifeOS - Bienvenue',
+        data: { public: true }
+    },
+    {
+        path:'bienvenue',
+        component: Welcome,
+        title: 'LifeOS - Bienvenue',
+        data: { public: true }
+    },
+    {
+        path:'s-enregistrer',
+        component: Register,
+        title: 'LifeOS - Inscription',
+        canActivate: [GuestGuard],
+        data: { public: true }
+    },
+    {
+        path:'se-connecter',
+        component: Login,
+        title: 'LifeOS - Connexion',
+        canActivate: [GuestGuard],
+        data: { public: true }
+    },
+    {
+        path:'accueil',
+        component: Home,
+        title: 'LifeOS - Accueil',
+        canActivate: [AuthGuard],
+        resolve: { me: MeResolver }
+    },
+    {
+        path: '**',
+        redirectTo: ''
+    }
 ];
