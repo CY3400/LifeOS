@@ -11,6 +11,7 @@ public class GoalMapper {
         GoalResponse response = new GoalResponse();
         response.setId(goal.getId());
         response.setTitle(goal.getTitle());
+        response.setCategoryId(goal.getCategory().getId());
         return response;
     }
 }

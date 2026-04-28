@@ -3,6 +3,8 @@ package com.charbel.lifeos.dto;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import com.charbel.lifeos.entity.Priority;
+
 import jakarta.validation.constraints.NotNull;
 
 public class UpdateTaskScheduleRequest {
@@ -14,6 +16,8 @@ public class UpdateTaskScheduleRequest {
 
     private LocalTime startTime;
     private LocalTime endTime;
+
+    private Priority priority;
 
     public Long getTaskId() {
         return taskId;
@@ -45,5 +49,13 @@ public class UpdateTaskScheduleRequest {
 
     public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
+    }
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
     }
 }

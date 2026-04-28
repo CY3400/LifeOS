@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.charbel.lifeos.entity.Priority;
 import com.charbel.lifeos.entity.Task;
 import com.charbel.lifeos.entity.TaskSchedule;
 import com.charbel.lifeos.entity.User;
@@ -70,7 +71,15 @@ public class TaskScheduleService {
         }
     }
 
-    public TaskSchedule createTaskSchedule(User user, Long taskId, LocalDate taskDate, LocalTime startTime, LocalTime endTime) {
+    private Priority resolvePriorityForCreation(Priority priority) {
+        return priority == null ? Priority.MEDIUM : priority;
+    }
+
+    private Priority resolvePriorityForUpdate(TaskSchedule schedule, Priority priority) {
+        return priority == null ? schedule.getPriority() : priority;
+    }
+
+    public TaskSchedule createTaskSchedule(User user, Long taskId, LocalDate taskDate, LocalTime startTime, LocalTime endTime, Priority priority) {
         validateUser(user);
 
         validateTaskDate(taskDate);
@@ -84,11 +93,12 @@ public class TaskScheduleService {
         schedule.setTaskDate(taskDate);
         schedule.setStartTime(startTime);
         schedule.setEndTime(endTime);
+        schedule.setPriority(resolvePriorityForCreation(priority));
 
         return taskScheduleRepository.save(schedule);
     }
 
-    public TaskSchedule updateTaskSchedule(Long id, User user, Long taskId, LocalDate taskDate, LocalTime startTime, LocalTime endTime) {
+    public TaskSchedule updateTaskSchedule(Long id, User user, Long taskId, LocalDate taskDate, LocalTime startTime, LocalTime endTime, Priority priority) {
         validateUser(user);
 
         validateScheduleId(id);
@@ -108,6 +118,7 @@ public class TaskScheduleService {
             existing.setTaskDate(taskDate);
             existing.setStartTime(startTime);
             existing.setEndTime(endTime);
+            existing.setPriority(resolvePriorityForUpdate(existing, priority));
 
             return taskScheduleRepository.save(existing);
         }
@@ -116,7 +127,7 @@ public class TaskScheduleService {
         }
     }
 
-    public void updateTaskScheduleAndFollowing(Long id, User user, Long taskId, LocalDate taskDate, LocalTime startTime, LocalTime endTime) {
+    public void updateTaskScheduleAndFollowing(Long id, User user, Long taskId, LocalDate taskDate, LocalTime startTime, LocalTime endTime, Priority priority) {
         validateUser(user);
 
         validateScheduleId(id);
@@ -132,7 +143,7 @@ public class TaskScheduleService {
         LocalDate today = LocalDate.now();
 
         if(existing.getSeriesId() == null) {
-            updateTaskSchedule(id, user, taskId, taskDate, startTime, endTime);
+            updateTaskSchedule(id, user, taskId, taskDate, startTime, endTime, priority);
             return;
         }
 
@@ -153,6 +164,7 @@ public class TaskScheduleService {
             rt.setTaskDate(newDate);
             rt.setStartTime(startTime);
             rt.setEndTime(endTime);
+            rt.setPriority(resolvePriorityForUpdate(rt, priority));
         }
 
         taskScheduleRepository.saveAll(repeatTasks);
@@ -265,7 +277,7 @@ public class TaskScheduleService {
         return taskScheduleRepository.findByTaskId(task.getId());
     }
 
-    public List<TaskSchedule> createRepeatedTaskSchedules(User user, Long taskId, LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime, List<Integer> daysChosen) {
+    public List<TaskSchedule> createRepeatedTaskSchedules(User user, Long taskId, LocalDate startDate, LocalDate endDate, LocalTime startTime, LocalTime endTime, List<Integer> daysChosen, Priority priority) {
         validateUser(user);
 
         if (startDate == null) {
@@ -285,7 +297,10 @@ public class TaskScheduleService {
         Task task = resolveTaskForUser(taskId, user);
 
         for (Integer day : daysChosen) {
-            if (day < 1 || day > 7) {
+            if (day == null) {
+                throw new BadRequestException("Les jours de répétition ne doivent pas être vides");
+            }
+            else if (day < 1 || day > 7) {
                 throw new BadRequestException("Les jours de répétition doivent être compris entre 1 (lundi) et 7 (dimanche)");
             }
         }
@@ -311,6 +326,7 @@ public class TaskScheduleService {
                     schedule.setStartTime(startTime);
                     schedule.setEndTime(endTime);
                     schedule.setSeriesId(seriesId);
+                    schedule.setPriority(resolvePriorityForCreation(priority));
                     
                     TaskSchedule saved = taskScheduleRepository.save(schedule);
                     createdSchedules.add(saved);

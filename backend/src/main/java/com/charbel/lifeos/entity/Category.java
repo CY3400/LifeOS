@@ -14,24 +14,23 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 
 @Entity
-@Table(name = "goals")
-public class Goal {
+@Table(name = "categories", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_title_user_unique", columnNames = {"user_id", "title"})
+})
+public class Category {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 200)
+    @Column(nullable = false, length = 50)
     private String title;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name="user_id", nullable = false, foreignKey = @ForeignKey(name="fk_goal_user"))
+    @JoinColumn(name="user_id", nullable = false, foreignKey = @ForeignKey(name="fk_category_user"))
     private User user;
-
-    @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name="category_id", nullable = false, foreignKey = @ForeignKey(name="fk_goal_category"))
-    private Category category;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -39,14 +38,13 @@ public class Goal {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public Goal(){
+    public Category(){
 
     }
 
-    public Goal(User user, String title, Category category){
+    public Category(String title, User user){
         this.user = user;
         this.title = title;
-        this.category = category;
     }
 
     @PrePersist
@@ -80,14 +78,6 @@ public class Goal {
     }
     public void setUser(User user){
         this.user = user;
-    }
-
-    public Category getCategory() {
-        return category;
-    }
-
-    public void setCategory(Category category) {
-        this.category = category;
     }
 
     public LocalDateTime getCreatedAt() {

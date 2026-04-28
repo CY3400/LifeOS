@@ -1,27 +1,34 @@
 package com.charbel.lifeos.service;
 
+import com.charbel.lifeos.repository.CategoryRepository;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.charbel.lifeos.entity.Task;
+import com.charbel.lifeos.entity.Category;
 import com.charbel.lifeos.entity.Goal;
 import com.charbel.lifeos.entity.User;
 import com.charbel.lifeos.exception.BadRequestException;
 import com.charbel.lifeos.exception.ResourceNotFoundException;
 import com.charbel.lifeos.repository.TaskRepository;
+import com.charbel.lifeos.repository.TaskScheduleRepository;
 import com.charbel.lifeos.repository.GoalRepository;
 
 @Service
 @Transactional
 public class TaskService {
+    private final CategoryRepository categoryRepository;
     private final TaskRepository taskRepository;
     private final GoalRepository goalRepository;
+    private final TaskScheduleRepository taskScheduleRepository;
 
-    public TaskService(TaskRepository taskRepository, GoalRepository goalRepository) {
+    public TaskService(TaskRepository taskRepository, GoalRepository goalRepository, CategoryRepository categoryRepository, TaskScheduleRepository taskScheduleRepository) {
         this.taskRepository = taskRepository;
         this.goalRepository = goalRepository;
+        this.categoryRepository = categoryRepository;
+        this.taskScheduleRepository = taskScheduleRepository;
     }
 
     private void validateUser(User user) {
@@ -36,10 +43,18 @@ public class TaskService {
         }
     }
 
-    private void validateTitle(String title) {
-        if(title == null || title.isBlank()) {
+    private String normalizeTitle(String title) {
+        if (title == null) {
             throw new BadRequestException("Titre requis");
         }
+
+        String normalizedTitle = title.trim().replaceAll("\\s+", " ");
+
+        if (normalizedTitle.isBlank()) {
+            throw new BadRequestException("Titre requis");
+        }
+
+        return normalizedTitle;
     }
 
     private Goal resolveGoalForUser(Long goalId, User user) {
@@ -51,38 +66,74 @@ public class TaskService {
         }
     }
 
+    private Category resolveCategoryForUser(Long categoryId, User user) {
+        if(categoryId != null) {
+            return categoryRepository.findByIdAndUserId(categoryId, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Catégorie introuvable"));
+        }
+        else {
+            return null;
+        }
+    }
+
+    private void validateGoalCategoryChoice(Goal goal, Category category) {
+        if(category == null && goal == null) {
+            throw new BadRequestException("Une tâche doit être liée soit à une catégorie, soit à un objectif");
+        }
+        else if(category != null && goal != null) {
+            throw new BadRequestException("Une tâche ne peut pas être liée à la fois à une catégorie et à un objectif");
+        }
+    }
+
     private Task resolveTaskForUser(Long id, Long userId) {
         return taskRepository.findByIdAndUserId(id, userId).orElseThrow(() -> new ResourceNotFoundException("Tâche introuvable"));
     }
 
-    public Task createTask(User user, String title, Long goalId) {
+    private void validateTaskIsNotUsed(Long taskId, Long userId) {
+        boolean schedule = taskScheduleRepository.existsByTaskIdAndTaskUserId(taskId, userId);
+
+        if(schedule) {
+            throw new BadRequestException("La tâche est utilisée par un ou plusieurs plannings et ne peut pas être supprimée");
+        }
+    }
+
+    public Task createTask(User user, String title, Long goalId, Long categoryId, String description) {
         validateUser(user);
 
-        validateTitle(title);
+        String normalizedTitle = normalizeTitle(title);
 
         Goal goal = resolveGoalForUser(goalId, user);
+        Category category = resolveCategoryForUser(categoryId, user);
+
+        validateGoalCategoryChoice(goal, category);
 
         Task task = new Task();
         task.setUser(user);
-        task.setTitle(title);
+        task.setTitle(normalizedTitle);
+        task.setDescription(description);
         task.setGoal(goal);
+        task.setCategory(category);
 
         return taskRepository.save(task);
     }
 
-    public Task updateTask(Long id, User user, String title, Long goalId) {
+    public Task updateTask(Long id, User user, String title, Long goalId, Long categoryId, String description) {
         validateUser(user);
 
-        validateTitle(title);
-
         validateTaskId(id);
+
+        String normalizedTitle =  normalizeTitle(title);
 
         Task existing = resolveTaskForUser(id, user.getId());
 
         Goal goal = resolveGoalForUser(goalId, user);
+        Category category = resolveCategoryForUser(categoryId, user);
 
-        existing.setTitle(title);
+        validateGoalCategoryChoice(goal, category);
+
+        existing.setTitle(normalizedTitle);
+        existing.setDescription(description);
         existing.setGoal(goal);
+        existing.setCategory(category);
 
         return taskRepository.save(existing);
     }
@@ -93,6 +144,8 @@ public class TaskService {
         validateTaskId(id);
 
         Task existing = resolveTaskForUser(id, user.getId());
+
+        validateTaskIsNotUsed(id, user.getId());
 
         taskRepository.delete(existing);
     }

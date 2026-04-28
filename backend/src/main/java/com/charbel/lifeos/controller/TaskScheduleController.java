@@ -46,7 +46,7 @@ public class TaskScheduleController {
     public ResponseEntity<TaskScheduleResponse> create(@Valid @RequestBody CreateTaskScheduleRequest req, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);
 
-        TaskSchedule created = taskScheduleService.createTaskSchedule(user, req.getTaskId(), req.getTaskDate(), req.getStartTime(), req.getEndTime());
+        TaskSchedule created = taskScheduleService.createTaskSchedule(user, req.getTaskId(), req.getTaskDate(), req.getStartTime(), req.getEndTime(), req.getPriority());
 
         return ResponseEntity.status(201).body(taskScheduleMapper.toResponse(created));
     }
@@ -55,7 +55,7 @@ public class TaskScheduleController {
     public ResponseEntity<TaskScheduleResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateTaskScheduleRequest req, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);
 
-        TaskSchedule updated = taskScheduleService.updateTaskSchedule(id, user, req.getTaskId(), req.getTaskDate(), req.getStartTime(), req.getEndTime());
+        TaskSchedule updated = taskScheduleService.updateTaskSchedule(id, user, req.getTaskId(), req.getTaskDate(), req.getStartTime(), req.getEndTime(), req.getPriority());
 
         return ResponseEntity.ok(taskScheduleMapper.toResponse(updated));
     }
@@ -64,7 +64,7 @@ public class TaskScheduleController {
     public ResponseEntity<Void> updateFollowing(@PathVariable Long id, @Valid @RequestBody UpdateTaskScheduleRequest req, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);
 
-        taskScheduleService.updateTaskScheduleAndFollowing(id, user, req.getTaskId(), req.getTaskDate(), req.getStartTime(), req.getEndTime());
+        taskScheduleService.updateTaskScheduleAndFollowing(id, user, req.getTaskId(), req.getTaskDate(), req.getStartTime(), req.getEndTime(), req.getPriority());
 
         return ResponseEntity.noContent().build();
     }
@@ -98,7 +98,7 @@ public class TaskScheduleController {
     }
 
     @GetMapping("/date/{taskDate}")
-    public ResponseEntity<List<TaskScheduleResponse>> getByDate(@PathVariable LocalDate taskDate, Authentication auth) {
+    public ResponseEntity<List<TaskScheduleResponse>> getByDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate taskDate, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);
 
         List<TaskScheduleResponse> schedules = taskScheduleService.getTaskSchedulesByDateForUser(user, taskDate).stream().map(taskScheduleMapper::toResponse).toList();
@@ -146,7 +146,7 @@ public class TaskScheduleController {
     public ResponseEntity<List<TaskScheduleResponse>> createRepeated(@Valid @RequestBody RepeatTaskScheduleRequest req, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);
 
-        List<TaskSchedule> createdSchedules = taskScheduleService.createRepeatedTaskSchedules(user, req.getTaskId(), req.getStartDate(), req.getEndDate(), req.getStartTime(), req.getEndTime(), req.getDaysChosen());
+        List<TaskSchedule> createdSchedules = taskScheduleService.createRepeatedTaskSchedules(user, req.getTaskId(), req.getStartDate(), req.getEndDate(), req.getStartTime(), req.getEndTime(), req.getDaysChosen(), req.getPriority());
 
         List<TaskScheduleResponse> responses = createdSchedules.stream().map(taskScheduleMapper::toResponse).toList();
 

@@ -4,6 +4,8 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 
+import com.charbel.lifeos.entity.Priority;
+
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 
@@ -22,6 +24,8 @@ public class RepeatTaskScheduleRequest {
 
     private LocalTime startTime;
     private LocalTime endTime;
+
+    private Priority priority;
 
     public Long getTaskId() {
         return taskId;
@@ -69,5 +73,13 @@ public class RepeatTaskScheduleRequest {
 
     public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
+    }
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
     }
 }

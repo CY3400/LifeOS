@@ -3,39 +3,49 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { environment } from "../../environments/environment";
 
+export type Priority = 'LOW' | 'MEDIUM' | 'HIGH';
+
 export type LoginRequest = {
-  email: string;
-  password: string;
+  email: string,
+  password: string
 };
 
 export type RegisterRequest = {
-  email: string;
-  password: string;
+  email: string,
+  password: string
 };
 
 export type AuthResponse = {
-  userId: number;
-  email: string;
-  role: string;
-  message: string;
+  userId: number,
+  email: string,
+  role: string,
+  message: string
 };
 
 export type MeResponse = {
-  userId: number;
-  email: string;
-  role: string;
+  userId: number,
+  email: string,
+  role: string
 };
 
 export type Goal = {
     id: number,
-    title: string
+    title: string,
+    categoryId: number
 }
 
 export type Task = {
     id: number,
     title: string,
-    goalId: number | null
+    description: string,
+    goalId: number | null,
+    categoryId: number | null
 };
+
+export type Category = {
+    id: number,
+    title: string
+}
 
 export type TaskSchedule = {
     id: number,
@@ -44,21 +54,24 @@ export type TaskSchedule = {
     startTime: string | null,
     endTime: string | null,
     completed: boolean,
-    seriesId: string | null;
+    seriesId: string | null,
+    priority: Priority | null
 };
 
 export type TaskScheduleRequest = {
-  taskId: number;
-  taskDate: string;
-  startTime: string | null;
-  endTime: string | null;
+  taskId: number,
+  taskDate: string,
+  startTime: string | null,
+  endTime: string | null,
+  priority: Priority | null
 };
 
 export type Dashboard = {
-    goals: Goal[]
-    tasks: Task[]
-    totalTasks: number
-    completedTasks: number
+    goals: Goal[],
+    tasks: Task[],
+    categories: Category[],
+    totalTasks: number,
+    completedTasks: number,
     completionRate: number
 };
 
@@ -106,14 +119,14 @@ export class Api {
         });
     }
 
-    createGoal(title: string): Observable<Goal> {
-        return this.http.post<Goal>(`${this.baseUrl}/goals`, { title }, {
+    createGoal(title: string, categoryId: number): Observable<Goal> {
+        return this.http.post<Goal>(`${this.baseUrl}/goals`, { title, categoryId }, {
             withCredentials: true
         });
     }
 
-    updateGoal(id: number, title: string): Observable<Goal> {
-        return this.http.put<Goal>(`${this.baseUrl}/goals/${id}`, { title }, {
+    updateGoal(id: number, title: string, categoryId: number): Observable<Goal> {
+        return this.http.put<Goal>(`${this.baseUrl}/goals/${id}`, { title, categoryId }, {
             withCredentials: true
         });
     }
@@ -124,14 +137,14 @@ export class Api {
         });
     }
 
-    createTask(title: string, goalId: number | null): Observable<Task> {
-        return this.http.post<Task>(`${this.baseUrl}/tasks`, { title, goalId }, {
+    createTask(title: string, description: string, goalId: number | null, categoryId: number | null): Observable<Task> {
+        return this.http.post<Task>(`${this.baseUrl}/tasks`, { title, description, goalId, categoryId }, {
             withCredentials: true
         });
     }
 
-    updateTask(id: number, title: string, goalId: number | null): Observable<Task> {
-        return this.http.put<Task>(`${this.baseUrl}/tasks/${id}`, { title, goalId }, {
+    updateTask(id: number, title: string, description: string, goalId: number | null, categoryId: number | null): Observable<Task> {
+        return this.http.put<Task>(`${this.baseUrl}/tasks/${id}`, { title, description, goalId, categoryId }, {
             withCredentials: true
         });
     }
@@ -154,6 +167,24 @@ export class Api {
                 startDate,
                 endDate
             },
+            withCredentials: true
+        });
+    }
+
+    createCategory(title: string): Observable<Category> {
+        return this.http.post<Category>(`${this.baseUrl}/categories`, { title }, {
+            withCredentials: true
+        });
+    }
+
+    updateCategory(id: number, title: string): Observable<Category> {
+        return this.http.put<Category>(`${this.baseUrl}/categories/${id}`, { title }, {
+            withCredentials: true
+        });
+    }
+
+    deleteCategory(id: number): Observable<void> {
+        return this.http.delete<void>(`${this.baseUrl}/categories/${id}`, {
             withCredentials: true
         });
     }
@@ -188,8 +219,8 @@ export class Api {
         });
     }
 
-    repeatTaskSchedules(taskId: number, startDate: string, endDate: string, startTime: string | null, endTime: string | null, daysChosen: number[]): Observable<TaskSchedule[]> {
-        return this.http.post<TaskSchedule[]>(`${this.baseUrl}/task-schedules/repeat`, { taskId, startDate, endDate, startTime, endTime, daysChosen }, {
+    repeatTaskSchedules(taskId: number, startDate: string, endDate: string, startTime: string | null, endTime: string | null, daysChosen: number[], priority: string | null): Observable<TaskSchedule[]> {
+        return this.http.post<TaskSchedule[]>(`${this.baseUrl}/task-schedules/repeat`, { taskId, startDate, endDate, startTime, endTime, daysChosen, priority }, {
             withCredentials: true
         });
     }

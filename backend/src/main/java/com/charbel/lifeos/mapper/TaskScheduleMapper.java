@@ -16,6 +16,7 @@ public class TaskScheduleMapper {
         response.setEndTime(schedule.getEndTime());
         response.setCompleted(schedule.isCompleted());
         response.setSeriesId(schedule.getSeriesId());
+        response.setPriority(schedule.getPriority());
         return response;
     }
 }

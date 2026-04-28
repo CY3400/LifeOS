@@ -11,4 +11,6 @@ public interface GoalRepository extends JpaRepository<Goal, Long> {
     List<Goal> findByUserId(Long userId);
 
     Optional<Goal> findByIdAndUserId(Long id, Long userId);
+
+    boolean existsByCategoryIdAndUserId(Long categoryId, Long userId);
 }

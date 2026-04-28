@@ -6,6 +6,8 @@ import java.time.LocalTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
@@ -40,6 +42,10 @@ public class TaskSchedule {
 
     @Column(name = "series_id")
     private String seriesId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private Priority priority = Priority.MEDIUM;
 
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
@@ -113,6 +119,14 @@ public class TaskSchedule {
 
     public void setSeriesId(String seriesId) {
         this.seriesId = seriesId;
+    }
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
     }
 
     public LocalDateTime getCreatedAt() {
