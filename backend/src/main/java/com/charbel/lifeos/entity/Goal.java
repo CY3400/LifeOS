@@ -29,7 +29,11 @@ public class Goal {
     @JoinColumn(name="user_id", nullable = false, foreignKey = @ForeignKey(name="fk_goal_user"))
     private User user;
 
-    @Column(name = "created_at")
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name="category_id", nullable = false, foreignKey = @ForeignKey(name="fk_goal_category"))
+    private Category category;
+
+    @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")
@@ -39,9 +43,10 @@ public class Goal {
 
     }
 
-    public Goal(User user, String title){
+    public Goal(User user, String title, Category category){
         this.user = user;
         this.title = title;
+        this.category = category;
     }
 
     @PrePersist
@@ -75,6 +80,14 @@ public class Goal {
     }
     public void setUser(User user){
         this.user = user;
+    }
+
+    public Category getCategory() {
+        return category;
+    }
+
+    public void setCategory(Category category) {
+        this.category = category;
     }
 
     public LocalDateTime getCreatedAt() {

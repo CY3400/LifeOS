@@ -3,6 +3,7 @@ package com.charbel.lifeos.controller;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.charbel.lifeos.dto.CompleteTaskScheduleRequest;
@@ -44,7 +46,7 @@ public class TaskScheduleController {
     public ResponseEntity<TaskScheduleResponse> create(@Valid @RequestBody CreateTaskScheduleRequest req, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);
 
-        TaskSchedule created = taskScheduleService.createTaskSchedule(user, req.getTaskId(), req.getTaskDate(), req.getStartTime(), req.getEndTime());
+        TaskSchedule created = taskScheduleService.createTaskSchedule(user, req.getTaskId(), req.getTaskDate(), req.getStartTime(), req.getEndTime(), req.getPriority());
 
         return ResponseEntity.status(201).body(taskScheduleMapper.toResponse(created));
     }
@@ -53,7 +55,7 @@ public class TaskScheduleController {
     public ResponseEntity<TaskScheduleResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateTaskScheduleRequest req, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);
 
-        TaskSchedule updated = taskScheduleService.updateTaskSchedule(id, user, req.getTaskId(), req.getTaskDate(), req.getStartTime(), req.getEndTime());
+        TaskSchedule updated = taskScheduleService.updateTaskSchedule(id, user, req.getTaskId(), req.getTaskDate(), req.getStartTime(), req.getEndTime(), req.getPriority());
 
         return ResponseEntity.ok(taskScheduleMapper.toResponse(updated));
     }
@@ -62,7 +64,7 @@ public class TaskScheduleController {
     public ResponseEntity<Void> updateFollowing(@PathVariable Long id, @Valid @RequestBody UpdateTaskScheduleRequest req, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);
 
-        taskScheduleService.updateTaskScheduleAndFollowing(id, user, req.getTaskId(), req.getTaskDate(), req.getStartTime(), req.getEndTime());
+        taskScheduleService.updateTaskScheduleAndFollowing(id, user, req.getTaskId(), req.getTaskDate(), req.getStartTime(), req.getEndTime(), req.getPriority());
 
         return ResponseEntity.noContent().build();
     }
@@ -96,10 +98,19 @@ public class TaskScheduleController {
     }
 
     @GetMapping("/date/{taskDate}")
-    public ResponseEntity<List<TaskScheduleResponse>> getByDate(@PathVariable LocalDate taskDate, Authentication auth) {
+    public ResponseEntity<List<TaskScheduleResponse>> getByDate(@PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate taskDate, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);
 
         List<TaskScheduleResponse> schedules = taskScheduleService.getTaskSchedulesByDateForUser(user, taskDate).stream().map(taskScheduleMapper::toResponse).toList();
+
+        return ResponseEntity.ok(schedules);
+    }
+
+    @GetMapping("/date/between")
+    public ResponseEntity<List<TaskScheduleResponse>> getBetweenDates(@RequestParam("startDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate, @RequestParam("endDate") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate, Authentication auth) {
+        User user = currentUserService.getCurrentUser(auth);
+
+        List<TaskScheduleResponse> schedules = taskScheduleService.getTaskSchedulesBetweenDates(user, startDate, endDate).stream().map(taskScheduleMapper::toResponse).toList();
 
         return ResponseEntity.ok(schedules);
     }
@@ -135,7 +146,7 @@ public class TaskScheduleController {
     public ResponseEntity<List<TaskScheduleResponse>> createRepeated(@Valid @RequestBody RepeatTaskScheduleRequest req, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);
 
-        List<TaskSchedule> createdSchedules = taskScheduleService.createRepeatedTaskSchedules(user, req.getTaskId(), req.getStartDate(), req.getEndDate(), req.getStartTime(), req.getEndTime(), req.getDaysChosen());
+        List<TaskSchedule> createdSchedules = taskScheduleService.createRepeatedTaskSchedules(user, req.getTaskId(), req.getStartDate(), req.getEndDate(), req.getStartTime(), req.getEndTime(), req.getDaysChosen(), req.getPriority());
 
         List<TaskScheduleResponse> responses = createdSchedules.stream().map(taskScheduleMapper::toResponse).toList();
 

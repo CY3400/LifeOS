@@ -41,7 +41,7 @@ public class GoalController {
     public ResponseEntity<GoalResponse> create(@Valid @RequestBody CreateGoalRequest req, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);
         
-        Goal created = goalService.createGoal(user, req.getTitle());
+        Goal created = goalService.createGoal(user, req.getTitle(), req.getCategoryId());
 
         return ResponseEntity.status(201).body(goalMapper.toResponse(created));
     }
@@ -50,7 +50,7 @@ public class GoalController {
     public ResponseEntity<GoalResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateGoalRequest req, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);
         
-        Goal updated = goalService.updateGoal(id, user, req.getTitle());
+        Goal updated = goalService.updateGoal(id, user, req.getTitle(), req.getCategoryId());
 
         return ResponseEntity.ok(goalMapper.toResponse(updated));
     }

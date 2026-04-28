@@ -42,7 +42,7 @@ public class TaskController {
     public ResponseEntity<TaskResponse> create(@Valid @RequestBody CreateTaskRequest req, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);
         
-        Task created = taskService.createTask(user, req.getTitle(), req.getGoalId());
+        Task created = taskService.createTask(user, req.getTitle(), req.getGoalId(), req.getCategoryId(), req.getDescription());
 
         return ResponseEntity.status(201).body(taskMapper.toResponse(created));
     }
@@ -51,7 +51,7 @@ public class TaskController {
     public ResponseEntity<TaskResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateTaskRequest req, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);
         
-        Task updated = taskService.updateTask(id, user, req.getTitle(), req.getGoalId());
+        Task updated = taskService.updateTask(id, user, req.getTitle(), req.getGoalId(), req.getCategoryId(), req.getDescription());
 
         return ResponseEntity.ok(taskMapper.toResponse(updated));
     }

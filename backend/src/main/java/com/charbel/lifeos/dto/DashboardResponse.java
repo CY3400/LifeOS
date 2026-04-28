@@ -5,6 +5,7 @@ import java.util.List;
 public class DashboardResponse {
     private List<GoalResponse> goals;
     private List<TaskResponse> tasks;
+    private List<CategoryResponse> categories;
     private int totalTasks;
     private int completedTasks;
     private double completionRate;
@@ -23,6 +24,14 @@ public class DashboardResponse {
 
     public void setTasks(List<TaskResponse> tasks) {
         this.tasks = tasks;
+    }
+
+    public List<CategoryResponse> getCategories() {
+        return categories;
+    }
+
+    public void setCategories(List<CategoryResponse> categories) {
+        this.categories = categories;
     }
 
     public int getTotalTasks() {

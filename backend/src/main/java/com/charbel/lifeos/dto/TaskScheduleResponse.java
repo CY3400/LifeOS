@@ -3,6 +3,8 @@ package com.charbel.lifeos.dto;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
+import com.charbel.lifeos.entity.Priority;
+
 public class TaskScheduleResponse {
     private Long id;
     private Long taskId;
@@ -11,6 +13,7 @@ public class TaskScheduleResponse {
     private LocalTime endTime;
     private boolean completed;
     private String seriesId;
+    private Priority priority;
 
     public Long getId() {
         return id;
@@ -66,5 +69,13 @@ public class TaskScheduleResponse {
 
     public void setSeriesId(String seriesId) {
         this.seriesId = seriesId;
+    }
+
+    public Priority getPriority() {
+        return priority;
+    }
+
+    public void setPriority(Priority priority) {
+        this.priority = priority;
     }
 }
