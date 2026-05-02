@@ -4,6 +4,7 @@ import { Observable } from "rxjs";
 import { environment } from "../../environments/environment";
 
 export type Priority = 'LOW' | 'MEDIUM' | 'HIGH';
+export type Status = 'ACTIVE' | 'ARCHIVED';
 
 export type LoginRequest = {
   email: string,
@@ -31,7 +32,8 @@ export type MeResponse = {
 export type Goal = {
     id: number,
     title: string,
-    categoryId: number
+    categoryId: number,
+    status: Status
 }
 
 export type Task = {
@@ -39,12 +41,14 @@ export type Task = {
     title: string,
     description: string,
     goalId: number | null,
-    categoryId: number | null
+    categoryId: number | null,
+    status: Status
 };
 
 export type Category = {
     id: number,
-    title: string
+    title: string,
+    status: Status
 }
 
 export type TaskSchedule = {
@@ -137,6 +141,12 @@ export class Api {
         });
     }
 
+    archiveGoal(id: number): Observable<Goal> {
+        return this.http.patch<Goal>(`${this.baseUrl}/goals/${id}/archive`, {}, {
+            withCredentials: true
+        });
+    }
+
     createTask(title: string, description: string, goalId: number | null, categoryId: number | null): Observable<Task> {
         return this.http.post<Task>(`${this.baseUrl}/tasks`, { title, description, goalId, categoryId }, {
             withCredentials: true
@@ -151,6 +161,12 @@ export class Api {
 
     deleteTask(id: number): Observable<void> {
         return this.http.delete<void>(`${this.baseUrl}/tasks/${id}`, {
+            withCredentials: true
+        });
+    }
+
+    archiveTask(id: number): Observable<Task> {
+        return this.http.patch<Task>(`${this.baseUrl}/tasks/${id}/archive`, {}, {
             withCredentials: true
         });
     }
@@ -185,6 +201,12 @@ export class Api {
 
     deleteCategory(id: number): Observable<void> {
         return this.http.delete<void>(`${this.baseUrl}/categories/${id}`, {
+            withCredentials: true
+        });
+    }
+
+    archiveCategory(id: number): Observable<Category> {
+        return this.http.patch<Category>(`${this.baseUrl}/categories/${id}/archive`, {}, {
             withCredentials: true
         });
     }

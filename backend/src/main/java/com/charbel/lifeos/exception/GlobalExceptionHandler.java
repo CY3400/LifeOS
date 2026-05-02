@@ -14,27 +14,27 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
     @ExceptionHandler(EmailAlreadyExistsException.class)
     public ResponseEntity<Map<String, Object>> handleEmailAlreadyExists(EmailAlreadyExistsException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(buildMap(ex.getMessage(), 409, "Conflict"));
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(buildMap(ex.getMessage(), 409, "Conflict", null));
     }
 
     @ExceptionHandler(InvalidCredentialsException.class)
     public ResponseEntity<Map<String, Object>> handleInvalidCredentials(InvalidCredentialsException ex) {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(buildMap(ex.getMessage(), 401, "Unauthorized"));
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(buildMap(ex.getMessage(), 401, "Unauthorized", null));
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(buildMap(ex.getMessage(), 404, "Not Found"));
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(buildMap(ex.getMessage(), 404, "Not Found", null));
     }
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<Map<String, Object>> handleBadRequests(BadRequestException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(buildMap(ex.getMessage(), 400, "Bad Request"));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(buildMap(ex.getMessage(), 400, "Bad Request", ex.getCode()));
     }
 
     @ExceptionHandler(AppConfigurationException.class)
     public ResponseEntity<Map<String, Object>> handleAppConfiguration(AppConfigurationException ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(buildMap(ex.getMessage(), 500, "Internal Server Error"));
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(buildMap(ex.getMessage(), 500, "Internal Server Error", null));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
@@ -53,12 +53,16 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(body);
     }
 
-    private Map<String, Object> buildMap(String message, Integer value, String error) {
+    private Map<String, Object> buildMap(String message, Integer value, String error, String code) {
         Map<String, Object> body = new HashMap<>();
         body.put("timestamp", LocalDateTime.now());
         body.put("status", value);
         body.put("error", error);
         body.put("message", message);
+
+        if(code != null) {
+            body.put("code", code);
+        }
 
         return body;
     }

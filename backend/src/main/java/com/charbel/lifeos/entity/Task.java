@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -26,6 +28,10 @@ public class Task {
     private String title;
 
     private String description;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Status status = Status.ACTIVE;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name="user_id", nullable = false, foreignKey = @ForeignKey(name="fk_task_user"))
@@ -52,11 +58,19 @@ public class Task {
         LocalDateTime now = LocalDateTime.now();
         createdAt = now;
         updatedAt = now;
+
+        if(status == null) {
+            status = Status.ACTIVE;
+        }
     }
 
     @PreUpdate
     private void onUpdate() {
         updatedAt = LocalDateTime.now();
+
+        if (status == null) {
+            status = Status.ACTIVE;
+        }
     }
 
     public Long getId(){
@@ -78,6 +92,13 @@ public class Task {
     }
     public void setDescription(String description){
         this.description = description;
+    }
+
+    public Status getStatus(){
+        return status;
+    }
+    public void setStatus(Status status){
+        this.status = status;
     }
 
     public User getUser(){

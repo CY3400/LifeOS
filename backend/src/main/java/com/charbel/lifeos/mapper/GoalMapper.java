@@ -12,6 +12,7 @@ public class GoalMapper {
         response.setId(goal.getId());
         response.setTitle(goal.getTitle());
         response.setCategoryId(goal.getCategory().getId());
+        response.setStatus(goal.getStatus());
         return response;
     }
 }

@@ -1,9 +1,12 @@
 package com.charbel.lifeos.dto;
 
+import com.charbel.lifeos.entity.Status;
+
 public class GoalResponse {
     private Long id;
     private String title;
     private Long categoryId;
+    private Status status;
 
     public Long getId(){
         return id;
@@ -27,5 +30,13 @@ public class GoalResponse {
 
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
+    }
+
+    public Status getStatus(){
+        return status;
+    }
+
+    public void setStatus(Status status) {
+        this.status = status;
     }
 }

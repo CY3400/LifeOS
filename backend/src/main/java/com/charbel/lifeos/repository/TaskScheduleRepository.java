@@ -24,6 +24,8 @@ public interface TaskScheduleRepository extends JpaRepository<TaskSchedule, Long
 
     boolean existsByTaskIdAndTaskUserId(Long taskId, Long userId);
 
+    boolean existsByTaskIdAndTaskUserIdAndCompletedFalseAndTaskDateGreaterThanEqual(Long taskId, Long userId, LocalDate taskDate);
+
     List<TaskSchedule> findByTaskUserIdAndSeriesIdAndTaskDateGreaterThanEqual(Long userId, String seriesId, LocalDate taskDate);
 
     @Query(value="""

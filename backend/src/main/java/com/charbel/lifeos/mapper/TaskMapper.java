@@ -14,6 +14,7 @@ public class TaskMapper {
         response.setDescription(task.getDescription());
         response.setGoalId(task.getGoal() != null ? task.getGoal().getId() : null);
         response.setCategoryId(task.getCategory() != null ? task.getCategory().getId() : null);
+        response.setStatus(task.getStatus());
 
         return response;
     }
