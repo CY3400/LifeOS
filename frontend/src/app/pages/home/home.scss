@@ -140,6 +140,33 @@
   line-height: 1.4;
 }
 
+.archive-one {
+  min-width: 110px;
+  border: none;
+  border-radius: 10px;
+  padding: 0.65rem 1rem;
+  background: #f59e0b;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.archive-one:hover {
+  background: #d97706;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(245, 158, 11, 0.25);
+}
+
+.archive-one:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.delete-modal .error {
+  margin-bottom: 1rem;
+}
+
 /* =========================================================
    KPI
    ========================================================= */
