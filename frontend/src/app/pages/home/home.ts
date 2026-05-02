@@ -9,7 +9,7 @@ import { MatSnackBar } from "@angular/material/snack-bar";
 
 type EntityType = 'category' | 'goal' | 'task' | 'schedule';
 
-type EntityAction = 'create' | 'update' | 'delete' | 'complete' | 'load';
+type EntityAction = 'create' | 'update' | 'delete' | 'complete' | 'load' | 'archive';
 
 type ScheduleDisplay = {
     taskTitle: string;
@@ -87,7 +87,7 @@ export class Home implements OnInit {
     isScheduleModalOpen: boolean = false;
     scheduleSubmit: boolean = false;
     modifyScheduleId: number | null = null;
-    selectedTaskId: number | null = null
+    selectedTaskId: number | null = null;
     scheduleDate: string = '';
     scheduleStartTime: string = '';
     scheduleEndTime: string = '';
@@ -113,6 +113,7 @@ export class Home implements OnInit {
     warningType: Warning | null = null;
     warningError: string = '';
     warningMessage: string = '';
+    canSuggestArchive: boolean = false;
     isDeleteModalOpen: boolean = false;
     selectedScheduleId: number = 0;
     isUpdateModalOpen: boolean = false;
@@ -124,7 +125,9 @@ export class Home implements OnInit {
     };
 
     todayDate: Date = new Date();
-    todayDateString: string = this.formatDate(this.todayDate);
+    yesterdayDate: Date = new Date();
+    todayDateString: string = '';
+    yesterdayDateString: string = '';
     startDateBetween: Date = new Date();
     endDateBetween: Date = new Date();
 
@@ -133,6 +136,7 @@ export class Home implements OnInit {
 
     //lifecycle
     ngOnInit() {
+        this.initializeDates();
         this.refreshHome();
     }
 
@@ -206,7 +210,7 @@ export class Home implements OnInit {
                 });
             },
             error: () => {
-                this.scheduleErrors.global = this.getGenericErrorMessage('schedule', 'load');;
+                this.scheduleErrors.global = this.getGenericErrorMessage('schedule', 'load');
             }
         });
     }
@@ -280,7 +284,10 @@ export class Home implements OnInit {
     }
 
     protected goToToday(): void {
-        const today = new Date();
+        this.initializeDates();
+
+        const today = new Date(this.todayDate);
+
         this.setSelectedDay(today);
         this.runViewRequest();
     }
@@ -627,7 +634,7 @@ export class Home implements OnInit {
         }
 
         if (this.repeatSchedule && !this.daysChosen.length) {
-            this.scheduleErrors.daysChosen = this.getValidationMessage('scheduleDaysRequired');;
+            this.scheduleErrors.daysChosen = this.getValidationMessage('scheduleDaysRequired');
             isValid = false;
         }
 
@@ -752,12 +759,27 @@ export class Home implements OnInit {
         }
     }
 
-    private errorWarning(errorMessage: string, specificMessage: string, globalMessage: string): void {
-        if (errorMessage.includes('liée') || errorMessage.includes('utilisée')) {
+    protected confirmWarningArchive(type: Warning, id: number) {
+        if(type === 'category') {
+            this.archiveGlobal(this.api.archiveCategory(id), this.getSuccessMessage('category', 'archive'), this.getGenericErrorMessage('category', 'archive'));
+        }
+        else if(type === 'task') {
+            this.archiveGlobal(this.api.archiveTask(id), this.getSuccessMessage('task', 'archive'), this.getGenericErrorMessage('task', 'archive'));
+        }
+        else {
+            this.archiveGlobal(this.api.archiveGoal(id), this.getSuccessMessage('goal', 'archive'), this.getGenericErrorMessage('goal', 'archive'));
+        }
+    }
+
+    private errorWarning(errorCode: string, specificMessage: string, globalMessage: string): void {
+        if (errorCode === "TASK_USED" || errorCode === "GOAL_USED" || errorCode === "CATEGORY_USED") {
             this.warningError = specificMessage;
+            this.canSuggestArchive = true;
+            this.warningMessage = `La suppression est impossible. Vous pouvez archiver cet élément pour le masquer du dashboard.`;
         }
         else {
             this.warningError = globalMessage;
+            this.canSuggestArchive = false;
         }
     }
 
@@ -799,14 +821,38 @@ export class Home implements OnInit {
                 this.setSuccessMessage(successMessage);
             },
             error: (error) => {
-                const backendMessage = error?.error?.message ?? '';
+                const backendCode = error?.error?.code ?? '';
 
-                this.errorWarning(backendMessage, specificErrorMessage, globalErrorMessage);
+                this.errorWarning(backendCode, specificErrorMessage, globalErrorMessage);
             }
         })
     }
 
-    // display helpers
+    private archiveGlobal(request$: Observable<unknown>, successMessage: string, globalErrorMessage: string): void {
+        this.warningError = '';
+
+        request$.subscribe({
+            next: () => {
+                this.refreshHome();
+                this.resetWarningState();
+                this.setSuccessMessage(successMessage);
+            },
+            error: (error) => {
+                const backendMessage = error?.error?.message ?? '';
+
+                this.canSuggestArchive = false;
+
+                if(backendMessage !== '') {
+                    this.warningError = backendMessage;
+                }
+                else {
+                    this.warningError = globalErrorMessage;
+                }
+            }
+        })
+    }
+
+    // display/date helpers
     private getCategoryIdByGoal(goalId: number | null) : number | null {
         const goal = this.goals.find(g => g.id === goalId);
         return goal ? goal.categoryId : null;
@@ -882,6 +928,21 @@ export class Home implements OnInit {
         return `${year}-${month}-${day}`;
     }
 
+    private getYesterdayDate(): Date {
+        const yesterday = new Date();
+
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        return yesterday;
+    }
+
+    private initializeDates(): void {
+        this.todayDate = new Date();
+        this.yesterdayDate = this.getYesterdayDate();
+        this.todayDateString = this.formatDate(this.todayDate);
+        this.yesterdayDateString = this.formatDate(this.yesterdayDate);
+    }
+
     //Message helpers
     private getSuccessMessage(type: EntityType, action: EntityAction): string {
         const messages = {
@@ -890,28 +951,32 @@ export class Home implements OnInit {
                 update: 'Catégorie modifiée avec succès',
                 delete: 'Catégorie supprimée avec succès',
                 complete: '',
-                load: ''
+                load: '',
+                archive: 'Catégorie archivée avec succès'
             },
             goal: {
                 create: 'Objectif ajouté avec succès',
                 update: 'Objectif modifié avec succès',
                 delete: 'Objectif supprimé avec succès',
                 complete: '',
-                load: ''
+                load: '',
+                archive: 'Objectif archivé avec succès'
             },
             task: {
                 create: 'Tâche ajoutée avec succès',
                 update: 'Tâche modifiée avec succès',
                 delete: 'Tâche supprimée avec succès',
                 complete: '',
-                load: ''
+                load: '',
+                archive: 'Tâche archivée avec succès'
             },
             schedule: {
                 create: 'Planning créé avec succès',
                 update: 'Planning modifié avec succès',
                 delete: 'Planning supprimé avec succès',
                 complete: 'Erreur lors de la complétion du planning',
-                load: 'Erreur lors du chargement des plannings'
+                load: 'Erreur lors du chargement des plannings',
+                archive: ''
             }
         };
 
@@ -925,28 +990,32 @@ export class Home implements OnInit {
                 update: 'Erreur lors de la modification de la catégorie',
                 delete: 'Erreur lors de la suppression de la catégorie',
                 complete: '',
-                load: ''
+                load: '',
+                archive: `Erreur lors de l'archivage de la catégorie`
             },
             goal: {
                 create: 'Erreur lors de l’ajout de l’objectif',
                 update: 'Erreur lors de la modification de l’objectif',
                 delete: 'Erreur lors de la suppression de l’objectif',
                 complete: '',
-                load: ''
+                load: '',
+                archive: `Erreur lors de l'archivage de l'objectif`
             },
             task: {
                 create: 'Erreur lors de l’ajout de la tâche',
                 update: 'Erreur lors de la modification de la tâche',
                 delete: 'Erreur lors de la suppression de la tâche',
                 complete: '',
-                load: ''
+                load: '',
+                archive: `Erreur lors de l'archivage de la tâche`
             },
             schedule: {
                 create: 'Erreur lors de l’ajout du planning',
                 update: 'Erreur lors de la modification du planning',
                 delete: 'Erreur lors de la suppression du planning',
                 complete: '',
-                load: ''
+                load: '',
+                archive: ''
             }
         };
 
@@ -1129,6 +1198,7 @@ export class Home implements OnInit {
         this.warningTitle = '';
         this.warningMessage = '';
         this.warningError = '';
+        this.canSuggestArchive = false;
     }
 
     private resetScheduleActionErrors(): void {
@@ -1153,7 +1223,7 @@ export class Home implements OnInit {
     }
 
     protected canToggleScheduleCompletion(schedule: TaskSchedule): boolean {
-        return schedule.taskDate === this.todayDateString;
+        return schedule.taskDate === this.todayDateString || schedule.taskDate === this.yesterdayDateString;
     }
 
     protected canEditOrDeleteSchedule(schedule: TaskSchedule): boolean {
