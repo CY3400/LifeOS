@@ -177,7 +177,7 @@ public class TaskService {
     public List<Task> getTasksForUser(User user) {
         validateUser(user);
 
-        return taskRepository.findByUserIdAndStatus(user.getId(), Status.ACTIVE);
+        return taskRepository.findByUserId(user.getId());
     }
 
     @Transactional(readOnly = true)

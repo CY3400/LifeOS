@@ -11,6 +11,8 @@ import com.charbel.lifeos.entity.Task;
 public interface TaskRepository extends JpaRepository<Task, Long>{
     List<Task> findByUserIdAndStatus(Long userId, Status status);
 
+    List<Task> findByUserId(Long userId);
+
     Optional<Task> findByIdAndUserId(Long id, Long userId);
 
     Optional<Task> findByIdAndUserIdAndStatus(Long id, Long userId, Status status);

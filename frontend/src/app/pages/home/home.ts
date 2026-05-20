@@ -1,11 +1,13 @@
 import { CommonModule } from "@angular/common";
 import { Component, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { Api, Task, Goal, TaskSchedule, Priority, Category, TaskScheduleRequest } from "../../services/api";
+import { Api, Task, Goal, TaskSchedule, Priority, Category, GoalProgress } from "../../services/api";
 import { finalize, Observable } from "rxjs";
 import { CalendarEvent, CalendarWeekViewComponent, CalendarView, CalendarMonthViewComponent, CalendarDayViewComponent, CalendarDatePipe } from "angular-calendar";
 import { addDays, addWeeks, addMonths, subDays, subWeeks, subMonths } from "date-fns";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { formatDate, formatTime } from "../../shared/utils/date-utils";
+import { barColor, hasAnyErrors } from "../../shared/utils/ui-utils";
 
 type EntityType = 'category' | 'goal' | 'task' | 'schedule';
 
@@ -27,7 +29,7 @@ type Warning = 'category' | 'task' | 'goal';
 @Component({
     selector: 'app-home',
     templateUrl: './home.html',
-    styleUrls: ['./home.scss'],
+    styleUrls: ['./home.scss', '../../shared/styles/_kpi.scss', '../../shared/styles/_variables.scss', '../../shared/styles/_errors.scss', '../../shared/styles/_modals.scss', '../../shared/styles/_forms.scss', '../../shared/styles/_badges.scss', '../../shared/styles/_buttons.scss', '../../shared/styles/_repeat-schedule.scss'],
     standalone: true,
     imports: [CommonModule, FormsModule, CalendarWeekViewComponent, CalendarMonthViewComponent, CalendarDayViewComponent, CalendarDatePipe]
 })
@@ -50,6 +52,7 @@ export class Home implements OnInit {
     categorySubmit: boolean = false;
     modifyCategoryId: number | null = null;
     modifyCategoryTitle: string = '';
+    categorySearch: string = '';
     categoryErrors = {
         global: '',
         title: ''
@@ -62,6 +65,9 @@ export class Home implements OnInit {
     goalSubmit: boolean = false;
     isGoalModalOn: boolean = false;
     modifyGoalId: number | null = null;
+    goalSearch: string = '';
+    goalCategorySearch: number | null = null;
+    goalProgresses: GoalProgress[] = [];
     goalErrors = {
         global: '',
         title: '',
@@ -77,6 +83,9 @@ export class Home implements OnInit {
     selectedGoalId: number | null = null;
     modifyTaskId: number | null = null;
     selectedTaskCategoryId: number | null = null;
+    taskSearch: string = '';
+    taskCategorySearch: number | null = null;
+    taskGoalSearch: number | null = null;
     taskErrors = {
         title: '',
         global: ''
@@ -131,6 +140,10 @@ export class Home implements OnInit {
     startDateBetween: Date = new Date();
     endDateBetween: Date = new Date();
 
+    //imported functions
+    protected barColor = barColor;
+    protected hasAnyErrors = hasAnyErrors;
+
     //constructor
     constructor(private api: Api, private snack: MatSnackBar) {}
 
@@ -154,6 +167,7 @@ export class Home implements OnInit {
                 this.loadSchedulesByDate(this.selectedDate);
                 this.updateVisibleRange();
                 this.loadSchedulesBetweenDates(this.startDateBetween, this.endDateBetween);
+                this.loadGoalProgress();
             },
             error: () => {
                 console.error(this.getFallbackMessage('dashboardLoadError'));
@@ -162,7 +176,7 @@ export class Home implements OnInit {
     }
 
     private loadSchedulesByDate(date: Date): void {
-        const formattedDate = this.formatDate(date);
+        const formattedDate = formatDate(date);
 
         this.api.getTaskSchedulesByDate(formattedDate).subscribe({
             next: (schedules) => {
@@ -175,8 +189,8 @@ export class Home implements OnInit {
     }
 
     private loadSchedulesBetweenDates(startDate: Date, endDate: Date): void {
-        const formattedStartDate = this.formatDate(startDate);
-        const formattedEndDate = this.formatDate(endDate);
+        const formattedStartDate = formatDate(startDate);
+        const formattedEndDate = formatDate(endDate);
 
         this.api.getTaskSchedulesBetweenDates(formattedStartDate, formattedEndDate).subscribe({
             next: (schedules) => {
@@ -367,6 +381,17 @@ export class Home implements OnInit {
         this.modifyCategoryTitle = title || '';
     }
 
+    protected filteredCategories(): Category[] {
+        const search = this.categorySearch.trim().toLocaleLowerCase();
+
+        return this.categories.filter(category => {
+            const activeCategories = category.status === 'ACTIVE';
+            const matchesSearch = !search || category.title.toLocaleLowerCase().includes(search);
+
+            return activeCategories && matchesSearch;
+        });
+    }
+
     //Objectifs
     protected openCreateGoalModal(): void {
         this.resetGoalModal();
@@ -434,6 +459,40 @@ export class Home implements OnInit {
         }
 
         this.resetGoalModal();
+    }
+
+    protected filteredGoals(): Goal[] {
+        const search = this.goalSearch.trim().toLocaleLowerCase();
+        const selectedCategoryId = this.goalCategorySearch;
+
+        return this.goals.filter(goal => {
+            const activeGoals = goal.status === 'ACTIVE';
+            const matchesSearch = !search || goal.title.toLocaleLowerCase().includes(search);
+            const matchesCategory = selectedCategoryId === null || goal.categoryId === selectedCategoryId;
+
+            return activeGoals && matchesSearch && matchesCategory;
+        });
+    }
+
+    private loadGoalProgress(): void {
+        this.api.getGoalProgress().subscribe({
+            next: (goalProgress) => {
+                this.goalProgresses = goalProgress;
+            },
+            error: () => {
+                console.error('Erreur lors du chargement de la progression des objectifs');
+            }
+        });
+    }
+
+    protected getGoalProgressById(id: number): GoalProgress {
+        return this.goalProgresses.find(gp => gp.goalId === id) ?? {
+            goalId: id,
+            totalPlannings: 0,
+            completedPlannings: 0,
+            remainingPlannings: 0,
+            progressRate: 0
+        };
     }
 
     //Tâches
@@ -504,6 +563,23 @@ export class Home implements OnInit {
         if (this.selectedTaskCategoryId !== null) {
             this.selectedGoalId = null;
         }
+    }
+
+    protected filteredTasks(): Task[] {
+        const search = this.taskSearch.trim().toLocaleLowerCase();
+        const selectedCategoryId = this.taskCategorySearch;
+        const selectedGoalId = this.taskGoalSearch;
+
+        return this.tasks.filter(task => {
+            const taskCategoryId = task.categoryId ?? this.getCategoryIdByGoal(task.goalId);
+
+            const activeTasks = task.status === 'ACTIVE';
+            const matchesSearch = !search || task.title.toLocaleLowerCase().includes(search) || (task.description && task.description.toLocaleLowerCase().includes(search));
+            const matchesCategory = selectedCategoryId === null || taskCategoryId === selectedCategoryId;
+            const matchesGoal = selectedGoalId === null || task.goalId === selectedGoalId;
+
+            return activeTasks && matchesSearch && matchesCategory && matchesGoal;
+        });
     }
 
     //Plannings
@@ -858,14 +934,14 @@ export class Home implements OnInit {
         return goal ? goal.categoryId : null;
     }
 
-    protected getScheduleDisplay(schedule: TaskScheduleRequest): ScheduleDisplay {
+    protected getScheduleDisplay(schedule: TaskSchedule): ScheduleDisplay {
         let timeLabel = '';
 
         if (schedule.startTime && schedule.endTime) {
-            timeLabel = `(${this.formatTime(schedule.startTime)} - ${this.formatTime(schedule.endTime)})`;
+            timeLabel = `(${formatTime(schedule.startTime)} - ${formatTime(schedule.endTime)})`;
         }
         else if (schedule.startTime) {
-            timeLabel = `(${this.formatTime(schedule.startTime)})`;
+            timeLabel = `(${formatTime(schedule.startTime)})`;
         }
 
         return {
@@ -898,11 +974,7 @@ export class Home implements OnInit {
             return 'Basse';
         }
     }
-
-    private formatTime(time: string | null): string {
-        return time ? time.slice(0, 5) : '';
-    }
-
+    
     private getCategoryTitleByTask(taskId: number): string {
         const task = this.tasks.find(t => t.id === taskId);
         
@@ -921,13 +993,6 @@ export class Home implements OnInit {
         return category ? category.title : '';
     }
 
-    private formatDate(date: Date): string {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    }
-
     private getYesterdayDate(): Date {
         const yesterday = new Date();
 
@@ -939,8 +1004,8 @@ export class Home implements OnInit {
     private initializeDates(): void {
         this.todayDate = new Date();
         this.yesterdayDate = this.getYesterdayDate();
-        this.todayDateString = this.formatDate(this.todayDate);
-        this.yesterdayDateString = this.formatDate(this.yesterdayDate);
+        this.todayDateString = formatDate(this.todayDate);
+        this.yesterdayDateString = formatDate(this.yesterdayDate);
     }
 
     //Message helpers
@@ -974,8 +1039,8 @@ export class Home implements OnInit {
                 create: 'Planning créé avec succès',
                 update: 'Planning modifié avec succès',
                 delete: 'Planning supprimé avec succès',
-                complete: 'Erreur lors de la complétion du planning',
-                load: 'Erreur lors du chargement des plannings',
+                complete: 'Planning complété avec succès',
+                load: '',
                 archive: ''
             }
         };
@@ -1013,8 +1078,8 @@ export class Home implements OnInit {
                 create: 'Erreur lors de l’ajout du planning',
                 update: 'Erreur lors de la modification du planning',
                 delete: 'Erreur lors de la suppression du planning',
-                complete: '',
-                load: '',
+                complete: 'Erreur lors de la complétion du planning',
+                load: 'Erreur lors du chargement des plannings',
                 archive: ''
             }
         };
@@ -1218,10 +1283,6 @@ export class Home implements OnInit {
     }
 
     //Validations
-    protected hasAnyErrors(errors: Record<string, string>): boolean {
-        return Object.values(errors).some(e => e !== '');
-    }
-
     protected canToggleScheduleCompletion(schedule: TaskSchedule): boolean {
         return schedule.taskDate === this.todayDateString || schedule.taskDate === this.yesterdayDateString;
     }

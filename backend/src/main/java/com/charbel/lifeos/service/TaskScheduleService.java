@@ -9,6 +9,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.charbel.lifeos.dto.GoalProgressResponse;
 import com.charbel.lifeos.entity.Priority;
 import com.charbel.lifeos.entity.Task;
 import com.charbel.lifeos.entity.TaskSchedule;
@@ -335,5 +336,22 @@ public class TaskScheduleService {
             currentDate = currentDate.plusDays(1);
         }
         return createdSchedules;
+    }
+
+    @Transactional(readOnly = true)
+    public List<GoalProgressResponse> getGoalProgress(User user) {
+        validateUser(user);
+
+        return taskScheduleRepository.getGoalProgress(user.getId()).stream().map(progress -> {
+            GoalProgressResponse response = new GoalProgressResponse();
+
+            response.setGoalId(progress.getGoalId());
+            response.setTotalPlannings(progress.getTotalPlannings());
+            response.setCompletedPlannings(progress.getCompletedPlannings());
+            response.setRemainingPlannings(progress.getRemainingPlannings());
+            response.setProgressRate(progress.getProgressRate());
+
+            return response;
+        }).toList();
     }
 }

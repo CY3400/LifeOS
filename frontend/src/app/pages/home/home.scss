@@ -1,19 +1,4 @@
 /* =========================================================
-   HOME / DASHBOARD
-   ========================================================= */
-
-:host {
-  --card-shadow: 0 16px 36px rgba(0, 0, 0, 0.28);
-  --modal-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
-  --field-bg: rgba(15, 23, 42, 0.72);
-  --field-border: rgba(148, 163, 184, 0.22);
-  --soft-border: rgba(148, 163, 184, 0.12);
-  --soft-panel: rgba(15, 23, 42, 0.28);
-  --hover-panel: rgba(30, 41, 59, 0.72);
-  --focus-ring: 0 0 0 3px rgba(59, 130, 246, 0.16);
-}
-
-/* =========================================================
    LAYOUT
    ========================================================= */
 
@@ -205,7 +190,7 @@
 }
 
 /* =========================================================
-   FORMS / INPUTS / SELECTS
+   HOME FORMS / FILTERS
    ========================================================= */
 
 .goal-input,
@@ -221,21 +206,11 @@
 }
 
 .goal-input label,
-.category-input label,
-.task-modal label,
-.goal-modal label,
-.repeat-toggle span,
-.repeat-days-title,
-.schedule-priority-title {
+.category-input label {
   color: var(--text-secondary);
   font-size: 0.95rem;
   font-weight: 700;
   line-height: 1.35;
-}
-
-.task-modal label,
-.goal-modal label {
-  margin-bottom: -6px;
 }
 
 .category-input .error {
@@ -266,11 +241,6 @@
 .category-input-row input,
 .modifyGoalInput,
 .category-edit-row input,
-.task-modal input:not([type='radio']):not([type='checkbox']),
-.task-modal select,
-.task-modal textarea,
-.goal-modal input,
-.goal-modal select,
 .goal-input-row select,
 .goal-edit-row select {
   background: var(--field-bg);
@@ -291,12 +261,7 @@
 }
 
 .goal-input-row input,
-.category-input-row input,
-.task-modal input:not([type='radio']):not([type='checkbox']),
-.task-modal select,
-.task-modal textarea,
-.goal-modal input,
-.goal-modal select {
+.category-input-row input {
   padding: 13px 14px;
 }
 
@@ -313,38 +278,12 @@
   font-size: 0.92rem;
 }
 
-.task-modal input:not([type='radio']):not([type='checkbox']),
-.task-modal select,
-.task-modal textarea,
-.goal-modal input,
-.goal-modal select {
-  width: 100%;
-}
-
-.task-modal select,
-.goal-modal select {
-  appearance: none;
-  cursor: pointer;
-}
-
-.task-modal textarea {
-  min-height: 110px;
-  resize: vertical;
-  font-family: inherit;
-  line-height: 1.5;
-}
-
 .goal-input-row input:focus,
 .category-input-row input:focus,
 .modifyGoalInput:focus,
 .category-edit-row input:focus,
 .goal-input-row select:focus,
-.goal-edit-row select:focus,
-.task-modal input:not([type='radio']):not([type='checkbox']):focus,
-.task-modal select:focus,
-.task-modal textarea:focus,
-.goal-modal input:focus,
-.goal-modal select:focus {
+.goal-edit-row select:focus {
   border-color: var(--primary);
   box-shadow: var(--focus-ring);
 }
@@ -352,9 +291,7 @@
 .goal-input-row input::placeholder,
 .category-input-row input::placeholder,
 .modifyGoalInput::placeholder,
-.category-edit-row input::placeholder,
-.task-modal input::placeholder,
-.task-modal textarea::placeholder {
+.category-edit-row input::placeholder {
   color: var(--text-muted);
 }
 
@@ -364,18 +301,74 @@
   cursor: not-allowed;
 }
 
-.task-modal input[type='date']::-webkit-calendar-picker-indicator,
-.task-modal input[type='time']::-webkit-calendar-picker-indicator {
+.task-search,
+.goal-search,
+.category-search {
+  margin-bottom: 14px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+.task-search input,
+.goal-search input,
+.category-search input,
+.task-search select,
+.goal-search select {
+  width: 100%;
+  min-width: 0;
+  padding: 12px 14px;
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  border-radius: 12px;
+  color: var(--text-main);
+  font-size: 0.92rem;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.task-search select,
+.goal-search select {
+  appearance: none;
   cursor: pointer;
-  opacity: 0.85;
-  filter: invert(1);
+}
+
+.task-search input:focus,
+.goal-search input:focus,
+.category-search input:focus,
+.task-search select:focus,
+.goal-search select:focus {
+  border-color: var(--primary);
+  box-shadow: var(--focus-ring);
+  background: rgba(15, 23, 42, 0.86);
+}
+
+.task-search input::placeholder,
+.goal-search input::placeholder,
+.category-search input::placeholder {
+  color: var(--text-muted);
+}
+
+.task-search input:disabled,
+.goal-search input:disabled,
+.category-search input:disabled,
+.task-search select:disabled,
+.goal-search select:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.task-search option,
+.goal-search option {
+  background: #0f172a;
+  color: var(--text-main);
 }
 
 /* =========================================================
    ITEMS / ROWS
    ========================================================= */
 
-.goal-item,
 .goal-edit-row,
 .task-row,
 .category-item,
@@ -462,6 +455,117 @@
 }
 
 /* =========================================================
+   GOAL ITEMS / PROGRESS
+   ========================================================= */
+
+.goal-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "name actions"
+    "badge actions"
+    "progress actions";
+  align-items: start;
+  gap: 10px 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--soft-panel);
+  border: 1px solid var(--soft-border);
+}
+
+.goal-item > .goal-name {
+  grid-area: name;
+  min-width: 0;
+  max-width: 100%;
+  color: var(--text-main);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.35;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+.goal-item > .category-badge {
+  grid-area: badge;
+  justify-self: start;
+  margin-left: 0;
+}
+
+.goal-item > .goal-progress {
+  grid-area: progress;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.goal-item > .goal-actions {
+  grid-area: actions;
+  align-self: center;
+  justify-self: end;
+  margin-left: 0;
+}
+
+.goal-progress {
+  padding: 10px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.42);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.goal-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.goal-progress-header span {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.goal-progress-header strong {
+  color: var(--text-main);
+  font-size: 0.86rem;
+  font-weight: 800;
+}
+
+.goal-progress-bar {
+  width: 100%;
+  height: 7px;
+  border-radius: 999px;
+  background: rgba(226, 232, 240, 0.16);
+  overflow: hidden;
+}
+
+.goal-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.4s ease;
+}
+
+.goal-progress-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.goal-progress-stats span {
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.12);
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* =========================================================
    ICON BUTTONS
    ========================================================= */
 
@@ -544,19 +648,7 @@
 .goal-plus:hover,
 .task-plus:hover,
 .category-plus:hover,
-.submit-task:hover,
-.cancel-task:hover,
-.submit-goal:hover,
-.cancel-goal:hover,
-.delete-one:hover,
-.delete-following:hover,
-.update-one:hover,
-.update-following:hover,
-.cancel-delete:hover,
-.cancel-update:hover,
-.calendar-btn:hover,
-.repeat-day-option:hover,
-.schedule-priority-option:hover {
+.calendar-btn:hover {
   transform: translateY(-1px);
 }
 
@@ -622,361 +714,16 @@
 }
 
 /* =========================================================
-   MODALS
-   ========================================================= */
-
-.modal {
-  position: fixed;
-  inset: 0;
-  z-index: 1500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  background: rgba(2, 6, 23, 0.62);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-
-.task-modal,
-.goal-modal,
-.delete-modal,
-.update-modal {
-  width: min(560px, 100%);
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  box-shadow: var(--modal-shadow);
-}
-
-.delete-modal,
-.update-modal {
-  width: min(520px, 100%);
-  gap: 18px;
-}
-
-.task-modal h2,
-.goal-modal h2 {
-  margin: 0 0 4px;
-  color: var(--text-main);
-  font-size: 1.35rem;
-  font-weight: 700;
-  line-height: 1.2;
-}
-
-.delete-modal p,
-.update-modal p {
-  margin: 0;
-  color: var(--text-main);
-  font-size: 1rem;
-  font-weight: 600;
-  line-height: 1.5;
-}
-
-.task-modal-actions,
-.goal-modal-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 4px;
-}
-
-.delete-modal-actions,
-.update-modal-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-/* =========================================================
-   ACTION BUTTONS
-   ========================================================= */
-
-.submit-task,
-.cancel-task,
-.submit-goal,
-.cancel-goal,
-.delete-one,
-.delete-following,
-.cancel-delete,
-.update-one,
-.update-following,
-.cancel-update {
-  border: none;
-  border-radius: 12px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.submit-task,
-.cancel-task,
-.submit-goal,
-.cancel-goal {
-  min-width: 110px;
-  padding: 12px 18px;
-}
-
-.submit-task,
-.submit-goal {
-  background: var(--primary);
-  color: #fff;
-}
-
-.submit-task:hover,
-.submit-goal:hover {
-  background: var(--primary-hover);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
-}
-
-.cancel-task,
-.cancel-goal,
-.cancel-delete,
-.cancel-update {
-  background: rgba(51, 65, 85, 0.92);
-  color: var(--text-main);
-}
-
-.cancel-task:hover,
-.cancel-goal:hover,
-.cancel-delete:hover,
-.cancel-update:hover {
-  background: rgba(71, 85, 105, 0.95);
-}
-
-.submit-task:disabled,
-.cancel-task:disabled,
-.submit-goal:disabled,
-.cancel-goal:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-.delete-one,
-.delete-following,
-.cancel-delete,
-.update-one,
-.update-following,
-.cancel-update {
-  width: 100%;
-  padding: 14px 16px;
-  border-radius: 14px;
-  font-size: 0.95rem;
-}
-
-.delete-one,
-.delete-following {
-  background: rgba(239, 68, 68, 0.14);
-  border: 1px solid rgba(239, 68, 68, 0.22);
-  color: #fecaca;
-}
-
-.delete-one:hover,
-.delete-following:hover {
-  background: rgba(239, 68, 68, 0.2);
-}
-
-.update-one,
-.update-following {
-  background: rgba(59, 130, 246, 0.14);
-  border: 1px solid rgba(59, 130, 246, 0.22);
-  color: #bfdbfe;
-}
-
-.update-one:hover,
-.update-following:hover {
-  background: rgba(59, 130, 246, 0.2);
-}
-
-/* =========================================================
-   REPEAT / SWITCH / PRIORITY
-   ========================================================= */
-
-.switch {
-  position: relative;
-  display: inline-block;
-  width: 60px;
-  height: 34px;
-  flex-shrink: 0;
-}
-
-.switch input {
-  width: 0;
-  height: 0;
-  opacity: 0;
-}
-
-.slider {
-  position: absolute;
-  inset: 0;
-  cursor: pointer;
-  background-color: #ccc;
-  border-radius: 34px;
-  transition: 0.4s;
-}
-
-.slider::before {
-  position: absolute;
-  content: '';
-  width: 26px;
-  height: 26px;
-  left: 4px;
-  bottom: 4px;
-  background-color: #fff;
-  border-radius: 50%;
-  transition: 0.4s;
-}
-
-input:checked + .slider {
-  background-color: var(--primary);
-}
-
-input:checked + .slider::before {
-  transform: translateX(26px);
-}
-
-.repeat-section {
-  margin-top: 6px;
-}
-
-.repeat-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 2px 0 4px;
-}
-
-.repeat-toggle span {
-  margin: 0;
-}
-
-.repeat-days,
-.schedule-priority-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.repeat-days {
-  margin-top: 4px;
-}
-
-.repeat-days-title {
-  width: 100%;
-  margin-bottom: 2px;
-}
-
-.repeat-day-option,
-.schedule-priority-option {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: rgba(15, 23, 42, 0.5);
-  border: 1px solid rgba(148, 163, 184, 0.18);
-  color: var(--text-main);
-  cursor: pointer;
-  user-select: none;
-  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
-}
-
-.repeat-day-option:hover,
-.schedule-priority-option:hover {
-  border-color: rgba(59, 130, 246, 0.35);
-  background: var(--hover-panel);
-}
-
-.repeat-day-option input[type='checkbox'],
-.schedule-priority-option input[type='radio'] {
-  width: 16px;
-  height: 16px;
-  margin: 0;
-  accent-color: var(--primary);
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.repeat-day-option span,
-.schedule-priority-option span {
-  color: var(--text-main);
-  font-size: 0.92rem;
-  font-weight: 600;
-  line-height: 1;
-}
-
-.schedule-priority-group {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 2px;
-}
-
-.schedule-priority-option {
-  margin-bottom: 0;
-}
-
-.schedule-priority-option:has(input[type='radio']:checked) {
-  background: rgba(59, 130, 246, 0.18);
-  border-color: rgba(96, 165, 250, 0.45);
-  color: #dbeafe;
-  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.18);
-}
-
-.schedule-priority-option:has(input[type='radio']:checked) span {
-  color: #dbeafe;
-}
-
-/* =========================================================
-   BADGES
+   HOME BADGE OVERRIDES
    ========================================================= */
 
 .priority,
 .category-badge {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   margin-left: 10px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  border: 1px solid transparent;
-  font-size: 0.74rem;
-  font-weight: 700;
-  line-height: 1;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  vertical-align: middle;
 }
 
 .priority {
   margin-top: 2px;
-}
-
-.priority.high {
-  background: rgba(239, 68, 68, 0.16);
-  color: #fca5a5;
-  border-color: rgba(239, 68, 68, 0.24);
-}
-
-.priority.medium {
-  background: rgba(245, 158, 11, 0.16);
-  color: #fcd34d;
-  border-color: rgba(245, 158, 11, 0.24);
-}
-
-.priority.low {
-  background: rgba(34, 197, 94, 0.16);
-  color: #86efac;
-  border-color: rgba(34, 197, 94, 0.24);
-}
-
-.category-badge {
-  background: rgba(148, 163, 184, 0.14);
-  color: #cbd5e1;
-  border-color: rgba(148, 163, 184, 0.22);
 }
 
 /* =========================================================
@@ -1347,18 +1094,6 @@ input:checked + .slider::before {
     font-size: 1.25rem;
   }
 
-  .modal {
-    padding: 16px;
-  }
-
-  .task-modal,
-  .goal-modal,
-  .delete-modal,
-  .update-modal {
-    padding: 20px;
-    border-radius: 20px;
-  }
-
   .task-modal-actions,
   .goal-modal-actions {
     flex-direction: column;
@@ -1378,11 +1113,6 @@ input:checked + .slider::before {
   .task-description {
     font-size: 0.86rem;
     line-height: 1.4;
-  }
-
-  .delete-modal p,
-  .update-modal p {
-    font-size: 0.95rem;
   }
 
   .calendar-header {
@@ -1407,5 +1137,32 @@ input:checked + .slider::before {
 
   .category-plus {
     align-self: flex-start;
+  }
+
+  .task-search,
+  .goal-search,
+  .category-search {
+    margin-bottom: 12px;
+  }
+
+  .task-search input,
+  .goal-search input,
+  .category-search input {
+    font-size: 0.9rem;
+    padding: 11px 12px;
+  }
+
+  .goal-item {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "name"
+      "badge"
+      "progress"
+      "actions";
+  }
+
+  .goal-item > .goal-actions {
+    justify-self: end;
+    align-self: auto;
   }
 }

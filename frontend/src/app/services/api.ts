@@ -79,6 +79,14 @@ export type Dashboard = {
     completionRate: number
 };
 
+export type GoalProgress = {
+    goalId: number,
+    totalPlannings: number,
+    completedPlannings: number,
+    remainingPlannings: number,
+    progressRate: number
+};
+
 @Injectable({
   providedIn: 'root'
 })
@@ -249,6 +257,12 @@ export class Api {
 
     deleteFollowing(id: number): Observable<void> {
         return this.http.delete<void>(`${this.baseUrl}/task-schedules/${id}/following`, {
+            withCredentials: true
+        });
+    }
+
+    getGoalProgress(): Observable<GoalProgress[]> {
+        return this.http.get<GoalProgress[]>(`${this.baseUrl}/task-schedules/goal-progress`, {
             withCredentials: true
         });
     }

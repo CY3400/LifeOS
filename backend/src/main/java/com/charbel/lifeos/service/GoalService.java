@@ -131,7 +131,7 @@ public class GoalService {
     public List<Goal> getGoalsForUser(User user) {
         validateUser(user);
 
-        return goalRepository.findByUserIdAndStatus(user.getId(), Status.ACTIVE);
+        return goalRepository.findByUserId(user.getId());
     }
 
     @Transactional(readOnly = true)

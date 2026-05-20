@@ -1,0 +1,63 @@
+/* =========================================================
+   FORMS / MODAL INPUTS
+   ========================================================= */
+
+.task-modal label,
+.goal-modal label {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin-bottom: -6px;
+}
+
+.task-modal input:not([type='radio']):not([type='checkbox']),
+.task-modal select,
+.task-modal textarea,
+.goal-modal input,
+.goal-modal select {
+  width: 100%;
+  padding: 13px 14px;
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  border-radius: 12px;
+  color: var(--text-main);
+  font-size: 0.95rem;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.task-modal select,
+.goal-modal select {
+  appearance: none;
+  cursor: pointer;
+}
+
+.task-modal textarea {
+  min-height: 110px;
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.5;
+}
+
+.task-modal input:not([type='radio']):not([type='checkbox']):focus,
+.task-modal select:focus,
+.task-modal textarea:focus,
+.goal-modal input:focus,
+.goal-modal select:focus {
+  border-color: var(--primary);
+  box-shadow: var(--focus-ring);
+}
+
+.task-modal input::placeholder,
+.task-modal textarea::placeholder,
+.goal-modal input::placeholder {
+  color: var(--text-muted);
+}
+
+.task-modal input[type='date']::-webkit-calendar-picker-indicator,
+.task-modal input[type='time']::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.85;
+  filter: invert(1);
+}

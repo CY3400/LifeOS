@@ -162,7 +162,9 @@
                 <option [ngValue]="null">Aucun objectif</option>
 
                 @for(g of goals; track g.id) {
-                    <option [ngValue]="g.id">{{ g.title }}</option>
+                    @if(g.status === 'ACTIVE') {
+                        <option [ngValue]="g.id">{{ g.title }}</option>
+                    }
                 }
             </select>
 
@@ -177,7 +179,9 @@
                 <option [ngValue]="null">Aucune catégorie</option>
 
                 @for(c of categories; track c.id) {
-                    <option [ngValue]="c.id">{{ c.title }}</option>
+                    @if(c.status === 'ACTIVE') {
+                        <option [ngValue]="c.id">{{ c.title }}</option>
+                    }
                 }
             </select>
 
@@ -242,7 +246,9 @@
                 <option [ngValue]="null">Choisir une tâche</option>
 
                 @for(t of tasks; track t.id) {
-                    <option [ngValue]="t.id">{{ t.title }}</option>
+                    @if(t.status === 'ACTIVE') {
+                        <option [ngValue]="t.id">{{ t.title }}</option>
+                    }
                 }
             </select>
 
@@ -498,7 +504,9 @@
                 <option [ngValue]="null">Aucune catégorie</option>
 
                 @for(c of categories; track c.id) {
-                    <option [ngValue]="c.id">{{ c.title }}</option>
+                    @if(c.status === 'ACTIVE') {
+                        <option [ngValue]="c.id">{{ c.title }}</option>
+                    }
                 }
             </select>
 
@@ -677,12 +685,47 @@
                 </button>
             </div>
 
+            <div class="task-search">
+                <input
+                    id="taskSearch"
+                    name="taskSearch"
+                    type="text"
+                    [disabled]="taskSubmit"
+                    [(ngModel)]="taskSearch"
+                    placeholder="Rechercher une tâche ..."
+                >
+
+                <select 
+                    id="taskCategorySearch"
+                    name="taskCategorySearch"
+                    [disabled]="taskSubmit"
+                    [(ngModel)]="taskCategorySearch"
+                >
+                    <option [ngValue]="null">Toutes les catégories</option>
+                    @for(category of categories; track category.id) {
+                        <option [ngValue]="category.id">{{ category.title }}</option>
+                    }
+                </select>
+
+                <select 
+                    id="taskGoalSearch"
+                    name="taskGoalSearch"
+                    [disabled]="taskSubmit"
+                    [(ngModel)]="taskGoalSearch"
+                >
+                    <option [ngValue]="null">Tous les objectifs</option>
+                    @for(goal of goals; track goal.id) {
+                        <option [ngValue]="goal.id">{{ goal.title }}</option>
+                    }
+                </select>
+            </div>
+
             <div class="task-list">
-                @if(tasks.length === 0) {
+                @if(filteredTasks().length === 0) {
                     <p>Aucune tâche définie.</p>
                 }
                 @else {
-                    @for(task of tasks; track task.id) {
+                    @for(task of filteredTasks(); track task.id) {
                         <div class="task-row">
                             <div class="task-content">
                                 <span class="task-name">{{ task.title }}</span>
@@ -722,17 +765,63 @@
                 </button>
             </div>
 
+            <div class="goal-search">
+                <input
+                    id="goalSearch"
+                    name="goalSearch"
+                    type="text"
+                    [disabled]="goalSubmit"
+                    [(ngModel)]="goalSearch"
+                    placeholder="Rechercher un objectif ..."
+                >
+
+                <select 
+                    id="goalCategorySearch"
+                    name="goalCategorySearch"
+                    [disabled]="goalSubmit"
+                    [(ngModel)]="goalCategorySearch"
+                >
+                    <option [ngValue]="null">Toutes les catégories</option>
+                    @for(category of categories; track category.id) {
+                        <option [ngValue]="category.id">{{ category.title }}</option>
+                    }
+                </select>
+            </div>
+
             <div class="goal-list">
-                @if(goals.length === 0) {
+                @if(filteredGoals().length === 0) {
                     <p>Aucun objectif défini.</p>
                 }
                 @else {
-                    @for(goal of goals; track goal.id) {
+                    @for(goal of filteredGoals(); track goal.id) {
                         <div class="goal-item">
                             <span class="goal-name">{{ goal.title }}</span>
                             @if(getGoalDisplay(goal); as display) {
                                 @if(display.categoryTitle) {
                                     <span class="category-badge">{{ display.categoryTitle }}</span>
+                                }
+
+                                @if(getGoalProgressById(goal.id); as progress) {
+                                    <div class="goal-progress">
+                                        <div class="goal-progress-header">
+                                            <span>Progression</span>
+                                            <strong>{{ progress.progressRate | number:'1.0-2' }}%</strong>
+                                        </div>
+
+                                        <div class="goal-progress-bar">
+                                            <div
+                                                class="goal-progress-fill"
+                                                [style.width.%]="progress.progressRate <= 100 ? progress.progressRate : 100"
+                                                [style.background]="barColor(progress.progressRate)"
+                                            ></div>
+                                        </div>
+
+                                        <div class="goal-progress-stats">
+                                            <span>{{ progress.totalPlannings }} plannings</span>
+                                            <span>{{ progress.completedPlannings }} terminés</span>
+                                            <span>{{ progress.remainingPlannings }} restants</span>
+                                        </div>
+                                    </div>
                                 }
 
                                 <div class="goal-actions">
@@ -795,12 +884,23 @@
                 }
             </form>
 
+            <div class="category-search">
+                <input
+                    id="categorySearch"
+                    name="categorySearch"
+                    type="text"
+                    [disabled]="categorySubmit"
+                    [(ngModel)]="categorySearch"
+                    placeholder="Rechercher une catégorie ..."
+                >
+            </div>
+
             <div class="category-list">
-                @if(categories.length === 0) {
+                @if(filteredCategories().length === 0) {
                     <p>Aucune catégorie définie.</p>
                 }
                 @else {
-                    @for(category of categories; track category.id) {
+                    @for(category of filteredCategories(); track category.id) {
                         @if(modifyCategoryId === category.id) {
                             <div class="category-edit-row">
                                 <input

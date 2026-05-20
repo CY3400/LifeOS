@@ -1,0 +1,105 @@
+/* =========================================================
+   ACTION BUTTONS
+   ========================================================= */
+
+.submit-task,
+.cancel-task,
+.submit-goal,
+.cancel-goal,
+.delete-one,
+.delete-following,
+.cancel-delete,
+.update-one,
+.update-following,
+.cancel-update {
+  border: none;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.submit-task,
+.cancel-task,
+.submit-goal,
+.cancel-goal {
+  min-width: 110px;
+  padding: 12px 18px;
+}
+
+.submit-task,
+.submit-goal {
+  background: var(--primary);
+  color: #fff;
+}
+
+.submit-task:hover,
+.submit-goal:hover {
+  background: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+}
+
+.cancel-task,
+.cancel-goal,
+.cancel-delete,
+.cancel-update {
+  background: rgba(51, 65, 85, 0.92);
+  color: var(--text-main);
+}
+
+.cancel-task:hover,
+.cancel-goal:hover,
+.cancel-delete:hover,
+.cancel-update:hover {
+  background: rgba(71, 85, 105, 0.95);
+  transform: translateY(-1px);
+}
+
+.submit-task:disabled,
+.cancel-task:disabled,
+.submit-goal:disabled,
+.cancel-goal:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.delete-one,
+.delete-following,
+.cancel-delete,
+.update-one,
+.update-following,
+.cancel-update {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+}
+
+.delete-one,
+.delete-following {
+  background: rgba(239, 68, 68, 0.14);
+  border: 1px solid rgba(239, 68, 68, 0.22);
+  color: #fecaca;
+}
+
+.delete-one:hover,
+.delete-following:hover {
+  background: rgba(239, 68, 68, 0.2);
+  transform: translateY(-1px);
+}
+
+.update-one,
+.update-following {
+  background: rgba(59, 130, 246, 0.14);
+  border: 1px solid rgba(59, 130, 246, 0.22);
+  color: #bfdbfe;
+}
+
+.update-one:hover,
+.update-following:hover {
+  background: rgba(59, 130, 246, 0.2);
+  transform: translateY(-1px);
+}

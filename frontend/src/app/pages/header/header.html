@@ -13,6 +13,7 @@
   <nav class="nav" [class.open]="isMenuOpen" id="primary-nav" aria-label="Navigation principale">
     <ul class="nav-links">
       <li><a routerLink="/accueil" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu(false)">Accueil</a></li>
+      <li><a routerLink="/today" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" (click)="closeMenu(false)">Aujourd'hui</a></li>
     </ul>
   </nav>
 </header>

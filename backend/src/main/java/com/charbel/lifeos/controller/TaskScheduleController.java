@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.charbel.lifeos.dto.CompleteTaskScheduleRequest;
 import com.charbel.lifeos.dto.CreateTaskScheduleRequest;
+import com.charbel.lifeos.dto.GoalProgressResponse;
 import com.charbel.lifeos.dto.RepeatTaskScheduleRequest;
 import com.charbel.lifeos.dto.TaskScheduleResponse;
 import com.charbel.lifeos.dto.UpdateTaskScheduleRequest;
@@ -151,5 +152,14 @@ public class TaskScheduleController {
         List<TaskScheduleResponse> responses = createdSchedules.stream().map(taskScheduleMapper::toResponse).toList();
 
         return ResponseEntity.status(201).body(responses);
+    }
+
+    @GetMapping("/goal-progress")
+    public ResponseEntity<List<GoalProgressResponse>> getGoalProgress(Authentication auth) {
+        User user = currentUserService.getCurrentUser(auth);
+
+        List<GoalProgressResponse> goalProgress = taskScheduleService.getGoalProgress(user);
+
+        return ResponseEntity.ok(goalProgress);
     }
 }

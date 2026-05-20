@@ -137,7 +137,7 @@ public class CategoryService {
     public List<Category> getCategoriesForUser(User user) {
         validateUser(user);
 
-        return categoryRepository.findByUserIdAndStatusOrderByTitleAsc(user.getId(), Status.ACTIVE);
+        return categoryRepository.findByUserId(user.getId());
     }
 
     @Transactional(readOnly = true)
