@@ -6,11 +6,16 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.charbel.lifeos.entity.Category;
+import com.charbel.lifeos.entity.Status;
 
 public interface CategoryRepository extends JpaRepository<Category, Long> {
-    List<Category> findByUserIdOrderByTitleAsc(Long userId);
+    List<Category> findByUserIdAndStatusOrderByTitleAsc(Long userId, Status status);
+
+    List<Category> findByUserId(Long userId);
 
     Optional<Category> findByIdAndUserId(Long id, Long userId);
+
+    Optional<Category> findByIdAndUserIdAndStatus(Long id, Long userId, Status status);
 
     boolean existsByUserIdAndTitle(Long userId, String title);
 }

@@ -1,15 +1,17 @@
 import { CommonModule } from "@angular/common";
 import { Component, OnInit } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { Api, Task, Goal, TaskSchedule, Priority, Category, TaskScheduleRequest } from "../../services/api";
+import { Api, Task, Goal, TaskSchedule, Priority, Category, GoalProgress } from "../../services/api";
 import { finalize, Observable } from "rxjs";
 import { CalendarEvent, CalendarWeekViewComponent, CalendarView, CalendarMonthViewComponent, CalendarDayViewComponent, CalendarDatePipe } from "angular-calendar";
 import { addDays, addWeeks, addMonths, subDays, subWeeks, subMonths } from "date-fns";
 import { MatSnackBar } from "@angular/material/snack-bar";
+import { formatDate, formatTime } from "../../shared/utils/date-utils";
+import { barColor, hasAnyErrors } from "../../shared/utils/ui-utils";
 
 type EntityType = 'category' | 'goal' | 'task' | 'schedule';
 
-type EntityAction = 'create' | 'update' | 'delete' | 'complete' | 'load';
+type EntityAction = 'create' | 'update' | 'delete' | 'complete' | 'load' | 'archive';
 
 type ScheduleDisplay = {
     taskTitle: string;
@@ -27,7 +29,7 @@ type Warning = 'category' | 'task' | 'goal';
 @Component({
     selector: 'app-home',
     templateUrl: './home.html',
-    styleUrls: ['./home.scss'],
+    styleUrls: ['./home.scss', '../../shared/styles/_kpi.scss', '../../shared/styles/_variables.scss', '../../shared/styles/_errors.scss', '../../shared/styles/_modals.scss', '../../shared/styles/_forms.scss', '../../shared/styles/_badges.scss', '../../shared/styles/_buttons.scss', '../../shared/styles/_repeat-schedule.scss'],
     standalone: true,
     imports: [CommonModule, FormsModule, CalendarWeekViewComponent, CalendarMonthViewComponent, CalendarDayViewComponent, CalendarDatePipe]
 })
@@ -50,6 +52,7 @@ export class Home implements OnInit {
     categorySubmit: boolean = false;
     modifyCategoryId: number | null = null;
     modifyCategoryTitle: string = '';
+    categorySearch: string = '';
     categoryErrors = {
         global: '',
         title: ''
@@ -62,6 +65,9 @@ export class Home implements OnInit {
     goalSubmit: boolean = false;
     isGoalModalOn: boolean = false;
     modifyGoalId: number | null = null;
+    goalSearch: string = '';
+    goalCategorySearch: number | null = null;
+    goalProgresses: GoalProgress[] = [];
     goalErrors = {
         global: '',
         title: '',
@@ -77,6 +83,9 @@ export class Home implements OnInit {
     selectedGoalId: number | null = null;
     modifyTaskId: number | null = null;
     selectedTaskCategoryId: number | null = null;
+    taskSearch: string = '';
+    taskCategorySearch: number | null = null;
+    taskGoalSearch: number | null = null;
     taskErrors = {
         title: '',
         global: ''
@@ -87,7 +96,7 @@ export class Home implements OnInit {
     isScheduleModalOpen: boolean = false;
     scheduleSubmit: boolean = false;
     modifyScheduleId: number | null = null;
-    selectedTaskId: number | null = null
+    selectedTaskId: number | null = null;
     scheduleDate: string = '';
     scheduleStartTime: string = '';
     scheduleEndTime: string = '';
@@ -113,6 +122,7 @@ export class Home implements OnInit {
     warningType: Warning | null = null;
     warningError: string = '';
     warningMessage: string = '';
+    canSuggestArchive: boolean = false;
     isDeleteModalOpen: boolean = false;
     selectedScheduleId: number = 0;
     isUpdateModalOpen: boolean = false;
@@ -124,15 +134,22 @@ export class Home implements OnInit {
     };
 
     todayDate: Date = new Date();
-    todayDateString: string = this.formatDate(this.todayDate);
+    yesterdayDate: Date = new Date();
+    todayDateString: string = '';
+    yesterdayDateString: string = '';
     startDateBetween: Date = new Date();
     endDateBetween: Date = new Date();
+
+    //imported functions
+    protected barColor = barColor;
+    protected hasAnyErrors = hasAnyErrors;
 
     //constructor
     constructor(private api: Api, private snack: MatSnackBar) {}
 
     //lifecycle
     ngOnInit() {
+        this.initializeDates();
         this.refreshHome();
     }
 
@@ -150,6 +167,7 @@ export class Home implements OnInit {
                 this.loadSchedulesByDate(this.selectedDate);
                 this.updateVisibleRange();
                 this.loadSchedulesBetweenDates(this.startDateBetween, this.endDateBetween);
+                this.loadGoalProgress();
             },
             error: () => {
                 console.error(this.getFallbackMessage('dashboardLoadError'));
@@ -158,7 +176,7 @@ export class Home implements OnInit {
     }
 
     private loadSchedulesByDate(date: Date): void {
-        const formattedDate = this.formatDate(date);
+        const formattedDate = formatDate(date);
 
         this.api.getTaskSchedulesByDate(formattedDate).subscribe({
             next: (schedules) => {
@@ -171,8 +189,8 @@ export class Home implements OnInit {
     }
 
     private loadSchedulesBetweenDates(startDate: Date, endDate: Date): void {
-        const formattedStartDate = this.formatDate(startDate);
-        const formattedEndDate = this.formatDate(endDate);
+        const formattedStartDate = formatDate(startDate);
+        const formattedEndDate = formatDate(endDate);
 
         this.api.getTaskSchedulesBetweenDates(formattedStartDate, formattedEndDate).subscribe({
             next: (schedules) => {
@@ -206,7 +224,7 @@ export class Home implements OnInit {
                 });
             },
             error: () => {
-                this.scheduleErrors.global = this.getGenericErrorMessage('schedule', 'load');;
+                this.scheduleErrors.global = this.getGenericErrorMessage('schedule', 'load');
             }
         });
     }
@@ -280,7 +298,10 @@ export class Home implements OnInit {
     }
 
     protected goToToday(): void {
-        const today = new Date();
+        this.initializeDates();
+
+        const today = new Date(this.todayDate);
+
         this.setSelectedDay(today);
         this.runViewRequest();
     }
@@ -360,6 +381,17 @@ export class Home implements OnInit {
         this.modifyCategoryTitle = title || '';
     }
 
+    protected filteredCategories(): Category[] {
+        const search = this.categorySearch.trim().toLocaleLowerCase();
+
+        return this.categories.filter(category => {
+            const activeCategories = category.status === 'ACTIVE';
+            const matchesSearch = !search || category.title.toLocaleLowerCase().includes(search);
+
+            return activeCategories && matchesSearch;
+        });
+    }
+
     //Objectifs
     protected openCreateGoalModal(): void {
         this.resetGoalModal();
@@ -427,6 +459,40 @@ export class Home implements OnInit {
         }
 
         this.resetGoalModal();
+    }
+
+    protected filteredGoals(): Goal[] {
+        const search = this.goalSearch.trim().toLocaleLowerCase();
+        const selectedCategoryId = this.goalCategorySearch;
+
+        return this.goals.filter(goal => {
+            const activeGoals = goal.status === 'ACTIVE';
+            const matchesSearch = !search || goal.title.toLocaleLowerCase().includes(search);
+            const matchesCategory = selectedCategoryId === null || goal.categoryId === selectedCategoryId;
+
+            return activeGoals && matchesSearch && matchesCategory;
+        });
+    }
+
+    private loadGoalProgress(): void {
+        this.api.getGoalProgress().subscribe({
+            next: (goalProgress) => {
+                this.goalProgresses = goalProgress;
+            },
+            error: () => {
+                console.error('Erreur lors du chargement de la progression des objectifs');
+            }
+        });
+    }
+
+    protected getGoalProgressById(id: number): GoalProgress {
+        return this.goalProgresses.find(gp => gp.goalId === id) ?? {
+            goalId: id,
+            totalPlannings: 0,
+            completedPlannings: 0,
+            remainingPlannings: 0,
+            progressRate: 0
+        };
     }
 
     //Tâches
@@ -497,6 +563,23 @@ export class Home implements OnInit {
         if (this.selectedTaskCategoryId !== null) {
             this.selectedGoalId = null;
         }
+    }
+
+    protected filteredTasks(): Task[] {
+        const search = this.taskSearch.trim().toLocaleLowerCase();
+        const selectedCategoryId = this.taskCategorySearch;
+        const selectedGoalId = this.taskGoalSearch;
+
+        return this.tasks.filter(task => {
+            const taskCategoryId = task.categoryId ?? this.getCategoryIdByGoal(task.goalId);
+
+            const activeTasks = task.status === 'ACTIVE';
+            const matchesSearch = !search || task.title.toLocaleLowerCase().includes(search) || (task.description && task.description.toLocaleLowerCase().includes(search));
+            const matchesCategory = selectedCategoryId === null || taskCategoryId === selectedCategoryId;
+            const matchesGoal = selectedGoalId === null || task.goalId === selectedGoalId;
+
+            return activeTasks && matchesSearch && matchesCategory && matchesGoal;
+        });
     }
 
     //Plannings
@@ -627,7 +710,7 @@ export class Home implements OnInit {
         }
 
         if (this.repeatSchedule && !this.daysChosen.length) {
-            this.scheduleErrors.daysChosen = this.getValidationMessage('scheduleDaysRequired');;
+            this.scheduleErrors.daysChosen = this.getValidationMessage('scheduleDaysRequired');
             isValid = false;
         }
 
@@ -752,12 +835,27 @@ export class Home implements OnInit {
         }
     }
 
-    private errorWarning(errorMessage: string, specificMessage: string, globalMessage: string): void {
-        if (errorMessage.includes('liée') || errorMessage.includes('utilisée')) {
+    protected confirmWarningArchive(type: Warning, id: number) {
+        if(type === 'category') {
+            this.archiveGlobal(this.api.archiveCategory(id), this.getSuccessMessage('category', 'archive'), this.getGenericErrorMessage('category', 'archive'));
+        }
+        else if(type === 'task') {
+            this.archiveGlobal(this.api.archiveTask(id), this.getSuccessMessage('task', 'archive'), this.getGenericErrorMessage('task', 'archive'));
+        }
+        else {
+            this.archiveGlobal(this.api.archiveGoal(id), this.getSuccessMessage('goal', 'archive'), this.getGenericErrorMessage('goal', 'archive'));
+        }
+    }
+
+    private errorWarning(errorCode: string, specificMessage: string, globalMessage: string): void {
+        if (errorCode === "TASK_USED" || errorCode === "GOAL_USED" || errorCode === "CATEGORY_USED") {
             this.warningError = specificMessage;
+            this.canSuggestArchive = true;
+            this.warningMessage = `La suppression est impossible. Vous pouvez archiver cet élément pour le masquer du dashboard.`;
         }
         else {
             this.warningError = globalMessage;
+            this.canSuggestArchive = false;
         }
     }
 
@@ -799,27 +897,51 @@ export class Home implements OnInit {
                 this.setSuccessMessage(successMessage);
             },
             error: (error) => {
-                const backendMessage = error?.error?.message ?? '';
+                const backendCode = error?.error?.code ?? '';
 
-                this.errorWarning(backendMessage, specificErrorMessage, globalErrorMessage);
+                this.errorWarning(backendCode, specificErrorMessage, globalErrorMessage);
             }
         })
     }
 
-    // display helpers
+    private archiveGlobal(request$: Observable<unknown>, successMessage: string, globalErrorMessage: string): void {
+        this.warningError = '';
+
+        request$.subscribe({
+            next: () => {
+                this.refreshHome();
+                this.resetWarningState();
+                this.setSuccessMessage(successMessage);
+            },
+            error: (error) => {
+                const backendMessage = error?.error?.message ?? '';
+
+                this.canSuggestArchive = false;
+
+                if(backendMessage !== '') {
+                    this.warningError = backendMessage;
+                }
+                else {
+                    this.warningError = globalErrorMessage;
+                }
+            }
+        })
+    }
+
+    // display/date helpers
     private getCategoryIdByGoal(goalId: number | null) : number | null {
         const goal = this.goals.find(g => g.id === goalId);
         return goal ? goal.categoryId : null;
     }
 
-    protected getScheduleDisplay(schedule: TaskScheduleRequest): ScheduleDisplay {
+    protected getScheduleDisplay(schedule: TaskSchedule): ScheduleDisplay {
         let timeLabel = '';
 
         if (schedule.startTime && schedule.endTime) {
-            timeLabel = `(${this.formatTime(schedule.startTime)} - ${this.formatTime(schedule.endTime)})`;
+            timeLabel = `(${formatTime(schedule.startTime)} - ${formatTime(schedule.endTime)})`;
         }
         else if (schedule.startTime) {
-            timeLabel = `(${this.formatTime(schedule.startTime)})`;
+            timeLabel = `(${formatTime(schedule.startTime)})`;
         }
 
         return {
@@ -852,11 +974,7 @@ export class Home implements OnInit {
             return 'Basse';
         }
     }
-
-    private formatTime(time: string | null): string {
-        return time ? time.slice(0, 5) : '';
-    }
-
+    
     private getCategoryTitleByTask(taskId: number): string {
         const task = this.tasks.find(t => t.id === taskId);
         
@@ -875,11 +993,19 @@ export class Home implements OnInit {
         return category ? category.title : '';
     }
 
-    private formatDate(date: Date): string {
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
+    private getYesterdayDate(): Date {
+        const yesterday = new Date();
+
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        return yesterday;
+    }
+
+    private initializeDates(): void {
+        this.todayDate = new Date();
+        this.yesterdayDate = this.getYesterdayDate();
+        this.todayDateString = formatDate(this.todayDate);
+        this.yesterdayDateString = formatDate(this.yesterdayDate);
     }
 
     //Message helpers
@@ -890,28 +1016,32 @@ export class Home implements OnInit {
                 update: 'Catégorie modifiée avec succès',
                 delete: 'Catégorie supprimée avec succès',
                 complete: '',
-                load: ''
+                load: '',
+                archive: 'Catégorie archivée avec succès'
             },
             goal: {
                 create: 'Objectif ajouté avec succès',
                 update: 'Objectif modifié avec succès',
                 delete: 'Objectif supprimé avec succès',
                 complete: '',
-                load: ''
+                load: '',
+                archive: 'Objectif archivé avec succès'
             },
             task: {
                 create: 'Tâche ajoutée avec succès',
                 update: 'Tâche modifiée avec succès',
                 delete: 'Tâche supprimée avec succès',
                 complete: '',
-                load: ''
+                load: '',
+                archive: 'Tâche archivée avec succès'
             },
             schedule: {
                 create: 'Planning créé avec succès',
                 update: 'Planning modifié avec succès',
                 delete: 'Planning supprimé avec succès',
-                complete: 'Erreur lors de la complétion du planning',
-                load: 'Erreur lors du chargement des plannings'
+                complete: 'Planning complété avec succès',
+                load: '',
+                archive: ''
             }
         };
 
@@ -925,28 +1055,32 @@ export class Home implements OnInit {
                 update: 'Erreur lors de la modification de la catégorie',
                 delete: 'Erreur lors de la suppression de la catégorie',
                 complete: '',
-                load: ''
+                load: '',
+                archive: `Erreur lors de l'archivage de la catégorie`
             },
             goal: {
                 create: 'Erreur lors de l’ajout de l’objectif',
                 update: 'Erreur lors de la modification de l’objectif',
                 delete: 'Erreur lors de la suppression de l’objectif',
                 complete: '',
-                load: ''
+                load: '',
+                archive: `Erreur lors de l'archivage de l'objectif`
             },
             task: {
                 create: 'Erreur lors de l’ajout de la tâche',
                 update: 'Erreur lors de la modification de la tâche',
                 delete: 'Erreur lors de la suppression de la tâche',
                 complete: '',
-                load: ''
+                load: '',
+                archive: `Erreur lors de l'archivage de la tâche`
             },
             schedule: {
                 create: 'Erreur lors de l’ajout du planning',
                 update: 'Erreur lors de la modification du planning',
                 delete: 'Erreur lors de la suppression du planning',
-                complete: '',
-                load: ''
+                complete: 'Erreur lors de la complétion du planning',
+                load: 'Erreur lors du chargement des plannings',
+                archive: ''
             }
         };
 
@@ -1129,6 +1263,7 @@ export class Home implements OnInit {
         this.warningTitle = '';
         this.warningMessage = '';
         this.warningError = '';
+        this.canSuggestArchive = false;
     }
 
     private resetScheduleActionErrors(): void {
@@ -1148,12 +1283,8 @@ export class Home implements OnInit {
     }
 
     //Validations
-    protected hasAnyErrors(errors: Record<string, string>): boolean {
-        return Object.values(errors).some(e => e !== '');
-    }
-
     protected canToggleScheduleCompletion(schedule: TaskSchedule): boolean {
-        return schedule.taskDate === this.todayDateString;
+        return schedule.taskDate === this.todayDateString || schedule.taskDate === this.yesterdayDateString;
     }
 
     protected canEditOrDeleteSchedule(schedule: TaskSchedule): boolean {

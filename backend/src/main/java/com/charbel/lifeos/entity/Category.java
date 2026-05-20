@@ -4,6 +4,8 @@ import java.time.LocalDateTime;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ForeignKey;
 import jakarta.persistence.GeneratedValue;
@@ -28,6 +30,10 @@ public class Category {
     @Column(nullable = false, length = 50)
     private String title;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private Status status = Status.ACTIVE;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name="user_id", nullable = false, foreignKey = @ForeignKey(name="fk_category_user"))
     private User user;
@@ -45,6 +51,7 @@ public class Category {
     public Category(String title, User user){
         this.user = user;
         this.title = title;
+        this.status = Status.ACTIVE;
     }
 
     @PrePersist
@@ -52,11 +59,19 @@ public class Category {
         LocalDateTime now = LocalDateTime.now();
         createdAt = now;
         updatedAt = now;
+
+        if(status == null) {
+            status = Status.ACTIVE;
+        }
     }
 
     @PreUpdate
     private void onUpdate() {
         updatedAt = LocalDateTime.now();
+
+        if (status == null) {
+            status = Status.ACTIVE;
+        }
     }
 
     public Long getId(){
@@ -71,6 +86,13 @@ public class Category {
     }
     public void setTitle(String title){
         this.title = title;
+    }
+
+    public Status getStatus(){
+        return status;
+    }
+    public void setStatus(Status status){
+        this.status = status;
     }
 
     public User getUser(){

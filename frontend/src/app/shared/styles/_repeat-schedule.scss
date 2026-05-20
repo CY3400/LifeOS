@@ -1,0 +1,149 @@
+/* =========================================================
+   REPEAT / SWITCH / PRIORITY OPTIONS
+   ========================================================= */
+
+.repeat-toggle,
+.repeat-days-title,
+.schedule-priority-title {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.repeat-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 2px 0 4px;
+}
+
+.repeat-toggle span {
+  margin: 0;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+.slider {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+  background-color: #ccc;
+  border-radius: 34px;
+  transition: 0.4s;
+}
+
+.slider::before {
+  position: absolute;
+  content: '';
+  width: 26px;
+  height: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: #fff;
+  border-radius: 50%;
+  transition: 0.4s;
+}
+
+.switch input:checked + .slider {
+  background-color: var(--primary);
+}
+
+.switch input:checked + .slider::before {
+  transform: translateX(26px);
+}
+
+.repeat-section {
+  margin-top: 6px;
+}
+
+.repeat-days,
+.schedule-priority-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.repeat-days {
+  margin-top: 4px;
+}
+
+.repeat-days-title {
+  width: 100%;
+  margin-bottom: 2px;
+}
+
+.repeat-day-option,
+.schedule-priority-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(15, 23, 42, 0.5);
+  border: 1px solid rgba(148, 163, 184, 0.18);
+  color: var(--text-main);
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.2s ease, background-color 0.2s ease, transform 0.2s ease;
+}
+
+.repeat-day-option:hover,
+.schedule-priority-option:hover {
+  border-color: rgba(59, 130, 246, 0.35);
+  background: var(--hover-panel);
+  transform: translateY(-1px);
+}
+
+.repeat-day-option input[type='checkbox'],
+.schedule-priority-option input[type='radio'] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.repeat-day-option span,
+.schedule-priority-option span {
+  color: var(--text-main);
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.schedule-priority-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.schedule-priority-option {
+  margin-bottom: 0;
+}
+
+.schedule-priority-option:has(input[type='radio']:checked) {
+  background: rgba(59, 130, 246, 0.18);
+  border-color: rgba(96, 165, 250, 0.45);
+  color: #dbeafe;
+  box-shadow: 0 0 0 1px rgba(96, 165, 250, 0.18);
+}
+
+.schedule-priority-option:has(input[type='radio']:checked) span {
+  color: #dbeafe;
+}

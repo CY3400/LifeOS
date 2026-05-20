@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.charbel.lifeos.entity.Category;
 import com.charbel.lifeos.entity.Goal;
+import com.charbel.lifeos.entity.Status;
 import com.charbel.lifeos.entity.User;
 import com.charbel.lifeos.exception.BadRequestException;
 import com.charbel.lifeos.exception.ResourceNotFoundException;
@@ -57,16 +58,16 @@ public class GoalService {
         boolean task = taskRepository.existsByGoalIdAndUserId(goalId, userId);
 
         if(task) {
-            throw new BadRequestException("L'objectif est utilisé par une ou plusieurs tâches et ne peut pas être supprimé");
+            throw new BadRequestException("L'objectif est utilisé par une ou plusieurs tâches et ne peut pas être supprimé", "GOAL_USED");
         }
     }
 
     private Goal resolveGoalForUser(Long id, Long userId) {
-        return goalRepository.findByIdAndUserId(id, userId).orElseThrow(() -> new ResourceNotFoundException("Objectif introuvable"));
+        return goalRepository.findByIdAndUserIdAndStatus(id, userId, Status.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Objectif introuvable"));
     }
 
     private Category resolveCategoryForUser(Long categoryId, User user) {
-        return categoryRepository.findByIdAndUserId(categoryId, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Catégorie introuvable"));
+        return categoryRepository.findByIdAndUserIdAndStatus(categoryId, user.getId(), Status.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Catégorie introuvable"));
     }
 
     public Goal createGoal(User user, String title, Long categoryId) {
@@ -107,6 +108,23 @@ public class GoalService {
         validateGoalIsNotUsed(id, user.getId());
 
         goalRepository.delete(existing);
+    }
+
+    public Goal archiveGoal(User user, Long id) {
+        validateUser(user);
+        validateGoalId(id);
+
+        Goal existing = resolveGoalForUser(id, user.getId());
+
+        boolean hasActiveTasks = taskRepository.existsByGoalIdAndUserIdAndStatus(id, user.getId(), Status.ACTIVE);
+
+        if(hasActiveTasks) {
+            throw new BadRequestException("L'objectif contient des tâches actives", "GOAL_HAS_ACTIVE_TASKS");
+        }
+
+        existing.setStatus(Status.ARCHIVED);
+
+        return goalRepository.save(existing);
     }
 
     @Transactional(readOnly = true)

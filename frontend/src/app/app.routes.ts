@@ -6,6 +6,7 @@ import { MeResolver } from './resolvers/me-resolver';
 import { Login } from './pages/login/login';
 import { AuthGuard } from './guards/auth-guard';
 import { GuestGuard } from './guards/guest-guard';
+import { Today } from './pages/today/today';
 
 export const routes: Routes = [
     {
@@ -38,6 +39,13 @@ export const routes: Routes = [
         path:'accueil',
         component: Home,
         title: 'LifeOS - Accueil',
+        canActivate: [AuthGuard],
+        resolve: { me: MeResolver }
+    },
+    {
+        path:'today',
+        component: Today,
+        title: `LifeOS - Aujourd'hui`,
         canActivate: [AuthGuard],
         resolve: { me: MeResolver }
     },

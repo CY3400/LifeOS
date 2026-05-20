@@ -60,11 +60,19 @@ public class TaskSchedule {
         LocalDateTime now = LocalDateTime.now();
         createdAt = now;
         updatedAt = now;
+
+        if(priority == null) {
+            priority = Priority.MEDIUM;
+        }
     }
 
     @PreUpdate
     private void onUpdate() {
         updatedAt = LocalDateTime.now();
+
+        if(priority == null) {
+            priority = Priority.MEDIUM;
+        }
     }
 
     public Long getId(){

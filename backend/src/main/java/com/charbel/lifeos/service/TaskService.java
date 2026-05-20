@@ -1,6 +1,8 @@
 package com.charbel.lifeos.service;
 
 import com.charbel.lifeos.repository.CategoryRepository;
+
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -9,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.charbel.lifeos.entity.Task;
 import com.charbel.lifeos.entity.Category;
 import com.charbel.lifeos.entity.Goal;
+import com.charbel.lifeos.entity.Status;
 import com.charbel.lifeos.entity.User;
 import com.charbel.lifeos.exception.BadRequestException;
 import com.charbel.lifeos.exception.ResourceNotFoundException;
@@ -59,7 +62,7 @@ public class TaskService {
 
     private Goal resolveGoalForUser(Long goalId, User user) {
         if(goalId != null) {
-            return goalRepository.findByIdAndUserId(goalId, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Objectif introuvable"));
+            return goalRepository.findByIdAndUserIdAndStatus(goalId, user.getId(), Status.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Objectif introuvable"));
         }
         else {
             return null;
@@ -68,7 +71,7 @@ public class TaskService {
 
     private Category resolveCategoryForUser(Long categoryId, User user) {
         if(categoryId != null) {
-            return categoryRepository.findByIdAndUserId(categoryId, user.getId()).orElseThrow(() -> new ResourceNotFoundException("Catégorie introuvable"));
+            return categoryRepository.findByIdAndUserIdAndStatus(categoryId, user.getId(), Status.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Catégorie introuvable"));
         }
         else {
             return null;
@@ -85,14 +88,14 @@ public class TaskService {
     }
 
     private Task resolveTaskForUser(Long id, Long userId) {
-        return taskRepository.findByIdAndUserId(id, userId).orElseThrow(() -> new ResourceNotFoundException("Tâche introuvable"));
+        return taskRepository.findByIdAndUserIdAndStatus(id, userId, Status.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Tâche introuvable"));
     }
 
     private void validateTaskIsNotUsed(Long taskId, Long userId) {
         boolean schedule = taskScheduleRepository.existsByTaskIdAndTaskUserId(taskId, userId);
 
         if(schedule) {
-            throw new BadRequestException("La tâche est utilisée par un ou plusieurs plannings et ne peut pas être supprimée");
+            throw new BadRequestException("La tâche est utilisée par un ou plusieurs plannings et ne peut pas être supprimée", "TASK_USED");
         }
     }
 
@@ -148,6 +151,26 @@ public class TaskService {
         validateTaskIsNotUsed(id, user.getId());
 
         taskRepository.delete(existing);
+    }
+
+    public Task archiveTask(User user, Long id) {
+        validateUser(user);
+
+        validateTaskId(id);
+
+        Task existing = resolveTaskForUser(id, user.getId());
+
+        LocalDate today = LocalDate.now();
+
+        boolean hasFutureUncompletedSchedules = taskScheduleRepository.existsByTaskIdAndTaskUserIdAndCompletedFalseAndTaskDateGreaterThanEqual(id, user.getId(), today);
+
+        if(hasFutureUncompletedSchedules) {
+            throw new BadRequestException("Une tâche ne peut pas être archivée s'il reste des plannings non complétés", "TASK_HAS_FUTURE_UNCOMPLETED_SCHEDULES");
+        }
+
+        existing.setStatus(Status.ARCHIVED);
+
+        return taskRepository.save(existing);
     }
 
     @Transactional(readOnly = true)

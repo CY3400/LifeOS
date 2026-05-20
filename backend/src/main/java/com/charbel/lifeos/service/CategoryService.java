@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.charbel.lifeos.entity.Category;
+import com.charbel.lifeos.entity.Status;
 import com.charbel.lifeos.entity.User;
 import com.charbel.lifeos.exception.BadRequestException;
 import com.charbel.lifeos.exception.ResourceNotFoundException;
@@ -60,7 +61,7 @@ public class CategoryService {
     }
 
     private Category resolveCategoryForUser(Long id, Long userId) {
-        return categoryRepository.findByIdAndUserId(id, userId).orElseThrow(() -> new ResourceNotFoundException("Catégorie introuvable"));
+        return categoryRepository.findByIdAndUserIdAndStatus(id, userId, Status.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Catégorie introuvable"));
     }
 
     private void validateCategoryIsNotUsed(Long categoryId, Long userId) {
@@ -68,7 +69,7 @@ public class CategoryService {
         boolean task = taskRepository.existsByCategoryIdAndUserId(categoryId, userId);
 
         if(goal || task) {
-            throw new BadRequestException("La catégorie est utilisée par une tâche ou un objectif et ne peut pas être supprimée");
+            throw new BadRequestException("La catégorie est utilisée par une tâche ou un objectif et ne peut pas être supprimée", "CATEGORY_USED");
         }
     }
 
@@ -114,11 +115,29 @@ public class CategoryService {
         categoryRepository.delete(existing);
     }
 
+    public Category archiveCategory(User user, Long id) {
+        validateUser(user);
+        validateCategoryId(id);
+
+        Category existing = resolveCategoryForUser(id, user.getId());
+
+        boolean hasActiveGoals = goalRepository.existsByCategoryIdAndUserIdAndStatus(id, user.getId(), Status.ACTIVE);
+        boolean hasActiveTasks = taskRepository.existsByCategoryIdAndUserIdAndStatus(id, user.getId(), Status.ACTIVE);
+
+        if(hasActiveGoals || hasActiveTasks) {
+            throw new BadRequestException("La catégorie contient des objectifs actifs ou des tâches actives", "CATEGORY_HAS_ACTIVE_CHILDREN");
+        }
+
+        existing.setStatus(Status.ARCHIVED);
+
+        return categoryRepository.save(existing);
+    }
+
     @Transactional(readOnly = true)
     public List<Category> getCategoriesForUser(User user) {
         validateUser(user);
 
-        return categoryRepository.findByUserIdOrderByTitleAsc(user.getId());
+        return categoryRepository.findByUserId(user.getId());
     }
 
     @Transactional(readOnly = true)
