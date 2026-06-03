@@ -1,0 +1,114 @@
+<div class="category-card">
+    <h2 class="card-title">Catégories</h2>
+
+    <form class="category-input" (ngSubmit)="submitCategory.emit()">
+        <label for="categoryInput">Ajouter une catégorie</label>
+
+        <div class="category-input-row">
+            <input
+                id="categoryInput"
+                name="categoryInput"
+                type="text"
+                [disabled]="categorySubmit"
+                [ngModel]="newCategoryTitle"
+                (ngModelChange)="newCategoryTitleChange.emit($event)"
+                placeholder="Ajouter une nouvelle catégorie..."
+            >
+
+            <button
+                class="plus"
+                type="submit"
+                [disabled]="!newCategoryTitle.trim() || categorySubmit"
+            >
+                <app-icon name="plus"></app-icon>
+            </button>
+        </div>
+
+        @if(hasAnyErrors(categoryErrors)) {
+            <div class="error border-danger">
+                @if(categoryErrors.global) {
+                    <span>{{ categoryErrors.global }}</span>
+                }
+
+                @if(categoryErrors.title) {
+                    <span>{{ categoryErrors.title }}</span>
+                }
+            </div>
+        }
+    </form>
+
+    <div class="category-search">
+        <input
+            id="categorySearch"
+            name="categorySearch"
+            type="text"
+            [disabled]="categorySubmit"
+            [ngModel]="categorySearch"
+            (ngModelChange)="categorySearchChange.emit($event)"
+            placeholder="Rechercher une catégorie ..."
+        >
+    </div>
+
+    <div class="category-list">
+        @if(categories.length === 0) {
+            <p>Aucune catégorie définie.</p>
+        }
+        @else {
+            @for(category of categories; track category.id) {
+                @if(modifyCategoryId === category.id) {
+                    <div class="category-edit-row">
+                        <input
+                            id="modifyCategoryInput"
+                            name="modifyCategoryInput"
+                            type="text"
+                            class="modifyCategoryInput"
+                            [ngModel]="modifyCategoryTitle"
+                            (ngModelChange)="modifyCategoryTitleChange.emit($event)"
+                        >
+
+                        <div class="category-edit-actions">
+                            <button
+                                type="button"
+                                class="check"
+                                (click)="modifyCategory.emit(category.id)"
+                            >
+                                <app-icon name="check"></app-icon>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="x"
+                                (click)="setCategoryToModify.emit({ id: null, title: null })"
+                            >
+                                <app-icon name="close"></app-icon>
+                            </button>
+                        </div>
+                    </div>
+                }
+                @else {
+                    <div class="category-item">
+                        <span class="category-name">{{ category.title }}</span>
+
+                        <div class="category-actions">
+                            <button
+                                type="button"
+                                class="pencil"
+                                (click)="setCategoryToModify.emit({ id: category.id, title: category.title })"
+                            >
+                                <app-icon name="edit"></app-icon>
+                            </button>
+
+                            <button
+                                type="button"
+                                class="trash"
+                                (click)="deleteCategoryRequested.emit(category)"
+                            >
+                                <app-icon name="delete"></app-icon>
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+        }
+    </div>
+</div>

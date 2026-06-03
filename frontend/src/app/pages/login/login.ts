@@ -5,7 +5,7 @@ import { Router } from "@angular/router";
 import { Api, LoginRequest } from "../../services/api";
 import { finalize } from "rxjs";
 import { Common } from "../../services/common";
-import { AuthErrors, emptyAuthErrors } from "../../types/auth-errors";
+import { AuthErrors, emptyAuthErrors } from "../../shared/types/auth-errors";
 
 @Component({
     selector: 'app-login',

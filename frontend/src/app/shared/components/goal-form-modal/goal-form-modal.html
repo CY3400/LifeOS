@@ -1,0 +1,69 @@
+@if(isGoalModalOn) {
+    <section class="modal">
+        <form class="goal-modal" (ngSubmit)="saveGoal.emit()">
+            @if(hasAnyErrors(goalErrors)) {
+                <div class="error border-danger">
+                    @if(goalErrors.global) {
+                        <span>{{ goalErrors.global }}</span>
+                    }
+
+                    @if(goalErrors.title) {
+                        <span>{{ goalErrors.title }}</span>
+                    }
+
+                    @if(goalErrors.category) {
+                        <span>{{ goalErrors.category }}</span>
+                    }
+                </div>
+            }
+
+            <h2>{{ modifyGoalId ? 'Modifier un objectif' : 'Ajouter un objectif' }}</h2>
+
+            <label for="goalModalInput">Nom</label>
+            <input
+                id="goalModalInput"
+                name="goalModalInput"
+                type="text"
+                [disabled]="goalSubmit"
+                [ngModel]="goalTitle"
+                (ngModelChange)="goalTitleChange.emit($event)"
+                placeholder="Ajouter un nouvel objectif..."
+            >
+
+            <label for="goalModalCategorySelect">Catégorie</label>
+            <select
+                id="goalModalCategorySelect"
+                name="goalModalCategorySelect"
+                [disabled]="goalSubmit"
+                [ngModel]="goalCategoryId"
+                (ngModelChange)="goalCategoryIdChange.emit($event)"
+            >
+                <option [ngValue]="null">Aucune catégorie</option>
+
+                @for(c of categories; track c.id) {
+                    @if(c.status === 'ACTIVE') {
+                        <option [ngValue]="c.id">{{ c.title }}</option>
+                    }
+                }
+            </select>
+
+            <div class="goal-modal-actions">
+                <button
+                    class="submit-goal"
+                    type="submit"
+                    [disabled]="goalSubmit"
+                >
+                    {{ modifyGoalId ? 'Modifier' : 'Ajouter' }}
+                </button>
+
+                <button
+                    type="button"
+                    class="cancel-goal"
+                    (click)="closeGoalModal.emit()"
+                >
+                    Annuler
+                </button>
+            </div>
+        </form>
+    </section>
+}

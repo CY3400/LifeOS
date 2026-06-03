@@ -1,0 +1,97 @@
+<div class="goal-card">
+    <div class="task-header">
+        <h2 class="card-title">Objectifs</h2>
+
+        <button
+            class="plus"
+            type="button"
+            (click)="createGoalRequested.emit()"
+        >
+            <app-icon name="plus"></app-icon>
+        </button>
+    </div>
+
+    <div class="goal-search">
+        <input
+            id="goalSearch"
+            name="goalSearch"
+            type="text"
+            [disabled]="goalSubmit"
+            [ngModel]="goalSearch"
+            (ngModelChange)="goalSearchChange.emit($event)"
+            placeholder="Rechercher un objectif ..."
+        >
+
+        <select 
+            id="goalCategorySearch"
+            name="goalCategorySearch"
+            [disabled]="goalSubmit"
+            [ngModel]="goalCategorySearch"
+            (ngModelChange)="goalCategorySearchChange.emit($event)"
+        >
+            <option [ngValue]="null">Toutes les catégories</option>
+            @for(category of categories; track category.id) {
+                <option [ngValue]="category.id">{{ category.title }}</option>
+            }
+        </select>
+    </div>
+
+    <div class="goal-list">
+        @if(goals.length === 0) {
+            <p>Aucun objectif défini.</p>
+        }
+        @else {
+            @for(goal of goals; track goal.id) {
+                <div class="goal-item">
+                    <span class="goal-name">{{ goal.title }}</span>
+                    @if(getCategoryTitle(goal.categoryId, categories); as categoryTitle) {
+                        @if(categoryTitle) {
+                            <span class="category-badge">{{ categoryTitle }}</span>
+                        }
+                    }
+
+                    @if(getGoalProgress(goal.id); as goalProgress) {
+                        <div class="goal-progress">
+                            <div class="goal-progress-header">
+                                <span>Progression</span>
+                                <strong>{{ goalProgress.progressRate | number:'1.0-2' }}%</strong>
+                            </div>
+
+                            <div class="goal-progress-bar">
+                                <div
+                                    class="goal-progress-fill"
+                                    [style.width.%]="goalProgress.progressRate <= 100 ? goalProgress.progressRate : 100"
+                                    [style.background]="barColor(goalProgress.progressRate)"
+                                ></div>
+                            </div>
+
+                            <div class="goal-progress-stats">
+                                <span>{{ goalProgress.totalPlannings }} plannings</span>
+                                <span>{{ goalProgress.completedPlannings }} terminés</span>
+                                <span>{{ goalProgress.remainingPlannings }} restants</span>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="goal-actions">
+                        <button
+                            type="button"
+                            class="pencil"
+                            (click)="setGoalToModify.emit({ id: goal.id, title: goal.title, categoryId: goal.categoryId })"
+                        >
+                            <app-icon name="edit"></app-icon>
+                        </button>
+
+                        <button
+                            type="button"
+                            class="trash"
+                            (click)="deleteGoalRequested.emit(goal)"
+                        >
+                            <app-icon name="delete"></app-icon>
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

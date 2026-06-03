@@ -1,0 +1,88 @@
+<div class="task-card">
+    <div class="task-header">
+        <h2 class="card-title">Tâches</h2>
+
+        <button
+            class="plus"
+            type="button"
+            (click)="createTaskRequested.emit()"
+        >
+            <app-icon name="plus"></app-icon>
+        </button>
+    </div>
+
+    <div class="task-search">
+        <input
+            id="taskSearch"
+            name="taskSearch"
+            type="text"
+            [disabled]="taskSubmit"
+            [ngModel]="taskSearch"
+            (ngModelChange)="taskSearchChange.emit($event)"
+            placeholder="Rechercher une tâche ..."
+        >
+
+        <select 
+            id="taskCategorySearch"
+            name="taskCategorySearch"
+            [disabled]="taskSubmit"
+            [ngModel]="taskCategorySearch"
+            (ngModelChange)="taskCategorySearchChange.emit($event)"
+        >
+            <option [ngValue]="null">Toutes les catégories</option>
+            @for(category of categories; track category.id) {
+                <option [ngValue]="category.id">{{ category.title }}</option>
+            }
+        </select>
+
+        <select 
+            id="taskGoalSearch"
+            name="taskGoalSearch"
+            [disabled]="taskSubmit"
+            [ngModel]="taskGoalSearch"
+            (ngModelChange)="taskGoalSearchChange.emit($event)"
+        >
+            <option [ngValue]="null">Tous les objectifs</option>
+            @for(goal of goals; track goal.id) {
+                <option [ngValue]="goal.id">{{ goal.title }}</option>
+            }
+        </select>
+    </div>
+
+    <div class="task-list">
+        @if(tasks.length === 0) {
+            <p>Aucune tâche définie.</p>
+        }
+        @else {
+            @for(task of tasks; track task.id) {
+                <div class="task-row">
+                    <div class="task-content">
+                        <span class="task-name">{{ task.title }}</span>
+
+                        @if(task.description && task.description.trim() !== '') {
+                            <p class="task-description">{{ task.description }}</p>
+                        }
+                    </div>
+
+                    <div class="task-actions">
+                        <button
+                            type="button"
+                            class="pencil"
+                            (click)="editTaskRequested.emit({id: task.id, title: task.title, description: task.description, goalId: task.goalId, categoryId: task.categoryId})"
+                        >
+                            <app-icon name="edit"></app-icon>
+                        </button>
+
+                        <button
+                            type="button"
+                            class="trash"
+                            (click)="deleteTaskRequested.emit(task)"
+                        >
+                            <app-icon name="delete"></app-icon>
+                        </button>
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>

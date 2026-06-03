@@ -1,0 +1,29 @@
+<section class="focus-row">
+    <h2>Focus de la journée</h2>
+    <div class="focus-card">
+        @if(focusSchedule) {
+            @if(getScheduleDisplay(focusSchedule); as focus) {
+                <p>{{ focus.taskTitle }}</p>
+                @if (focus.timeLabel) {
+                    <p>{{ focus.timeLabel }}</p>
+                }
+                <div class="focus-meta">
+                    <span class="priority" [ngClass]="focus.priorityClass">
+                        {{ focus.priorityLabel }}
+                    </span>
+                    @if(focus.categoryTitle) {
+                        <span class="category-badge">
+                            {{ focus.categoryTitle }}
+                        </span>
+                    }
+                </div>
+                @if (focus.taskDescription) {
+                    <p>{{ focus.taskDescription }}</p>
+                }
+            }
+        }
+        @else {
+            <p>Tout est terminé pour aujourd'hui</p>
+        }
+    </div>
+</section>

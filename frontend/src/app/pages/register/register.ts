@@ -5,7 +5,7 @@ import { Api, RegisterRequest } from "../../services/api";
 import { Router } from "@angular/router";
 import { finalize, firstValueFrom } from "rxjs";
 import { Common } from "../../services/common";
-import { AuthErrors, emptyAuthErrors } from "../../types/auth-errors";
+import { AuthErrors, emptyAuthErrors } from "../../shared/types/auth-errors";
 
 @Component({
     selector: 'app-register',

@@ -62,8 +62,15 @@ export type TaskSchedule = {
     priority: Priority | null
 };
 
-export type TaskScheduleRequest = {
+export type CreateTaskScheduleRequest = {
   taskId: number,
+  taskDate: string,
+  startTime: string | null,
+  endTime: string | null,
+  priority: Priority | null
+};
+
+export type UpdateTaskScheduleRequest = {
   taskDate: string,
   startTime: string | null,
   endTime: string | null,
@@ -219,19 +226,19 @@ export class Api {
         });
     }
 
-    createTaskSchedule(payload: TaskScheduleRequest): Observable<TaskSchedule> {
+    createTaskSchedule(payload: CreateTaskScheduleRequest): Observable<TaskSchedule> {
         return this.http.post<TaskSchedule>(`${this.baseUrl}/task-schedules`, payload, {
             withCredentials: true
         });
     }
 
-    updateTaskSchedule(id: number, payload: TaskScheduleRequest): Observable<TaskSchedule> {
+    updateTaskSchedule(id: number, payload: UpdateTaskScheduleRequest): Observable<TaskSchedule> {
         return this.http.put<TaskSchedule>(`${this.baseUrl}/task-schedules/${id}`, payload, {
             withCredentials: true
         });
     }
 
-    updateFollowing(id: number, payload: TaskScheduleRequest): Observable<void> {
+    updateFollowing(id: number, payload: UpdateTaskScheduleRequest): Observable<void> {
         return this.http.put<void>(`${this.baseUrl}/task-schedules/${id}/following`, payload, {
             withCredentials: true
         });

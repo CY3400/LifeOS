@@ -1,0 +1,78 @@
+<div class="selected-day-card">
+    <div class="selected-day-header">
+        <h3>Plannings du {{ selectedDate | date:'fullDate':'':'fr'}}</h3>
+    </div>
+
+    <div class="task-list">
+        @if(selectedDateSchedules.length === 0) {
+            <p>Aucun planning pour cette date</p>
+        }
+        @else {
+            @for(schedule of selectedDateSchedules; track schedule.id) {
+                @if(getScheduleDisplay(schedule); as scheduleDisplay) {
+                    <div class="task-row">
+                        <span class="task-name" [class.completed]="schedule.completed">
+                            {{ scheduleDisplay.taskTitle }}
+
+                            @if(scheduleDisplay.timeLabel !== '') {
+                                {{ scheduleDisplay.timeLabel }}
+                            }
+
+                            <span
+                                class="priority"
+                                [class.high]="schedule.priority === 'HIGH'"
+                                [class.medium]="schedule.priority === 'MEDIUM'"
+                                [class.low]="schedule.priority === 'LOW'"
+                            >
+                                {{ scheduleDisplay.priorityLabel }}
+                            </span>
+
+                            @if(scheduleDisplay.categoryTitle !== '') {
+                                <span class="category-badge">{{ scheduleDisplay.categoryTitle }}</span>
+                            }
+                        </span>
+
+                        <div class="task-actions">
+                            @if(!schedule.completed && canToggleScheduleCompletion(schedule)) {
+                                <button
+                                    type="button"
+                                    class="check"
+                                    (click)="completeSchedule.emit({id: schedule.id, completed: true})"
+                                >
+                                    <app-icon name="check"></app-icon>
+                                </button>
+                            }
+                            @else if (schedule.completed && canToggleScheduleCompletion(schedule)) {
+                                <button
+                                    type="button"
+                                    class="x"
+                                    (click)="completeSchedule.emit({id: schedule.id, completed: false})"
+                                >
+                                    <app-icon name="close"></app-icon>
+                                </button>
+                            }
+
+                            @if(canEditOrDeleteSchedule(schedule)) {
+                                <button
+                                    type="button"
+                                    class="pencil"
+                                    (click)="editScheduleRequested.emit(schedule)"
+                                >
+                                    <app-icon name="edit"></app-icon>
+                                </button>
+
+                                <button
+                                    type="button"
+                                    class="trash"
+                                    (click)="deleteScheduleRequested.emit(schedule)"
+                                >
+                                    <app-icon name="delete"></app-icon>
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        }
+    </div>
+</div>

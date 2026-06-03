@@ -56,7 +56,7 @@ public class TaskScheduleController {
     public ResponseEntity<TaskScheduleResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateTaskScheduleRequest req, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);
 
-        TaskSchedule updated = taskScheduleService.updateTaskSchedule(id, user, req.getTaskId(), req.getTaskDate(), req.getStartTime(), req.getEndTime(), req.getPriority());
+        TaskSchedule updated = taskScheduleService.updateTaskSchedule(id, user, req.getTaskDate(), req.getStartTime(), req.getEndTime(), req.getPriority());
 
         return ResponseEntity.ok(taskScheduleMapper.toResponse(updated));
     }
@@ -65,7 +65,7 @@ public class TaskScheduleController {
     public ResponseEntity<Void> updateFollowing(@PathVariable Long id, @Valid @RequestBody UpdateTaskScheduleRequest req, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);
 
-        taskScheduleService.updateTaskScheduleAndFollowing(id, user, req.getTaskId(), req.getTaskDate(), req.getStartTime(), req.getEndTime(), req.getPriority());
+        taskScheduleService.updateTaskScheduleAndFollowing(id, user, req.getTaskDate(), req.getStartTime(), req.getEndTime(), req.getPriority());
 
         return ResponseEntity.noContent().build();
     }

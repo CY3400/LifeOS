@@ -5,949 +5,176 @@
     </div>
 </section>
 
-<section class="kpi-row">
-    <div class="kpi-card">
-        <div class="kpi-content">
-            <span class="kpi-label">Tâches du jour</span>
-            <strong class="kpi-value">{{ totalTasks }}</strong>
-        </div>
-    </div>
-
-    <div class="kpi-card">
-        <div class="kpi-content">
-            <span class="kpi-label">Tâches complétées</span>
-            <strong class="kpi-value">{{ completedTasks }}</strong>
-        </div>
-    </div>
-
-    <div class="kpi-card">
-        <div class="kpi-content">
-            <span class="kpi-label">Taux de complétion</span>
-            <strong class="kpi-value">{{ completionRate | number:'1.0-2' }}%</strong>
-        </div>
-    </div>
-</section>
-
-@if(isWarningOpen && warningType !== null && warningId !== null; as canShowWarning) {
-    <section class="modal">
-        <div class="delete-modal">
-            @if(warningError !== '') {
-                <div class="error border-danger">
-                    <span>{{ warningError }}</span>
-                </div>
-            }
-
-            <p>{{ warningMessage }}</p>
-
-            <div class="delete-modal-actions">
-                <button type="button" class="delete-one" (click)="confirmWarningDelete(warningType, warningId)">
-                    Supprimer
-                </button>
-
-                @if(canSuggestArchive) {
-                    <button type="button" class="archive-one" (click)="confirmWarningArchive(warningType, warningId)">
-                        Archiver
-                    </button>
-                }
-
-                <button type="button" class="cancel-delete" (click)="toggleWarning(warningType, false, null, '')">
-                    Annuler
-                </button>
-            </div>
-        </div>
-    </section>
-}
-
-@if(isDeleteModalOpen) {
-    <section class="modal">
-        <div class="delete-modal">
-            @if(hasAnyErrors(deleteErrors) && deleteErrors.global) {
-                <div class="error border-danger">
-                    <span>{{ deleteErrors.global }}</span>
-                </div>
-            }
-            
-            <p>Souhaitez-vous supprimer ce planning seul ou celui-ci et les suivants?</p>
-
-            <div class="delete-modal-actions">
-                <button type="button" class="delete-one" (click)="deleteOneSchedule(selectedScheduleId)">
-                    Supprimer celle-ci
-                </button>
-
-                <button type="button" class="delete-following" (click)="deleteScheduleFollowing(selectedScheduleId)">
-                    Supprimer celle-ci et les suivantes
-                </button>
-
-                <button type="button" class="cancel-delete" (click)="setScheduleActionModalState('delete', false, 0)">
-                    Annuler
-                </button>
-            </div>
-        </div>
-    </section>
-}
-
-@if(isUpdateModalOpen) {
-    <section class="modal">
-        <div class="update-modal">
-            @if(hasAnyErrors(updateErrors) && updateErrors.global) {
-                <div class="error border-danger">
-                    <span>{{ updateErrors.global }}</span>
-                </div>
-            }
-            
-            <p>Souhaitez-vous modifier ce planning seul ou celui-ci et les suivants?</p>
-
-            <div class="update-modal-actions">
-                <button type="button" class="update-one" (click)="updateOneSchedule(selectedScheduleId)">
-                    Modifier celle-ci
-                </button>
-
-                <button type="button" class="update-following" (click)="updateScheduleFollowing(selectedScheduleId)">
-                    Modifier celle-ci et les suivantes
-                </button>
-
-                <button type="button" class="cancel-update" (click)="setScheduleActionModalState('update', false, 0)">
-                    Annuler
-                </button>
-            </div>
-        </div>
-    </section>
-}
-
-@if(isTaskModalOpen) {
-    <section class="modal">
-        <form class="task-modal" (ngSubmit)="saveTask()">
-            @if(hasAnyErrors(taskErrors)) {
-                <div class="error border-danger">
-                    @if(taskErrors.global) {
-                        <span>{{ taskErrors.global }}</span>
-                    }
-
-                    @if(taskErrors.title) {
-                        <span>{{ taskErrors.title }}</span>
-                    }
-                </div>
-            }
-
-            <h2>{{ modifyTaskId ? 'Modifier une tâche' : 'Ajouter une tâche' }}</h2>
-
-            <label for="taskInput">Nom</label>
-            <input
-                id="taskInput"
-                name="taskInput"
-                type="text"
-                [disabled]="taskSubmit"
-                [(ngModel)]="taskTitle"
-                placeholder="Ajouter une nouvelle tâche..."
-            >
-
-            <label for="taskDescription">Description</label>
-            <textarea
-                id="taskDescription"
-                name="taskDescription"
-                [disabled]="taskSubmit"
-                [(ngModel)]="taskDescription"
-                placeholder="Ajouter une nouvelle description..."
-            >
-            </textarea>
-
-            <label for="taskGoalSelect">Objectif</label>
-            <select 
-                id="taskGoalSelect"
-                name="taskGoalSelect"
-                [disabled]="taskSubmit || selectedTaskCategoryId !== null"
-                [(ngModel)]="selectedGoalId"
-                (ngModelChange)="onTaskGoalChange()"
-            >
-                <option [ngValue]="null">Aucun objectif</option>
-
-                @for(g of goals; track g.id) {
-                    @if(g.status === 'ACTIVE') {
-                        <option [ngValue]="g.id">{{ g.title }}</option>
-                    }
-                }
-            </select>
-
-            <label for="taskCategorySelect">Catégorie</label>
-            <select
-                id="taskCategorySelect"
-                name="taskCategorySelect"
-                [disabled]="taskSubmit || selectedGoalId !== null"
-                [(ngModel)]="selectedTaskCategoryId"
-                (ngModelChange)="onTaskCategoryChange()"
-            >
-                <option [ngValue]="null">Aucune catégorie</option>
-
-                @for(c of categories; track c.id) {
-                    @if(c.status === 'ACTIVE') {
-                        <option [ngValue]="c.id">{{ c.title }}</option>
-                    }
-                }
-            </select>
-
-            <div class="task-modal-actions">
-                <button class="submit-task" type="submit" [disabled]="taskSubmit">
-                    {{ modifyTaskId ? 'Modifier' : 'Ajouter' }}
-                </button>
-
-                <button type="button" class="cancel-task" (click)="setTaskModalState(false)">
-                    Annuler
-                </button>
-            </div>
-        </form>
-    </section>
-}
-
-@if(isScheduleModalOpen) {
-    <section class="modal">
-        <form class="task-modal" (ngSubmit)="saveSchedule()">
-            @if(hasAnyErrors(scheduleErrors)) {
-                <div class="error border-danger">
-                    @if(scheduleErrors.global) {
-                        <span>{{ scheduleErrors.global }}</span>
-                    }
-
-                    @if(scheduleErrors.taskId) {
-                        <span>{{ scheduleErrors.taskId }}</span>
-                    }
-
-                    @if(scheduleErrors.date) {
-                        <span>{{ scheduleErrors.date }}</span>
-                    }
-
-                    @if(scheduleErrors.endTime) {
-                        <span>{{ scheduleErrors.endTime }}</span>
-                    }
-
-                    @if(scheduleErrors.startDate) {
-                        <span>{{ scheduleErrors.startDate }}</span>
-                    }
-
-                    @if(scheduleErrors.endDate) {
-                        <span>{{ scheduleErrors.endDate }}</span>
-                    }
-
-                    @if(scheduleErrors.daysChosen) {
-                        <span>{{ scheduleErrors.daysChosen }}</span>
-                    }
-                </div>
-            }
-
-            <h2>{{ modifyScheduleId ? 'Modifier un planning' : 'Ajouter un planning' }}</h2>
-
-            <label for="scheduleTaskSelect">Tâche</label>
-            <select
-                id="scheduleTaskSelect"
-                name="scheduleTaskSelect"
-                [disabled]="scheduleSubmit"
-                [(ngModel)]="selectedTaskId"
-            >
-
-                <option [ngValue]="null">Choisir une tâche</option>
-
-                @for(t of tasks; track t.id) {
-                    @if(t.status === 'ACTIVE') {
-                        <option [ngValue]="t.id">{{ t.title }}</option>
-                    }
-                }
-            </select>
-
-            <div class="repeat-toggle">
-                <span>Répéter sur plusieurs jours</span>
-                <label class="switch">
-                    <input
-                        id="repeated"
-                        type="checkbox"
-                        [checked]="repeatSchedule"
-                        [disabled]="scheduleSubmit"
-                        (change)="toggleRepeatSchedule()"
-                    >
-
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            @if(!repeatSchedule) {
-                <label for="scheduleDate">Date</label>
-                <input 
-                    id="scheduleDate"
-                    name="scheduleDate"
-                    type="date"
-                    [(ngModel)]="scheduleDate"
-                    [disabled]="scheduleSubmit"
-                    [min]="todayDate | date:'yyyy-MM-dd'"
-                >
-            }
-            @else {
-                <div class="repeat-section">
-                    <label for="startDate">Date de début</label>
-                    <input 
-                        id="startDate"
-                        name="startDate"
-                        type="date"
-                        [disabled]="scheduleSubmit"
-                        [(ngModel)]="startDate"
-                        [min]="todayDate | date:'yyyy-MM-dd'"
-                    >
-
-                    <label for="endDate">Date de fin</label>
-                    <input
-                        id="endDate"
-                        name="endDate"
-                        type="date"
-                        [disabled]="scheduleSubmit"
-                        [(ngModel)]="endDate"
-                        [min]="todayDate | date:'yyyy-MM-dd'"
-                    >
-
-                    <div class="repeat-days">
-                        <span class="repeat-days-title">Jours de répétition</span>
-
-                        <label class="repeat-day-option" for="day-1">
-                            <input
-                                id="day-1"
-                                type="checkbox"
-                                [disabled]="scheduleSubmit"
-                                [checked]="daysChosen.includes(1)"
-                                (change)="toggleDay(1)"
-                            >
-
-                            <span>Lundi</span>
-                        </label>
-
-                        <label class="repeat-day-option" for="day-2">
-                            <input
-                                id="day-2"
-                                type="checkbox"
-                                [disabled]="scheduleSubmit"
-                                [checked]="daysChosen.includes(2)"
-                                (change)="toggleDay(2)"
-                            >
-
-                            <span>Mardi</span>
-                        </label>
-
-                        <label class="repeat-day-option" for="day-3">
-                            <input
-                                id="day-3"
-                                type="checkbox"
-                                [disabled]="scheduleSubmit"
-                                [checked]="daysChosen.includes(3)"
-                                (change)="toggleDay(3)"
-                            >
-
-                            <span>Mercredi</span>
-                        </label>
-
-                        <label class="repeat-day-option" for="day-4">
-                            <input
-                                id="day-4"
-                                type="checkbox"
-                                [disabled]="scheduleSubmit"
-                                [checked]="daysChosen.includes(4)"
-                                (change)="toggleDay(4)"
-                            >
-
-                            <span>Jeudi</span>
-                        </label>
-
-                        <label class="repeat-day-option" for="day-5">
-                            <input
-                                id="day-5"
-                                type="checkbox"
-                                [disabled]="scheduleSubmit"
-                                [checked]="daysChosen.includes(5)"
-                                (change)="toggleDay(5)"
-                            >
-
-                            <span>Vendredi</span>
-                        </label>
-
-                        <label class="repeat-day-option" for="day-6">
-                            <input
-                                id="day-6"
-                                type="checkbox"
-                                [disabled]="scheduleSubmit"
-                                [checked]="daysChosen.includes(6)"
-                                (change)="toggleDay(6)"
-                            >
-
-                            <span>Samedi</span>
-                        </label>
-
-                        <label class="repeat-day-option" for="day-7">
-                            <input
-                                id="day-7"
-                                type="checkbox"
-                                [disabled]="scheduleSubmit"
-                                [checked]="daysChosen.includes(7)"
-                                (change)="toggleDay(7)"
-                            >
-
-                            <span>Dimanche</span>
-                        </label>
-                    </div>
-                </div>
-            }
-
-            <label for="scheduleStartTime">Heure de début</label>
-            <input 
-                id="scheduleStartTime"
-                name="scheduleStartTime"
-                type="time"
-                [disabled]="scheduleSubmit"
-                [(ngModel)]="scheduleStartTime"
-            >
-
-            <label for="scheduleEndTime">Heure de fin</label>
-            <input 
-                id="scheduleEndTime"
-                name="scheduleEndTime"
-                type="time"
-                [disabled]="scheduleSubmit"
-                [(ngModel)]="scheduleEndTime"
-            >
-
-            <div class="schedule-priority-group">
-                <span class="schedule-priority-title">Priorité</span>
-
-                <div class="schedule-priority-options">
-                    <label for="priorityLow" class="schedule-priority-option">
-                        <input
-                            id="priorityLow"
-                            name="schedulePriority"
-                            type="radio"
-                            [disabled]="scheduleSubmit"
-                            [(ngModel)]="schedulePriority"
-                            value="LOW"
-                        >
-                        <span>Basse</span>
-                    </label>
-
-                    <label for="priorityMedium" class="schedule-priority-option">
-                        <input
-                            id="priorityMedium"
-                            name="schedulePriority"
-                            type="radio"
-                            [disabled]="scheduleSubmit"
-                            [(ngModel)]="schedulePriority"
-                            value="MEDIUM"
-                        >
-                        <span>Moyenne</span>
-                    </label>
-
-                    <label for="priorityHigh" class="schedule-priority-option">
-                        <input
-                            id="priorityHigh"
-                            name="schedulePriority"
-                            type="radio"
-                            [disabled]="scheduleSubmit"
-                            [(ngModel)]="schedulePriority"
-                            value="HIGH"
-                        >
-                        <span>Haute</span>
-                    </label>
-                </div>
-            </div>
-
-            <div class="task-modal-actions">
-                <button class="submit-task" type="submit" [disabled]="scheduleSubmit">
-                    {{ modifyScheduleId ? 'Modifier' : 'Ajouter' }}
-                </button>
-
-                <button type="button" class="cancel-task" (click)="setScheduleModalState(false)">
-                    Annuler
-                </button>
-            </div>
-        </form>
-    </section>
-}
-
-@if(isGoalModalOn) {
-    <section class="modal">
-        <form class="goal-modal" (ngSubmit)="saveGoal()">
-            @if(hasAnyErrors(goalErrors)) {
-                <div class="error border-danger">
-                    @if(goalErrors.global) {
-                        <span>{{ goalErrors.global }}</span>
-                    }
-
-                    @if(goalErrors.title) {
-                        <span>{{ goalErrors.title }}</span>
-                    }
-
-                    @if(goalErrors.category) {
-                        <span>{{ goalErrors.category }}</span>
-                    }
-                </div>
-            }
-
-            <h2>{{ modifyGoalId ? 'Modifier un objectif' : 'Ajouter un objectif' }}</h2>
-
-            <label for="goalModalInput">Nom</label>
-            <input
-                id="goalModalInput"
-                name="goalModalInput"
-                type="text"
-                [disabled]="goalSubmit"
-                [(ngModel)]="goalTitle"
-                placeholder="Ajouter un nouvel objectif..."
-            >
-
-            <label for="goalModalCategorySelect">Catégorie</label>
-            <select
-                id="goalModalCategorySelect"
-                name="goalModalCategorySelect"
-                [disabled]="goalSubmit"
-                [(ngModel)]="goalCategoryId"
-            >
-                <option [ngValue]="null">Aucune catégorie</option>
-
-                @for(c of categories; track c.id) {
-                    @if(c.status === 'ACTIVE') {
-                        <option [ngValue]="c.id">{{ c.title }}</option>
-                    }
-                }
-            </select>
-
-            <div class="goal-modal-actions">
-                <button class="submit-goal" type="submit" [disabled]="goalSubmit">
-                    {{ modifyGoalId ? 'Modifier' : 'Ajouter' }}
-                </button>
-
-                <button type="button" class="cancel-goal" (click)="setGoalModalState(false)">
-                    Annuler
-                </button>
-            </div>
-        </form>
-    </section>
-}
+<app-kpi-summary
+    [totalTasks]="totalTasks"
+    [completedTasks]="completedTasks"
+    [remainingTasks]="remainingTasks"
+    [completionRate]="completionRate"
+></app-kpi-summary>
+
+<app-warning-modal
+    [isWarningOpen]="isWarningOpen"
+    [warningType]="warningType"
+    [warningId]="warningId"
+    [warningError]="warningError"
+    [warningMessage]="warningMessage"
+    [canSuggestArchive]="canSuggestArchive"
+    (confirmDelete)="confirmWarningDelete(warningType!, warningId!)"
+    (confirmArchive)="confirmWarningArchive(warningType!, warningId!)"
+    (closeWarning)="toggleWarning(warningType!, false, null, '')"
+></app-warning-modal>
+
+<app-schedule-action-modal
+    [isDeleteModalOpen]="isDeleteModalOpen"
+    [isUpdateModalOpen]="isUpdateModalOpen"
+    [selectedScheduleId]="selectedScheduleId"
+    [deleteErrors]="deleteErrors"
+    [updateErrors]="updateErrors"
+    (deleteOne)="deleteOneSchedule($event)"
+    (updateOne)="updateOneSchedule($event)"
+    (deleteFollowing)="deleteScheduleFollowing($event)"
+    (updateFollowing)="updateScheduleFollowing($event)"
+    (closeDelete)="setScheduleActionModalState('delete', false, 0)"
+    (closeUpdate)="setScheduleActionModalState('update', false, 0)"
+></app-schedule-action-modal>
+
+<app-task-form-modal
+    [isTaskModalOpen]="isTaskModalOpen"
+    [taskErrors]="taskErrors"
+    [modifyTaskId]="modifyTaskId"
+    [taskSubmit]="taskSubmit"
+    [taskTitle]="taskTitle"
+    [taskDescription]="taskDescription"
+    [selectedTaskCategoryId]="selectedTaskCategoryId"
+    [selectedGoalId]="selectedGoalId"
+    [goals]="goals"
+    [categories]="categories"
+    (saveTask)="saveTask()"
+    (onTaskGoalChange)="onTaskGoalChange()"
+    (onTaskCategoryChange)="onTaskCategoryChange()"
+    (closeTaskModal)="setTaskModalState(false)"
+    (taskTitleChange)="taskTitle = $event"
+    (taskDescriptionChange)="taskDescription = $event"
+    (selectedGoalIdChange)="selectedGoalId = $event"
+    (selectedTaskCategoryIdChange)="selectedTaskCategoryId = $event"
+></app-task-form-modal>
+
+<app-schedule-form-modal
+    [isScheduleModalOpen]="isScheduleModalOpen"
+    [scheduleErrors]="scheduleErrors"
+    [modifyScheduleId]="modifyScheduleId"
+    [selectedTaskId]="selectedTaskId"
+    [tasks]="tasks"
+    [scheduleSubmit]="scheduleSubmit"
+    [repeatSchedule]="repeatSchedule"
+    [scheduleDate]="scheduleDate"
+    [todayDate]="todayDate"
+    [startDate]="startDate"
+    [endDate]="endDate"
+    [daysChosen]="daysChosen"
+    [scheduleStartTime]="scheduleStartTime"
+    [scheduleEndTime]="scheduleEndTime"
+    [schedulePriority]="schedulePriority"
+    (selectedTaskIdChange)="selectedTaskId = $event"
+    (scheduleDateChange)="scheduleDate = $event"
+    (startDateChange)="startDate = $event"
+    (endDateChange)="endDate = $event"
+    (scheduleStartTimeChange)="scheduleStartTime = $event"
+    (scheduleEndTimeChange)="scheduleEndTime = $event"
+    (schedulePriorityChange)="schedulePriority = $event"
+    (saveSchedule)="saveSchedule()"
+    (toggleRepeatSchedule)="toggleRepeatSchedule()"
+    (toggleDay)="toggleDay($event)"
+    (setScheduleModalState)="setScheduleModalState($event)"
+></app-schedule-form-modal>
+
+<app-goal-form-modal
+    [isGoalModalOn]="isGoalModalOn"
+    [goalErrors]="goalErrors"
+    [modifyGoalId]="modifyGoalId"
+    [goalSubmit]="goalSubmit"
+    [goalTitle]="goalTitle"
+    [goalCategoryId]="goalCategoryId"
+    [categories]="categories"
+    (goalTitleChange)="goalTitle = $event"
+    (goalCategoryIdChange)="goalCategoryId = $event"
+    (saveGoal)="saveGoal()"
+    (closeGoalModal)="setGoalModalState(false)"
+></app-goal-form-modal>
 
 <section class="dashboard-row">
     <div class="calendar-card">
-        <div class="calendar-header">
-            <h2 class="card-title">Calendrier</h2>
+        <app-calendar-dashboard-card
+            [viewDate]="viewDate"
+            [view]="view"
+            [calendarEvents]="calendarEvents"
+            [locale]="locale"
+            (createScheduleRequested)="setScheduleModalState(true)"
+            (previousRequested)="goToPrevious()"
+            (todayRequested)="goToToday()"
+            (nextRequested)="goToNext()"
+            (viewChangeRequested)="setView($event)"
+            (selectedDayChangeRequested)="setSelectedDay($event)"
+        ></app-calendar-dashboard-card>
 
-            <div class="calendar-header-actions">
-                <button class="task-plus" type="button" (click)="setScheduleModalState(true)">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                </button>
-            </div>
-        </div>
-
-        <div class="calendar-toolbar">
-            <div class="calendar-nav">
-                <button type="button" class="calendar-btn" (click)="goToPrevious()">
-                    Précédent
-                </button>
-
-                <button type="button" class="calendar-btn calendar-btn-primary" (click)="goToToday()">
-                    Aujourd'hui
-                </button>
-
-                <button type="button" class="calendar-btn" (click)="goToNext()">
-                    Suivant
-                </button>
-            </div>
-
-            <div class="calendar-title">
-                {{ viewDate | calendarDate:(view + 'ViewTitle'):'fr' }}
-            </div>
-
-            <div class="calendar-view-switch">
-                <button type="button" class="calendar-btn" [class.active]="view === CalendarView.Month" (click)="setView(CalendarView.Month)">
-                    Mois
-                </button>
-
-                <button type="button" class="calendar-btn" [class.active]="view === CalendarView.Week" (click)="setView(CalendarView.Week)">
-                    Semaine
-                </button>
-
-                <button type="button" class="calendar-btn" [class.active]="view === CalendarView.Day" (click)="setView(CalendarView.Day)">
-                    Jour
-                </button>
-            </div>
-        </div>
-
-        <div class="calendar-wrapper">
-            @switch (view) {
-                @case (CalendarView.Month) {
-                    <mwl-calendar-month-view
-                        [viewDate]="viewDate"
-                        [events]="calendarEvents"
-                        [activeDayIsOpen]="false"
-                        [locale]="locale"
-                        (dayClicked)="onDayClicked($event.day.date)"
-                    ></mwl-calendar-month-view>
-                }
-
-                @case (CalendarView.Week) {
-                    <mwl-calendar-week-view
-                        [viewDate]="viewDate"
-                        [events]="calendarEvents"
-                        [locale]="locale"
-                    ></mwl-calendar-week-view>
-                }
-
-                @case (CalendarView.Day) {
-                    <mwl-calendar-day-view
-                        [viewDate]="viewDate"
-                        [events]="calendarEvents"
-                        [locale]="locale"
-                    ></mwl-calendar-day-view>
-                }
-            }
-        </div>
-
-        <div class="selected-day-card">
-            <div class="selected-day-header">
-                <h3>Plannings du {{ selectedDate | date:'fullDate':'':'fr'}}</h3>
-            </div>
-
-            <div class="task-list">
-                @if(selectedDateSchedules.length === 0) {
-                    <p>Aucun planning pour cette date</p>
-                }
-                @else {
-                    @for(schedule of selectedDateSchedules; track schedule.id) {
-                        @if(getScheduleDisplay(schedule); as display) {
-                            <div class="task-row">
-                                <span class="task-name" [class.completed]="schedule.completed">
-                                    {{ display.taskTitle }}
-
-                                    @if(display.timeLabel !== '') {
-                                        {{ display.timeLabel }}
-                                    }
-
-                                    <span
-                                        class="priority"
-                                        [class.high]="schedule.priority === 'HIGH'"
-                                        [class.medium]="schedule.priority === 'MEDIUM'"
-                                        [class.low]="schedule.priority === 'LOW'"
-                                    >
-                                        {{ display.priorityLabel }}
-                                    </span>
-
-                                    @if(display.categoryTitle !== '') {
-                                        <span class="category-badge">{{ display.categoryTitle }}</span>
-                                    }
-                                </span>
-
-                                <div class="task-actions">
-                                    @if(!schedule.completed && canToggleScheduleCompletion(schedule)) {
-                                        <button type="button" class="task-check" (click)="completeSchedule(schedule.id, true)">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                                            </svg>
-                                        </button>
-                                    }
-                                    @else if (schedule.completed && canToggleScheduleCompletion(schedule)) {
-                                        <button type="button" class="task-x" (click)="completeSchedule(schedule.id, false)">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-                                    }
-
-                                    @if(canEditOrDeleteSchedule(schedule)) {
-                                        <button type="button" class="task-pencil" (click)="setModifySchedule(schedule)">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
-                                            </svg>
-                                        </button>
-
-                                        <button type="button" class="task-trash" (click)="schedule.seriesId === null ? deleteOneSchedule(schedule.id) : setScheduleActionModalState('delete', true, schedule.id)">
-                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                            </svg>
-                                        </button>
-                                    }
-                                </div>
-                            </div>
-                        }
-                    }
-                }
-            </div>
-        </div>
+        <app-selected-day-schedules
+            [yesterdayDateString]="yesterdayDateString"
+            [todayDateString]="todayDateString"
+            [selectedDate]="selectedDate"
+            [selectedDateSchedules]="selectedDateSchedules"
+            [getScheduleDisplay]="getScheduleDisplayForChild"
+            (completeSchedule)="completeSchedule($event.id, $event.completed)"
+            (editScheduleRequested)="setModifySchedule($event)"
+            (deleteScheduleRequested)="!$event.seriesId ? deleteOneSchedule($event.id) : setScheduleActionModalState('delete', true, $event.id)"
+        ></app-selected-day-schedules>
     </div>
 
     <div class="dashboard-side">
-        <div class="task-card">
-            <div class="task-header">
-                <h2 class="card-title">Tâches</h2>
+        <app-task-card
+            [taskSubmit]="taskSubmit"
+            [taskSearch]="taskSearch"
+            [taskCategorySearch]="taskCategorySearch"
+            [categories]="categories"
+            [taskGoalSearch]="taskGoalSearch"
+            [goals]="goals"
+            [tasks]="filteredTasks()"
+            (taskSearchChange)="taskSearch = $event"
+            (taskCategorySearchChange)="taskCategorySearch = $event"
+            (taskGoalSearchChange)="taskGoalSearch = $event"
+            (createTaskRequested)="setTaskModalState(true)"
+            (editTaskRequested)="setModifyTask($event.id, $event.title, $event.description, $event.goalId, $event.categoryId)"
+            (deleteTaskRequested)="toggleWarning('task', true, $event.id, $event.title)"
+        ></app-task-card>
 
-                <button class="task-plus" type="button" (click)="setTaskModalState(true)">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                </button>
-            </div>
+        <app-goal-card
+            [goalSubmit]="goalSubmit"
+            [goalSearch]="goalSearch"
+            [goalCategorySearch]="goalCategorySearch"
+            [categories]="categories"
+            [goals]="filteredGoals()"
+            [goalProgresses]="goalProgresses"
+            (goalSearchChange)="goalSearch = $event"
+            (goalCategorySearchChange)="goalCategorySearch = $event"
+            (createGoalRequested)="openCreateGoalModal()"
+            (setGoalToModify)="setGoalToModify($event.id, $event.title, $event.categoryId)"
+            (deleteGoalRequested)="toggleWarning('goal', true, $event.id, $event.title)"
+        ></app-goal-card>
 
-            <div class="task-search">
-                <input
-                    id="taskSearch"
-                    name="taskSearch"
-                    type="text"
-                    [disabled]="taskSubmit"
-                    [(ngModel)]="taskSearch"
-                    placeholder="Rechercher une tâche ..."
-                >
-
-                <select 
-                    id="taskCategorySearch"
-                    name="taskCategorySearch"
-                    [disabled]="taskSubmit"
-                    [(ngModel)]="taskCategorySearch"
-                >
-                    <option [ngValue]="null">Toutes les catégories</option>
-                    @for(category of categories; track category.id) {
-                        <option [ngValue]="category.id">{{ category.title }}</option>
-                    }
-                </select>
-
-                <select 
-                    id="taskGoalSearch"
-                    name="taskGoalSearch"
-                    [disabled]="taskSubmit"
-                    [(ngModel)]="taskGoalSearch"
-                >
-                    <option [ngValue]="null">Tous les objectifs</option>
-                    @for(goal of goals; track goal.id) {
-                        <option [ngValue]="goal.id">{{ goal.title }}</option>
-                    }
-                </select>
-            </div>
-
-            <div class="task-list">
-                @if(filteredTasks().length === 0) {
-                    <p>Aucune tâche définie.</p>
-                }
-                @else {
-                    @for(task of filteredTasks(); track task.id) {
-                        <div class="task-row">
-                            <div class="task-content">
-                                <span class="task-name">{{ task.title }}</span>
-
-                                @if(task.description && task.description.trim() !== '') {
-                                    <p class="task-description">{{ task.description }}</p>
-                                }
-                            </div>
-
-                            <div class="task-actions">
-                                <button type="button" class="task-pencil" (click)="setModifyTask(task.id, task.title, task.description, task.goalId, task.categoryId)">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
-                                    </svg>
-                                </button>
-
-                                <button type="button" class="task-trash" (click)="toggleWarning('task', true, task.id, task.title)">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    }
-                }
-            </div>
-        </div>
-
-        <div class="goal-card">
-            <div class="task-header">
-                <h2 class="card-title">Objectifs</h2>
-
-                <button class="goal-plus" type="button" (click)="openCreateGoalModal()">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                </button>
-            </div>
-
-            <div class="goal-search">
-                <input
-                    id="goalSearch"
-                    name="goalSearch"
-                    type="text"
-                    [disabled]="goalSubmit"
-                    [(ngModel)]="goalSearch"
-                    placeholder="Rechercher un objectif ..."
-                >
-
-                <select 
-                    id="goalCategorySearch"
-                    name="goalCategorySearch"
-                    [disabled]="goalSubmit"
-                    [(ngModel)]="goalCategorySearch"
-                >
-                    <option [ngValue]="null">Toutes les catégories</option>
-                    @for(category of categories; track category.id) {
-                        <option [ngValue]="category.id">{{ category.title }}</option>
-                    }
-                </select>
-            </div>
-
-            <div class="goal-list">
-                @if(filteredGoals().length === 0) {
-                    <p>Aucun objectif défini.</p>
-                }
-                @else {
-                    @for(goal of filteredGoals(); track goal.id) {
-                        <div class="goal-item">
-                            <span class="goal-name">{{ goal.title }}</span>
-                            @if(getGoalDisplay(goal); as display) {
-                                @if(display.categoryTitle) {
-                                    <span class="category-badge">{{ display.categoryTitle }}</span>
-                                }
-
-                                @if(getGoalProgressById(goal.id); as progress) {
-                                    <div class="goal-progress">
-                                        <div class="goal-progress-header">
-                                            <span>Progression</span>
-                                            <strong>{{ progress.progressRate | number:'1.0-2' }}%</strong>
-                                        </div>
-
-                                        <div class="goal-progress-bar">
-                                            <div
-                                                class="goal-progress-fill"
-                                                [style.width.%]="progress.progressRate <= 100 ? progress.progressRate : 100"
-                                                [style.background]="barColor(progress.progressRate)"
-                                            ></div>
-                                        </div>
-
-                                        <div class="goal-progress-stats">
-                                            <span>{{ progress.totalPlannings }} plannings</span>
-                                            <span>{{ progress.completedPlannings }} terminés</span>
-                                            <span>{{ progress.remainingPlannings }} restants</span>
-                                        </div>
-                                    </div>
-                                }
-
-                                <div class="goal-actions">
-                                    <button
-                                        type="button"
-                                        class="goal-pencil"
-                                        (click)="setGoalToModify(goal.id, goal.title, goal.categoryId)"
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
-                                        </svg>
-                                    </button>
-
-                                    <button type="button" class="goal-trash" (click)="toggleWarning('goal', true, goal.id, goal.title)">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            }
-                        </div>
-                    }
-                }
-            </div>
-        </div>
-
-        <div class="category-card">
-            <h2 class="card-title">Catégories</h2>
-
-            <form class="category-input" (ngSubmit)="submitCategory()">
-                <label for="categoryInput">Ajouter une catégorie</label>
-
-                <div class="category-input-row">
-                    <input
-                        id="categoryInput"
-                        name="categoryInput"
-                        type="text"
-                        [disabled]="categorySubmit"
-                        [(ngModel)]="newCategoryTitle"
-                        placeholder="Ajouter une nouvelle catégorie..."
-                    >
-
-                    <button class="category-plus" type="submit" [disabled]="!newCategoryTitle.trim() || categorySubmit">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                        </svg>
-                    </button>
-                </div>
-
-                @if(hasAnyErrors(categoryErrors)) {
-                    <div class="error border-danger">
-                        @if(categoryErrors.global) {
-                            <span>{{ categoryErrors.global }}</span>
-                        }
-
-                        @if(categoryErrors.title) {
-                            <span>{{ categoryErrors.title }}</span>
-                        }
-                    </div>
-                }
-            </form>
-
-            <div class="category-search">
-                <input
-                    id="categorySearch"
-                    name="categorySearch"
-                    type="text"
-                    [disabled]="categorySubmit"
-                    [(ngModel)]="categorySearch"
-                    placeholder="Rechercher une catégorie ..."
-                >
-            </div>
-
-            <div class="category-list">
-                @if(filteredCategories().length === 0) {
-                    <p>Aucune catégorie définie.</p>
-                }
-                @else {
-                    @for(category of filteredCategories(); track category.id) {
-                        @if(modifyCategoryId === category.id) {
-                            <div class="category-edit-row">
-                                <input
-                                    id="modifyCategoryInput"
-                                    name="modifyCategoryInput"
-                                    type="text"
-                                    class="modifyCategoryInput"
-                                    [(ngModel)]="modifyCategoryTitle"
-                                >
-
-                                <div class="category-edit-actions">
-                                    <button type="button" class="category-check" (click)="modifyCategory(category.id)">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-                                        </svg>
-                                    </button>
-
-                                    <button type="button" class="category-x" (click)="setCategoryToModify(null, null)">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        }
-                        @else {
-                            <div class="category-item">
-                                <span class="category-name">{{ category.title }}</span>
-
-                                <div class="category-actions">
-                                    <button type="button" class="category-pencil" (click)="setCategoryToModify(category.id, category.title)">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" />
-                                        </svg>
-                                    </button>
-
-                                    <button type="button" class="category-trash" (click)="toggleWarning('category', true, category.id, category.title)">
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-6">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.67 0 0 0-7.5 0" />
-                                        </svg>
-                                    </button>
-                                </div>
-                            </div>
-                        }
-                    }
-                }
-            </div>
-        </div>
+        <app-category-card
+            [categorySubmit]="categorySubmit"
+            [newCategoryTitle]="newCategoryTitle"
+            [categoryErrors]="categoryErrors"
+            [categorySearch]="categorySearch"
+            [modifyCategoryId]="modifyCategoryId"
+            [modifyCategoryTitle]="modifyCategoryTitle"
+            [categories]="filteredCategories()"
+            (newCategoryTitleChange)="newCategoryTitle = $event"
+            (categorySearchChange)="categorySearch = $event"
+            (modifyCategoryTitleChange)="modifyCategoryTitle = $event"
+            (submitCategory)="submitCategory()"
+            (modifyCategory)="modifyCategory($event)"
+            (setCategoryToModify)="setCategoryToModify($event.id, $event.title)"
+            (deleteCategoryRequested)="toggleWarning('category', true, $event.id, $event.title)"
+        ></app-category-card>
     </div>
 </section>
