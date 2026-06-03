@@ -80,6 +80,10 @@ public class TaskScheduleService {
         return priority == null ? schedule.getPriority() : priority;
     }
 
+    private String getLastSeriesId(Long taskId) {
+        return taskScheduleRepository.findTopByTaskIdAndSeriesIdIsNotNullOrderByCreatedAtDesc(taskId).map(TaskSchedule::getSeriesId).orElse(null);
+    }
+
     public TaskSchedule createTaskSchedule(User user, Long taskId, LocalDate taskDate, LocalTime startTime, LocalTime endTime, Priority priority) {
         validateUser(user);
 
@@ -89,17 +93,20 @@ public class TaskScheduleService {
 
         Task task = resolveTaskForUser(taskId, user);
 
+        String seriesId = getLastSeriesId(taskId);
+
         TaskSchedule schedule = new TaskSchedule();
         schedule.setTask(task);
         schedule.setTaskDate(taskDate);
         schedule.setStartTime(startTime);
         schedule.setEndTime(endTime);
         schedule.setPriority(resolvePriorityForCreation(priority));
+        schedule.setSeriesId(seriesId);
 
         return taskScheduleRepository.save(schedule);
     }
 
-    public TaskSchedule updateTaskSchedule(Long id, User user, Long taskId, LocalDate taskDate, LocalTime startTime, LocalTime endTime, Priority priority) {
+    public TaskSchedule updateTaskSchedule(Long id, User user, LocalDate taskDate, LocalTime startTime, LocalTime endTime, Priority priority) {
         validateUser(user);
 
         validateScheduleId(id);
@@ -110,12 +117,9 @@ public class TaskScheduleService {
 
         TaskSchedule existing = resolveTaskScheduleForUser(id, user.getId());
 
-        Task task = resolveTaskForUser(taskId, user);
-
         LocalDate today = LocalDate.now();
 
         if(!existing.getTaskDate().isBefore(today)) {
-            existing.setTask(task);
             existing.setTaskDate(taskDate);
             existing.setStartTime(startTime);
             existing.setEndTime(endTime);
@@ -128,7 +132,7 @@ public class TaskScheduleService {
         }
     }
 
-    public void updateTaskScheduleAndFollowing(Long id, User user, Long taskId, LocalDate taskDate, LocalTime startTime, LocalTime endTime, Priority priority) {
+    public void updateTaskScheduleAndFollowing(Long id, User user, LocalDate taskDate, LocalTime startTime, LocalTime endTime, Priority priority) {
         validateUser(user);
 
         validateScheduleId(id);
@@ -139,12 +143,10 @@ public class TaskScheduleService {
 
         TaskSchedule existing = resolveTaskScheduleForUser(id, user.getId());
 
-        Task task = resolveTaskForUser(taskId, user);
-
         LocalDate today = LocalDate.now();
 
         if(existing.getSeriesId() == null) {
-            updateTaskSchedule(id, user, taskId, taskDate, startTime, endTime, priority);
+            updateTaskSchedule(id, user, taskDate, startTime, endTime, priority);
             return;
         }
 
@@ -161,7 +163,6 @@ public class TaskScheduleService {
             if(newDate.isBefore(today)) {
                 throw new BadRequestException("La modification déplacerait une ou plusieurs tâches dans le passé");
             }
-            rt.setTask(task);
             rt.setTaskDate(newDate);
             rt.setStartTime(startTime);
             rt.setEndTime(endTime);
@@ -312,7 +313,17 @@ public class TaskScheduleService {
 
         List<TaskSchedule> createdSchedules = new java.util.ArrayList<>();
 
-        String seriesId = UUID.randomUUID().toString();
+        String lastSeriesId = getLastSeriesId(taskId);
+
+        String seriesId = lastSeriesId == null ? UUID.randomUUID().toString() : lastSeriesId;
+
+        List<TaskSchedule> isolatedSchedules = taskScheduleRepository.findByTaskIdAndCompletedFalseAndSeriesIdIsNull(taskId);
+
+        for (TaskSchedule t : isolatedSchedules) {
+            t.setSeriesId(seriesId);
+        }
+
+        taskScheduleRepository.saveAll(isolatedSchedules);
 
         LocalDate currentDate = startDate;
         while (!currentDate.isAfter(endDate)) {

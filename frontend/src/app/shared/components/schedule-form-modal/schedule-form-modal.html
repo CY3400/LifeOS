@@ -1,0 +1,288 @@
+@if(isScheduleModalOpen) {
+    <section class="modal">
+        <form class="task-modal" (ngSubmit)="saveSchedule.emit()">
+            @if(hasAnyErrors(scheduleErrors)) {
+                <div class="error border-danger">
+                    @if(scheduleErrors.global) {
+                        <span>{{ scheduleErrors.global }}</span>
+                    }
+
+                    @if(scheduleErrors.taskId) {
+                        <span>{{ scheduleErrors.taskId }}</span>
+                    }
+
+                    @if(scheduleErrors.date) {
+                        <span>{{ scheduleErrors.date }}</span>
+                    }
+
+                    @if(scheduleErrors.endTime) {
+                        <span>{{ scheduleErrors.endTime }}</span>
+                    }
+
+                    @if(scheduleErrors.startDate) {
+                        <span>{{ scheduleErrors.startDate }}</span>
+                    }
+
+                    @if(scheduleErrors.endDate) {
+                        <span>{{ scheduleErrors.endDate }}</span>
+                    }
+
+                    @if(scheduleErrors.daysChosen) {
+                        <span>{{ scheduleErrors.daysChosen }}</span>
+                    }
+                </div>
+            }
+
+            <h2>{{ modifyScheduleId ? 'Modifier un planning' : 'Ajouter un planning' }}</h2>
+
+            <label for="scheduleTaskSelect">Tâche</label>
+            @if (modifyScheduleId !== null) {
+                <span class="readonly-field">
+                    {{ selectedTaskId ? getTaskTitle(selectedTaskId, tasks) : 'Tâche inconnue' }}
+                </span>
+            }
+            @else {
+                <select
+                    id="scheduleTaskSelect"
+                    name="scheduleTaskSelect"
+                    [disabled]="scheduleSubmit"
+                    [ngModel]="selectedTaskId"
+                    (ngModelChange)="selectedTaskIdChange.emit($event)"
+                >
+
+                    <option [ngValue]="null">Choisir une tâche</option>
+
+                    @for(t of tasks; track t.id) {
+                        @if(t.status === 'ACTIVE') {
+                            <option [ngValue]="t.id">{{ t.title }}</option>
+                        }
+                    }
+                </select>
+
+                <div class="repeat-toggle">
+                    <span>Répéter sur plusieurs jours</span>
+                    <label class="switch">
+                        <input
+                            id="repeated"
+                            type="checkbox"
+                            [checked]="repeatSchedule"
+                            [disabled]="scheduleSubmit"
+                            (change)="toggleRepeatSchedule.emit()"
+                        >
+
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            }
+
+            @if(modifyScheduleId !== null || !repeatSchedule) {
+                <label for="scheduleDate">Date</label>
+                <input 
+                    id="scheduleDate"
+                    name="scheduleDate"
+                    type="date"
+                    [ngModel]="scheduleDate"
+                    (ngModelChange)="scheduleDateChange.emit($event)"
+                    [disabled]="scheduleSubmit"
+                    [min]="todayDate | date:'yyyy-MM-dd'"
+                >
+            }
+            @else {
+                <div class="repeat-section">
+                    <label for="startDate">Date de début</label>
+                    <input 
+                        id="startDate"
+                        name="startDate"
+                        type="date"
+                        [disabled]="scheduleSubmit"
+                        [ngModel]="startDate"
+                        (ngModelChange)="startDateChange.emit($event)"
+                        [min]="todayDate | date:'yyyy-MM-dd'"
+                    >
+
+                    <label for="endDate">Date de fin</label>
+                    <input
+                        id="endDate"
+                        name="endDate"
+                        type="date"
+                        [disabled]="scheduleSubmit"
+                        [ngModel]="endDate"
+                        (ngModelChange)="endDateChange.emit($event)"
+                        [min]="todayDate | date:'yyyy-MM-dd'"
+                    >
+
+                    <div class="repeat-days">
+                        <span class="repeat-days-title">Jours de répétition</span>
+
+                        <label class="repeat-day-option" for="day-1">
+                            <input
+                                id="day-1"
+                                type="checkbox"
+                                [disabled]="scheduleSubmit"
+                                [checked]="daysChosen.includes(1)"
+                                (change)="toggleDay.emit(1)"
+                            >
+
+                            <span>Lundi</span>
+                        </label>
+
+                        <label class="repeat-day-option" for="day-2">
+                            <input
+                                id="day-2"
+                                type="checkbox"
+                                [disabled]="scheduleSubmit"
+                                [checked]="daysChosen.includes(2)"
+                                (change)="toggleDay.emit(2)"
+                            >
+
+                            <span>Mardi</span>
+                        </label>
+
+                        <label class="repeat-day-option" for="day-3">
+                            <input
+                                id="day-3"
+                                type="checkbox"
+                                [disabled]="scheduleSubmit"
+                                [checked]="daysChosen.includes(3)"
+                                (change)="toggleDay.emit(3)"
+                            >
+
+                            <span>Mercredi</span>
+                        </label>
+
+                        <label class="repeat-day-option" for="day-4">
+                            <input
+                                id="day-4"
+                                type="checkbox"
+                                [disabled]="scheduleSubmit"
+                                [checked]="daysChosen.includes(4)"
+                                (change)="toggleDay.emit(4)"
+                            >
+
+                            <span>Jeudi</span>
+                        </label>
+
+                        <label class="repeat-day-option" for="day-5">
+                            <input
+                                id="day-5"
+                                type="checkbox"
+                                [disabled]="scheduleSubmit"
+                                [checked]="daysChosen.includes(5)"
+                                (change)="toggleDay.emit(5)"
+                            >
+
+                            <span>Vendredi</span>
+                        </label>
+
+                        <label class="repeat-day-option" for="day-6">
+                            <input
+                                id="day-6"
+                                type="checkbox"
+                                [disabled]="scheduleSubmit"
+                                [checked]="daysChosen.includes(6)"
+                                (change)="toggleDay.emit(6)"
+                            >
+
+                            <span>Samedi</span>
+                        </label>
+
+                        <label class="repeat-day-option" for="day-7">
+                            <input
+                                id="day-7"
+                                type="checkbox"
+                                [disabled]="scheduleSubmit"
+                                [checked]="daysChosen.includes(7)"
+                                (change)="toggleDay.emit(7)"
+                            >
+
+                            <span>Dimanche</span>
+                        </label>
+                    </div>
+                </div>
+            }
+
+            <label for="scheduleStartTime">Heure de début</label>
+            <input 
+                id="scheduleStartTime"
+                name="scheduleStartTime"
+                type="time"
+                [disabled]="scheduleSubmit"
+                [ngModel]="scheduleStartTime"
+                (ngModelChange)="scheduleStartTimeChange.emit($event)"
+            >
+
+            <label for="scheduleEndTime">Heure de fin</label>
+            <input 
+                id="scheduleEndTime"
+                name="scheduleEndTime"
+                type="time"
+                [disabled]="scheduleSubmit"
+                [ngModel]="scheduleEndTime"
+                (ngModelChange)="scheduleEndTimeChange.emit($event)"
+            >
+
+            <div class="schedule-priority-group">
+                <span class="schedule-priority-title">Priorité</span>
+
+                <div class="schedule-priority-options">
+                    <label for="priorityLow" class="schedule-priority-option">
+                        <input
+                            id="priorityLow"
+                            name="schedulePriority"
+                            type="radio"
+                            [disabled]="scheduleSubmit"
+                            [ngModel]="schedulePriority"
+                            (ngModelChange)="schedulePriorityChange.emit($event)"
+                            value="LOW"
+                        >
+                        <span>Basse</span>
+                    </label>
+
+                    <label for="priorityMedium" class="schedule-priority-option">
+                        <input
+                            id="priorityMedium"
+                            name="schedulePriority"
+                            type="radio"
+                            [disabled]="scheduleSubmit"
+                            [ngModel]="schedulePriority"
+                            (ngModelChange)="schedulePriorityChange.emit($event)"
+                            value="MEDIUM"
+                        >
+                        <span>Moyenne</span>
+                    </label>
+
+                    <label for="priorityHigh" class="schedule-priority-option">
+                        <input
+                            id="priorityHigh"
+                            name="schedulePriority"
+                            type="radio"
+                            [disabled]="scheduleSubmit"
+                            [ngModel]="schedulePriority"
+                            (ngModelChange)="schedulePriorityChange.emit($event)"
+                            value="HIGH"
+                        >
+                        <span>Haute</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="task-modal-actions">
+                <button
+                    class="submit-task"
+                    type="submit"
+                    [disabled]="scheduleSubmit"
+                >
+                    {{ modifyScheduleId ? 'Modifier' : 'Ajouter' }}
+                </button>
+
+                <button
+                    type="button"
+                    class="cancel-task"
+                    (click)="setScheduleModalState.emit(false)"
+                >
+                    Annuler
+                </button>
+            </div>
+        </form>
+    </section>
+}

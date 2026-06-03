@@ -1,0 +1,38 @@
+<section class="kpi-row">
+    <div class="kpi-card">
+        <div class="kpi-content">
+            <span class="kpi-label">Tâches du jour</span>
+            <strong class="kpi-value">{{ totalTasks }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-content">
+            <span class="kpi-label">Tâches complétées</span>
+            <strong class="kpi-value">{{ completedTasks }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-content">
+            <span class="kpi-label">Tâches restantes</span>
+            <strong class="kpi-value">{{ remainingTasks }}</strong>
+        </div>
+    </div>
+
+    <div class="kpi-card">
+        <div class="kpi-content">
+            <span class="kpi-label">Taux de complétion</span>
+            <strong class="kpi-value">{{ completionRate | number:'1.0-2' }}%</strong>
+            <div class="bar-container">
+                <div class="bar">
+                    <div
+                    class="fill"
+                    [style.width.%]="completionRate <= 100 ? completionRate : 100"
+                    [style.background]="barColor(completionRate)"
+                    ></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>

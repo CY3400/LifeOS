@@ -8,9 +8,6 @@ import com.charbel.lifeos.entity.Priority;
 import jakarta.validation.constraints.NotNull;
 
 public class UpdateTaskScheduleRequest {
-    @NotNull(message = "La tâche est obligatoire")
-    private Long taskId;
-
     @NotNull(message = "La date est obligatoire")
     private LocalDate taskDate;
 
@@ -18,14 +15,6 @@ public class UpdateTaskScheduleRequest {
     private LocalTime endTime;
 
     private Priority priority;
-
-    public Long getTaskId() {
-        return taskId;
-    }
-
-    public void setTaskId(Long taskId) {
-        this.taskId = taskId;
-    }
 
     public LocalDate getTaskDate() {
         return taskDate;

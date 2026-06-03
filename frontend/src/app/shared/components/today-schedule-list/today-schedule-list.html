@@ -1,0 +1,57 @@
+<section class="schedule-row">
+    <h2>{{ title }}</h2>
+        @if(schedules.length > 0) {
+            <div class="schedule-list">
+                @for(s of schedules; track s.id) {
+                    <article class="schedule-card" [class.completed-card]="mode === 'completed'">
+                        @if(getScheduleDisplay(s); as display) {
+                            <p>{{ display.taskTitle }}</p>
+                            @if (display.timeLabel) {
+                                <p>{{ display.timeLabel }}</p>
+                            }
+                            <div class="schedule-meta">
+                                <span class="priority" [ngClass]="display.priorityClass">
+                                    {{ display.priorityLabel }}
+                                </span>
+                                @if(display.categoryTitle) {
+                                    <span class="category-badge">
+                                        {{ display.categoryTitle }}
+                                    </span>
+                                }
+                            </div>
+                            @if (display.taskDescription) {
+                                <p>{{ display.taskDescription }}</p>
+                            }
+                            @if(mode === 'todo'){
+                                <div class="actions">
+                                    <button type="button" class="pencil" (click)="editScheduleRequested.emit(s)">
+                                        <app-icon name="edit"></app-icon>
+                                    </button>
+
+                                    <button type="button" class="trash" (click)="deleteScheduleRequested.emit(s)">
+                                        <app-icon name="delete"></app-icon>
+                                    </button>
+
+                                    <button type="button" class="check" aria-label="Compléter la tâche" (click)="completeScheduleRequested.emit({id: s.id, completed: true})">
+                                        <app-icon name="check"></app-icon>
+                                    </button>
+                                </div>
+                            }
+                            @else {
+                                <div class="actions">
+                                    <button type="button" class="x" aria-label="Marquer comme non complétée" (click)="completeScheduleRequested.emit({id: s.id, completed: false})">
+                                        <app-icon name="close"></app-icon>
+                                    </button>
+                                </div>
+                            }
+                        }
+                    </article>
+                }
+            </div>
+        }
+        @else {
+            <div class="empty-card">
+                <p>{{ emptyMessage }}</p>
+            </div>
+        }
+</section>

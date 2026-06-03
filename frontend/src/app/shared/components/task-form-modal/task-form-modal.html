@@ -1,0 +1,92 @@
+@if(isTaskModalOpen) {
+    <section class="modal">
+        <form class="task-modal" (ngSubmit)="saveTask.emit()">
+            @if(hasAnyErrors(taskErrors)) {
+                <div class="error border-danger">
+                    @if(taskErrors.global) {
+                        <span>{{ taskErrors.global }}</span>
+                    }
+
+                    @if(taskErrors.title) {
+                        <span>{{ taskErrors.title }}</span>
+                    }
+                </div>
+            }
+
+            <h2>{{ modifyTaskId ? 'Modifier une tâche' : 'Ajouter une tâche' }}</h2>
+
+            <label for="taskInput">Nom</label>
+            <input
+                id="taskInput"
+                name="taskInput"
+                type="text"
+                [disabled]="taskSubmit"
+                [ngModel]="taskTitle"
+                (ngModelChange)="taskTitleChange.emit($event)"
+                placeholder="Ajouter une nouvelle tâche..."
+            >
+
+            <label for="taskDescription">Description</label>
+            <textarea
+                id="taskDescription"
+                name="taskDescription"
+                [disabled]="taskSubmit"
+                [ngModel]="taskDescription"
+                (ngModelChange)="taskDescriptionChange.emit($event)"
+                placeholder="Ajouter une nouvelle description..."
+            ></textarea>
+
+            <label for="taskGoalSelect">Objectif</label>
+            <select 
+                id="taskGoalSelect"
+                name="taskGoalSelect"
+                [disabled]="taskSubmit || selectedTaskCategoryId !== null"
+                [ngModel]="selectedGoalId"
+                (ngModelChange)="selectedGoalIdChange.emit($event); onTaskGoalChange.emit()"
+            >
+                <option [ngValue]="null">Aucun objectif</option>
+
+                @for(g of goals; track g.id) {
+                    @if(g.status === 'ACTIVE') {
+                        <option [ngValue]="g.id">{{ g.title }}</option>
+                    }
+                }
+            </select>
+
+            <label for="taskCategorySelect">Catégorie</label>
+            <select
+                id="taskCategorySelect"
+                name="taskCategorySelect"
+                [disabled]="taskSubmit || selectedGoalId !== null"
+                [ngModel]="selectedTaskCategoryId"
+                (ngModelChange)="selectedTaskCategoryIdChange.emit($event); onTaskCategoryChange.emit()"
+            >
+                <option [ngValue]="null">Aucune catégorie</option>
+
+                @for(c of categories; track c.id) {
+                    @if(c.status === 'ACTIVE') {
+                        <option [ngValue]="c.id">{{ c.title }}</option>
+                    }
+                }
+            </select>
+
+            <div class="task-modal-actions">
+                <button
+                    class="submit-task"
+                    type="submit"
+                    [disabled]="taskSubmit"
+                >
+                    {{ modifyTaskId ? 'Modifier' : 'Ajouter' }}
+                </button>
+
+                <button
+                    type="button"
+                    class="cancel-task"
+                    (click)="closeTaskModal.emit()"
+                >
+                    Annuler
+                </button>
+            </div>
+        </form>
+    </section>
+}

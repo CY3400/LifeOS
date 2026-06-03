@@ -1,0 +1,79 @@
+@if(isDeleteModalOpen) {
+    <section class="modal">
+        <div class="delete-modal">
+            @if(hasAnyErrors(deleteErrors) && deleteErrors.global) {
+                <div class="error border-danger">
+                    <span>{{ deleteErrors.global }}</span>
+                </div>
+            }
+
+            <p>Souhaitez-vous supprimer uniquement ce planning, ou ce planning et les suivants ?</p>
+
+            <div class="delete-modal-actions">
+                <button
+                    type="button"
+                    class="delete-one"
+                    (click)="deleteOne.emit(selectedScheduleId)"
+                >
+                    Supprimer celle-ci
+                </button>
+
+                <button
+                    type="button"
+                    class="delete-following"
+                    (click)="deleteFollowing.emit(selectedScheduleId)"
+                >
+                    Supprimer celle-ci et les suivantes
+                </button>
+
+                <button
+                    type="button"
+                    class="cancel-delete"
+                    (click)="closeDelete.emit()"
+                >
+                    Annuler
+                </button>
+            </div>
+        </div>
+    </section>
+}
+
+@if(isUpdateModalOpen) {
+  <section class="modal">
+    <div class="update-modal">
+      @if(hasAnyErrors(updateErrors) && updateErrors.global) {
+        <div class="error border-danger">
+          <span>{{ updateErrors.global }}</span>
+        </div>
+      }
+      
+      <p>Souhaitez-vous modifier uniquement ce planning, ou ce planning et les suivants ?</p>
+
+      <div class="update-modal-actions">
+        <button
+          type="button"
+          class="update-one"
+          (click)="updateOne.emit(selectedScheduleId)"
+        >
+          Modifier celle-ci
+        </button>
+
+        <button
+          type="button"
+          class="update-following"
+          (click)="updateFollowing.emit(selectedScheduleId)"
+        >
+          Modifier celle-ci et les suivantes
+        </button>
+
+        <button
+          type="button"
+          class="cancel-update"
+          (click)="closeUpdate.emit()"
+        >
+          Annuler
+        </button>
+      </div>
+    </div>
+  </section>
+}

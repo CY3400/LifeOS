@@ -1,0 +1,17 @@
+.selected-day-card {
+  border-radius: 18px;
+  background: var(--soft-panel);
+  border: 1px solid var(--soft-border);
+  padding: 18px;
+}
+
+.selected-day-header h3 {
+  margin: 0 0 14px;
+  color: var(--text-main);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.priority {
+  margin-top: 2px;
+}

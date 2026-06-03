@@ -61,3 +61,19 @@
   opacity: 0.85;
   filter: invert(1);
 }
+
+.readonly-field {
+  width: 100%;
+  min-height: 44px;
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  border-radius: 12px;
+  background: var(--field-bg);
+  border: 1px solid var(--field-border);
+  color: var(--text-main);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.4;
+  opacity: 0.85;
+}

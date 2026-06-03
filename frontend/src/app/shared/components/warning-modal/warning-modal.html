@@ -1,0 +1,41 @@
+@if(isWarningOpen && warningType !== null && warningId !== null) {
+    <section class="modal">
+        <div class="delete-modal">
+            @if(warningError !== '') {
+                <div class="error border-danger">
+                    <span>{{ warningError }}</span>
+                </div>
+            }
+
+            <p>{{ warningMessage }}</p>
+
+            <div class="delete-modal-actions">
+                <button
+                    type="button"
+                    class="delete-one"
+                    (click)="confirmDelete.emit()"
+                >
+                    Supprimer
+                </button>
+
+                @if(canSuggestArchive) {
+                    <button
+                        type="button"
+                        class="archive-one"
+                        (click)="confirmArchive.emit()"
+                    >
+                        Archiver
+                    </button>
+                }
+
+                <button
+                    type="button"
+                    class="cancel-delete"
+                    (click)="closeWarning.emit()"
+                >
+                    Annuler
+                </button>
+            </div>
+        </div>
+    </section>
+}

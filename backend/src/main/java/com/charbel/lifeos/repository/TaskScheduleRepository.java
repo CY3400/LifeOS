@@ -47,4 +47,8 @@ public interface TaskScheduleRepository extends JpaRepository<TaskSchedule, Long
     GROUP BY T.GOAL_ID) SUB
     """, nativeQuery = true)
     List<GoalProgressProjection> getGoalProgress(@Param("userId") Long userId);
+
+    Optional<TaskSchedule> findTopByTaskIdAndSeriesIdIsNotNullOrderByCreatedAtDesc(Long taskId);
+
+    List<TaskSchedule> findByTaskIdAndCompletedFalseAndSeriesIdIsNull(Long taskId);
 }

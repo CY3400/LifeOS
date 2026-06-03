@@ -1,0 +1,104 @@
+<div class="calendar-header">
+    <h2 class="card-title">Calendrier</h2>
+
+    <div class="calendar-header-actions">
+        <button
+            class="plus"
+            type="button"
+            (click)="createScheduleRequested.emit()"
+        >
+            <app-icon name="plus"></app-icon>
+        </button>
+    </div>
+</div>
+
+<div class="calendar-toolbar">
+    <div class="calendar-nav">
+        <button
+            type="button"
+            class="calendar-btn"
+            (click)="previousRequested.emit()"
+        >
+            Précédent
+        </button>
+
+        <button
+            type="button"
+            class="calendar-btn calendar-btn-primary"
+            (click)="todayRequested.emit()"
+        >
+            Aujourd'hui
+        </button>
+
+        <button
+            type="button"
+            class="calendar-btn"
+            (click)="nextRequested.emit()"
+        >
+            Suivant
+        </button>
+    </div>
+
+    <div class="calendar-title">
+        {{ viewDate | calendarDate:(view + 'ViewTitle'):'fr' }}
+    </div>
+
+    <div class="calendar-view-switch">
+        <button
+            type="button"
+            class="calendar-btn"
+            [class.active]="view === CalendarView.Month"
+            (click)="viewChangeRequested.emit(CalendarView.Month)"
+        >
+            Mois
+        </button>
+
+        <button
+            type="button"
+            class="calendar-btn"
+            [class.active]="view === CalendarView.Week"
+            (click)="viewChangeRequested.emit(CalendarView.Week)"
+        >
+            Semaine
+        </button>
+
+        <button
+            type="button"
+            class="calendar-btn"
+            [class.active]="view === CalendarView.Day"
+            (click)="viewChangeRequested.emit(CalendarView.Day)"
+        >
+            Jour
+        </button>
+    </div>
+</div>
+
+<div class="calendar-wrapper">
+    @switch (view) {
+        @case (CalendarView.Month) {
+            <mwl-calendar-month-view
+                [viewDate]="viewDate"
+                [events]="calendarEvents"
+                [activeDayIsOpen]="false"
+                [locale]="locale"
+                (dayClicked)="selectedDayChangeRequested.emit($event.day.date)"
+            ></mwl-calendar-month-view>
+        }
+
+        @case (CalendarView.Week) {
+            <mwl-calendar-week-view
+                [viewDate]="viewDate"
+                [events]="calendarEvents"
+                [locale]="locale"
+            ></mwl-calendar-week-view>
+        }
+
+        @case (CalendarView.Day) {
+            <mwl-calendar-day-view
+                [viewDate]="viewDate"
+                [events]="calendarEvents"
+                [locale]="locale"
+            ></mwl-calendar-day-view>
+        }
+    }
+</div>
