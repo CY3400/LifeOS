@@ -108,7 +108,8 @@
 .trash,
 .check,
 .x,
-.plus {
+.plus,
+.view {
   width: 36px;
   height: 36px;
   border: none;
@@ -128,7 +129,8 @@
 .check:hover,
 .x:hover,
 .plus:hover,
-.calendar-btn:hover {
+.calendar-btn:hover,
+.view:hover {
   transform: translateY(-1px);
 }
 
@@ -155,6 +157,11 @@
 .plus:hover {
   background: var(--primary-hover);
   color: #fff;
+}
+
+.view:hover {
+  background: rgba(14, 165, 233, 0.16);
+  color: #7dd3fc;
 }
 
 .plus:disabled {

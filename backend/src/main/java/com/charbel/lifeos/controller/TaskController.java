@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.charbel.lifeos.dto.CreateTaskRequest;
 import com.charbel.lifeos.dto.TaskResponse;
 import com.charbel.lifeos.dto.UpdateTaskRequest;
+import com.charbel.lifeos.entity.Status;
 import com.charbel.lifeos.entity.Task;
 import com.charbel.lifeos.entity.User;
 import com.charbel.lifeos.mapper.TaskMapper;
@@ -67,10 +69,17 @@ public class TaskController {
     }
 
     @GetMapping
-    public ResponseEntity<List<TaskResponse>> getTasks(Authentication auth) {
+    public ResponseEntity<List<TaskResponse>> getTasks(Authentication auth, @RequestParam(required = false) Long goalId) {
         User user = currentUserService.getCurrentUser(auth);
 
-        List<TaskResponse> tasks = taskService.getTasksForUser(user).stream().map(taskMapper::toResponse).toList();
+        List<TaskResponse> tasks;
+
+        if(goalId != null) {
+            tasks = taskService.getTasksForGoal(user, goalId, Status.ACTIVE).stream().map(taskMapper::toResponse).toList();
+        }
+        else {
+            tasks = taskService.getTasksForUser(user).stream().map(taskMapper::toResponse).toList();
+        }
 
         return ResponseEntity.ok(tasks);
     }

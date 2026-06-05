@@ -7,6 +7,7 @@ import { Login } from './pages/login/login';
 import { AuthGuard } from './guards/auth-guard';
 import { GuestGuard } from './guards/guest-guard';
 import { Today } from './pages/today/today';
+import { Objectives } from './pages/objectives/objectives';
 
 export const routes: Routes = [
     {
@@ -50,7 +51,14 @@ export const routes: Routes = [
         resolve: { me: MeResolver }
     },
     {
+        path:'objectifs',
+        component: Objectives,
+        title: 'LifeOS - Objectifs',
+        canActivate: [AuthGuard],
+        resolve: { me: MeResolver }
+    },
+    {
         path: '**',
         redirectTo: ''
-    }
+    },
 ];

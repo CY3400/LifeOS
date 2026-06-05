@@ -13,6 +13,7 @@ public class GoalMapper {
         response.setTitle(goal.getTitle());
         response.setCategoryId(goal.getCategory().getId());
         response.setStatus(goal.getStatus());
+        response.setCategoryTitle(goal.getCategory().getTitle());
         return response;
     }
 }

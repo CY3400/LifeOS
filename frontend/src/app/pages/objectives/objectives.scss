@@ -1,0 +1,88 @@
+.objectives-page {
+  max-width: 1400px;
+  margin-inline: auto;
+  padding: 24px 24px 32px;
+}
+
+.objectives-header {
+  margin-bottom: 28px;
+}
+
+.objectives-header h1 {
+  margin: 0 0 8px;
+  color: var(--text-main);
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.objectives-header p {
+  margin: 0;
+  max-width: 680px;
+  color: var(--text-secondary);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+.objectives-body {
+  min-width: 0;
+}
+
+.objectives-body > p {
+  margin: 0;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  box-shadow: var(--card-shadow);
+  color: var(--text-secondary);
+  font-size: 0.96rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.objectives-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: stretch;
+}
+
+.objectives-grid app-objective-summary-card {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .objectives-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .objectives-page {
+    padding-inline: 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .objectives-page {
+    padding-top: 20px;
+    padding-bottom: 24px;
+  }
+
+  .objectives-header {
+    margin-bottom: 18px;
+  }
+
+  .objectives-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .objectives-header p {
+    font-size: 0.94rem;
+  }
+
+  .objectives-grid {
+    gap: 14px;
+  }
+}

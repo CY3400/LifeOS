@@ -14,7 +14,8 @@
 .task-modal,
 .delete-modal,
 .update-modal,
-.goal-modal {
+.goal-modal,
+.goal-details-modal {
   width: min(560px, 100%);
   display: flex;
   flex-direction: column;
@@ -59,7 +60,8 @@
   .delete-modal,
   .update-modal,
   .task-modal,
-  .goal-modal {
+  .goal-modal,
+  .goal-details-modal {
     padding: 20px;
     border-radius: 20px;
   }

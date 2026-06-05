@@ -12,12 +12,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.charbel.lifeos.dto.CreateGoalRequest;
 import com.charbel.lifeos.dto.GoalResponse;
 import com.charbel.lifeos.dto.UpdateGoalRequest;
 import com.charbel.lifeos.entity.Goal;
+import com.charbel.lifeos.entity.Status;
 import com.charbel.lifeos.entity.User;
 import com.charbel.lifeos.mapper.GoalMapper;
 import com.charbel.lifeos.service.CurrentUserService;
@@ -66,10 +68,14 @@ public class GoalController {
     }
 
     @GetMapping
-    public ResponseEntity<List<GoalResponse>> getGoals(Authentication auth) {
+    public ResponseEntity<List<GoalResponse>> getGoals(Authentication auth, @RequestParam(required = false) Status status) {
         User user = currentUserService.getCurrentUser(auth);
 
-        List<GoalResponse> goals = goalService.getGoalsForUser(user).stream().map(goalMapper::toResponse).toList();
+        if (status == null) {
+            status = Status.ACTIVE;
+        }
+
+        List<GoalResponse> goals = goalService.getGoalsByStatusForUser(user, status).stream().map(goalMapper::toResponse).toList();
 
         return ResponseEntity.ok(goals);
     }
