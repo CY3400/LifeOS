@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
@@ -154,7 +155,7 @@ public class TaskScheduleService {
             throw new BadRequestException("Il n'est plus possible de modifier une ou plusieurs tâches passées");
         }
 
-        List<TaskSchedule> repeatTasks = taskScheduleRepository.findByTaskUserIdAndSeriesIdAndTaskDateGreaterThanEqual(user.getId(), existing.getSeriesId(), existing.getTaskDate());
+        List<TaskSchedule> repeatTasks = Objects.requireNonNull(taskScheduleRepository.findByTaskUserIdAndSeriesIdAndTaskDateGreaterThanEqual(user.getId(), existing.getSeriesId(), existing.getTaskDate()));
 
         long deltaDays = ChronoUnit.DAYS.between(existing.getTaskDate(), taskDate);
 
@@ -217,7 +218,7 @@ public class TaskScheduleService {
             deleteTaskSchedule(id, user);
         }
         else if (!existing.getTaskDate().isBefore(today)) {
-            List<TaskSchedule> repeatTasks = taskScheduleRepository.findByTaskUserIdAndSeriesIdAndTaskDateGreaterThanEqual(user.getId(), existing.getSeriesId(), existing.getTaskDate());
+            List<TaskSchedule> repeatTasks = Objects.requireNonNull(taskScheduleRepository.findByTaskUserIdAndSeriesIdAndTaskDateGreaterThanEqual(user.getId(), existing.getSeriesId(), existing.getTaskDate()));
 
             taskScheduleRepository.deleteAll(repeatTasks);
         }
@@ -317,7 +318,7 @@ public class TaskScheduleService {
 
         String seriesId = lastSeriesId == null ? UUID.randomUUID().toString() : lastSeriesId;
 
-        List<TaskSchedule> isolatedSchedules = taskScheduleRepository.findByTaskIdAndCompletedFalseAndSeriesIdIsNull(taskId);
+        List<TaskSchedule> isolatedSchedules = Objects.requireNonNull(taskScheduleRepository.findByTaskIdAndCompletedFalseAndSeriesIdIsNull(taskId));
 
         for (TaskSchedule t : isolatedSchedules) {
             t.setSeriesId(seriesId);

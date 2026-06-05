@@ -4,7 +4,9 @@ import com.charbel.lifeos.repository.CategoryRepository;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -87,8 +89,8 @@ public class TaskService {
         }
     }
 
-    private Task resolveTaskForUser(Long id, Long userId) {
-        return taskRepository.findByIdAndUserIdAndStatus(id, userId, Status.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Tâche introuvable"));
+    private @NonNull Task resolveTaskForUser(Long id, Long userId) {
+        return Objects.requireNonNull(taskRepository.findByIdAndUserIdAndStatus(id, userId, Status.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Tâche introuvable")));
     }
 
     private void validateTaskIsNotUsed(Long taskId, Long userId) {

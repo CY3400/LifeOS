@@ -1,7 +1,9 @@
 package com.charbel.lifeos.service;
 
 import java.util.List;
+import java.util.Objects;
 
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -62,8 +64,11 @@ public class GoalService {
         }
     }
 
-    private Goal resolveGoalForUser(Long id, Long userId) {
-        return goalRepository.findByIdAndUserIdAndStatus(id, userId, Status.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Objectif introuvable"));
+    private @NonNull Goal resolveGoalForUser(Long id, Long userId) {
+        return Objects.requireNonNull(
+            goalRepository.findByIdAndUserIdAndStatus(id, userId, Status.ACTIVE)
+            .orElseThrow(() -> new ResourceNotFoundException("Objectif introuvable"))
+        );
     }
 
     private Category resolveCategoryForUser(Long categoryId, User user) {
