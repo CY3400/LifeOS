@@ -5,7 +5,9 @@ import com.charbel.lifeos.repository.GoalRepository;
 import com.charbel.lifeos.repository.TaskRepository;
 
 import java.util.List;
+import java.util.Objects;
 
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,8 +62,11 @@ public class CategoryService {
         }
     }
 
-    private Category resolveCategoryForUser(Long id, Long userId) {
-        return categoryRepository.findByIdAndUserIdAndStatus(id, userId, Status.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Catégorie introuvable"));
+    private @NonNull Category resolveCategoryForUser(Long id, Long userId) {
+        return Objects.requireNonNull(
+            categoryRepository.findByIdAndUserIdAndStatus(id, userId, Status.ACTIVE)
+            .orElseThrow(() -> new ResourceNotFoundException("Catégorie introuvable"))
+        );
     }
 
     private void validateCategoryIsNotUsed(Long categoryId, Long userId) {
