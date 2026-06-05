@@ -7,6 +7,7 @@ public class GoalResponse {
     private String title;
     private Long categoryId;
     private Status status;
+    private String categoryTitle;
 
     public Long getId(){
         return id;
@@ -38,5 +39,13 @@ public class GoalResponse {
 
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public String getCategoryTitle() {
+        return categoryTitle;
+    }
+
+    public void setCategoryTitle(String categoryTitle) {
+        this.categoryTitle = categoryTitle;
     }
 }

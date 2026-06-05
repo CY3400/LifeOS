@@ -1,0 +1,50 @@
+:host {
+  display: block;
+  min-width: 0;
+  height: 100%;
+}
+
+.goal-item {
+  height: 100%;
+  min-height: 135px;
+  padding: 22px;
+  border-radius: 24px;
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.goal-name,
+.category-badge,
+.goal-progress,
+.goal-actions {
+  grid-area: auto;
+}
+
+.goal-name {
+  font-size: 1.08rem;
+}
+
+.goal-progress {
+  margin-top: 4px;
+}
+
+.goal-actions {
+  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: auto;
+}
+
+@media (max-width: 576px) {
+  .goal-item {
+    padding: 16px;
+    border-radius: 18px;
+  }
+}

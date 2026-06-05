@@ -1,0 +1,39 @@
+<section class="objectives-page">
+    <div class="objectives-header">
+        <h1>Objectifs</h1>
+        <p>Suivez vos objectifs actifs, leur catégorie et leur progression.</p>
+    </div>
+    @if(hasAnyErrors(errors)) {
+        <span class="error">{{ errors.global }}</span>
+    }
+    <div class="objectives-body">
+        @if(isLoading) {
+            <p>Chargement des objectifs en cours...</p>
+        }
+        @else if (goals.length === 0) {
+            <p>Aucun objectif pour le moment.</p>
+        }
+        @else {
+            <div class="objectives-grid">
+                @for(g of goals; track g.id) {
+                    <app-objective-summary-card
+                        [title]="g.title"
+                        [categoryTitle]="g.categoryTitle"
+                        [goalProgress]="getGoalProgressById(g.id)"
+                        (detailsRequested)="openGoalDetails(g.id)"
+                    ></app-objective-summary-card>
+                }
+            </div>
+        }
+    </div>
+</section>
+
+<app-objective-details-modal
+    [isOpen]="isGoalTasksModalOn"
+    [isLoading]="isGoalTasksLoading"
+    [title]="selectedGoalTitle"
+    [categoryTitle]="selectedGoalCategory"
+    [goalProgress]="selectedGoalProgress"
+    [tasks]="selectedGoalTasks"
+    (closeGoalDetails)="closeGoalTasksModal()"
+></app-objective-details-modal>

@@ -181,6 +181,15 @@ public class TaskService {
     }
 
     @Transactional(readOnly = true)
+    public List<Task> getTasksForGoal(User user, Long goalId , Status status) {
+        validateUser(user);
+
+        resolveGoalForUser(goalId, user);
+
+        return taskRepository.findByUserIdAndGoalIdAndStatus(user.getId(), goalId, status);
+    }
+
+    @Transactional(readOnly = true)
     public Task getTaskByIdForUser(User user, Long id) {
         validateUser(user);
 

@@ -1,0 +1,40 @@
+<div class="goal-item">
+    <span class="goal-name">{{ title }}</span>
+    @if(categoryTitle) {
+        <span class="category-badge">{{ categoryTitle }}</span>
+    }
+
+    @if(goalProgress) {
+        <div class="goal-progress">
+            <div class="goal-progress-header">
+                <span>Progression</span>
+                <strong>{{ goalProgress.progressRate | number:'1.0-2' }}%</strong>
+            </div>
+
+            <div class="goal-progress-bar">
+                <div
+                    class="goal-progress-fill"
+                    [style.width.%]="goalProgress.progressRate <= 100 ? goalProgress.progressRate : 100"
+                    [style.background]="barColor(goalProgress.progressRate)"
+                ></div>
+            </div>
+
+            <div class="goal-progress-stats">
+                <span>{{ goalProgress.totalPlannings }} plannings</span>
+                <span>{{ goalProgress.completedPlannings }} terminés</span>
+                <span>{{ goalProgress.remainingPlannings }} restants</span>
+            </div>
+        </div>
+    }
+
+    <div class="goal-actions">
+        <button
+            type="button"
+            class="view"
+            aria-label="Voir les détails de l’objectif"
+            (click)="detailsRequested.emit()"
+        >
+            <app-icon name="view"></app-icon>
+        </button>
+    </div>
+</div>

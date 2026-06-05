@@ -33,7 +33,8 @@ export type Goal = {
     id: number,
     title: string,
     categoryId: number,
-    status: Status
+    status: Status,
+    categoryTitle: string
 }
 
 export type Task = {
@@ -156,6 +157,12 @@ export class Api {
         });
     }
 
+    getGoals(): Observable<Goal[]> {
+        return this.http.get<Goal[]>(`${this.baseUrl}/goals`, {
+            withCredentials: true
+        });
+    }
+
     archiveGoal(id: number): Observable<Goal> {
         return this.http.patch<Goal>(`${this.baseUrl}/goals/${id}/archive`, {}, {
             withCredentials: true
@@ -182,6 +189,12 @@ export class Api {
 
     archiveTask(id: number): Observable<Task> {
         return this.http.patch<Task>(`${this.baseUrl}/tasks/${id}/archive`, {}, {
+            withCredentials: true
+        });
+    }
+
+    getGoalTasks(goalId: number): Observable<Task[]> {
+        return this.http.get<Task[]>(`${this.baseUrl}/tasks?goalId=${goalId}`, {
             withCredentials: true
         });
     }
