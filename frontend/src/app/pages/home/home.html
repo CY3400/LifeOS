@@ -102,6 +102,16 @@
     (closeGoalModal)="setGoalModalState(false)"
 ></app-goal-form-modal>
 
+<app-objective-details-modal
+    [isOpen]="isGoalTasksModalOn"
+    [isLoading]="isGoalTasksLoading"
+    [title]="selectedGoalTitle"
+    [categoryTitle]="selectedGoalCategory"
+    [goalProgress]="selectedGoalProgress"
+    [tasks]="selectedGoalTasks"
+    (closeGoalDetails)="closeGoalTasksModal()"
+></app-objective-details-modal>
+
 <section class="dashboard-row">
     <div class="calendar-card">
         <app-calendar-dashboard-card
@@ -158,6 +168,7 @@
             (createGoalRequested)="openCreateGoalModal()"
             (setGoalToModify)="setGoalToModify($event.id, $event.title, $event.categoryId)"
             (deleteGoalRequested)="toggleWarning('goal', true, $event.id, $event.title)"
+            (detailsRequested)="openGoalDetails($event)"
         ></app-goal-card>
 
         <app-category-card

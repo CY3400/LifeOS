@@ -1,0 +1,12 @@
+<section class="archives-section">
+    <h2>{{ title }}</h2>
+
+    @if (isEmpty) {
+        <p>{{ emptyMessage }}</p>
+    }
+    @else {
+        <div class="entity-grid archives-grid">
+            <ng-content></ng-content>
+        </div>
+    }
+</section>

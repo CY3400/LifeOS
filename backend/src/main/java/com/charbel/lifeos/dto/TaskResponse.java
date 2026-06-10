@@ -9,8 +9,10 @@ public class TaskResponse {
     private Long goalId;
     private Long categoryId;
     private Status status;
+    private String goalTitle;
+    private String categoryTitle;
 
-    public Long getId(){
+    public Long getId() {
         return id;
     }
 
@@ -18,7 +20,7 @@ public class TaskResponse {
         this.id = id;
     }
 
-    public String getTitle(){
+    public String getTitle() {
         return title;
     }
 
@@ -26,7 +28,7 @@ public class TaskResponse {
         this.title = title;
     }
 
-    public String getDescription(){
+    public String getDescription() {
         return description;
     }
 
@@ -34,24 +36,40 @@ public class TaskResponse {
         this.description = description;
     }
 
-    public Long getGoalId(){
+    public Long getGoalId() {
         return goalId;
     }
-    public void setGoalId(Long goalId){
+    public void setGoalId(Long goalId) {
         this.goalId = goalId;
     }
 
-    public Long getCategoryId(){
+    public Long getCategoryId() {
         return categoryId;
     }
     public void setCategoryId(Long categoryId) {
         this.categoryId = categoryId;
     }
 
-    public Status getStatus(){
+    public Status getStatus() {
         return status;
     }
     public void setStatus(Status status) {
         this.status = status;
+    }
+
+    public String getGoalTitle() {
+        return this.goalTitle;
+    }
+
+    public void setGoalTitle(String goalTitle) {
+        this.goalTitle = goalTitle;
+    }
+
+    public String getCategoryTitle() {
+        return this.categoryTitle;
+    }
+
+    public void setCategoryTitle(String categoryTitle) {
+        this.categoryTitle = categoryTitle;
     }
 }

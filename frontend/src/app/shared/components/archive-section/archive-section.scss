@@ -1,0 +1,26 @@
+.archives-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.archives-section h2 {
+  margin: 0;
+  color: var(--text-main);
+  font-size: 1.25rem;
+  font-weight: 800;
+  line-height: 1.25;
+}
+
+.archives-section > p {
+  margin: 0;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  box-shadow: var(--card-shadow);
+  color: var(--text-secondary);
+  font-size: 0.96rem;
+  font-weight: 600;
+  line-height: 1.5;
+}

@@ -1,5 +1,5 @@
 import { finalize } from "rxjs";
-import { Goal, GoalProgress } from "../../services/api";
+import { Goal, GoalProgress, Status } from "../../services/api";
 import { getGenericErrorMessage, getSuccessMessage, getValidationMessage } from "../utils/messages-utils";
 import { CategoryBase } from "./category-base";
 
@@ -124,8 +124,8 @@ export abstract class GoalBase extends CategoryBase {
         });
     }
 
-    protected loadGoalProgress(): void {
-        this.api.getGoalProgress().subscribe({
+    protected loadGoalProgress(status?: Status): void {
+        this.api.getGoalProgress(status).subscribe({
             next: (goalProgress) => {
                 this.goalProgresses = goalProgress;
             },

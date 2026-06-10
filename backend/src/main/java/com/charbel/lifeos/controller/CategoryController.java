@@ -12,12 +12,14 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.charbel.lifeos.dto.CategoryResponse;
 import com.charbel.lifeos.dto.CreateCategoryRequest;
 import com.charbel.lifeos.dto.UpdateCategoryRequest;
 import com.charbel.lifeos.entity.Category;
+import com.charbel.lifeos.entity.Status;
 import com.charbel.lifeos.entity.User;
 import com.charbel.lifeos.mapper.CategoryMapper;
 import com.charbel.lifeos.service.CategoryService;
@@ -65,11 +67,24 @@ public class CategoryController {
         return ResponseEntity.ok(categoryMapper.toResponse(updated));
     }
 
-    @GetMapping
-    public ResponseEntity<List<CategoryResponse>> getCategories(Authentication auth) {
+    @PatchMapping("/{id}/restore")
+    public ResponseEntity<CategoryResponse> restore(@PathVariable Long id, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);
 
-        List<CategoryResponse> categories = categoryService.getCategoriesForUser(user).stream().map(categoryMapper::toResponse).toList();
+        Category updated = categoryService.restoreCategory(user, id);
+
+        return ResponseEntity.ok(categoryMapper.toResponse(updated));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<CategoryResponse>> getCategories(Authentication auth, @RequestParam(required = false) Status status) {
+        User user = currentUserService.getCurrentUser(auth);
+
+        if(status == null) {
+            status = Status.ACTIVE;
+        }
+
+        List<CategoryResponse> categories = categoryService.getCategoriesByStatusForUser(user, status).stream().map(categoryMapper::toResponse).toList();
 
         return ResponseEntity.ok(categories);
     }

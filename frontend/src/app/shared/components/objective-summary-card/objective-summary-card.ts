@@ -14,8 +14,11 @@ export class ObjectiveSummaryCard {
   @Input() title: string = '';
   @Input() goalProgress: GoalProgress | null = null;
   @Input() categoryTitle: string = '';
+  @Input() showDetailsButton: boolean = true;
+  @Input() showRestoreButton: boolean = false;
 
   @Output() detailsRequested = new EventEmitter<void>();
+  @Output() restoreRequested = new EventEmitter<void>();
 
   protected barColor = barColor;
 }

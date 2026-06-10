@@ -1,10 +1,10 @@
 import { finalize, Observable } from "rxjs";
 import { getGenericErrorMessage, getSuccessMessage, getValidationMessage } from "../utils/messages-utils";
-import { GoalBase } from "./goal-base";
 import { Task } from "../../services/api";
 import { getCategoryIdByGoal } from "../utils/task-utils";
+import { GoalDetailsBase } from "./goal-details-base";
 
-export abstract class TaskBase extends GoalBase {
+export abstract class TaskBase extends GoalDetailsBase {
     isTaskModalOpen: boolean = false;
     taskTitle: string = '';
     taskDescription: string = '';

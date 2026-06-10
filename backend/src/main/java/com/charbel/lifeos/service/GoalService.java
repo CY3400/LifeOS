@@ -65,8 +65,12 @@ public class GoalService {
     }
 
     private @NonNull Goal resolveGoalForUser(Long id, Long userId) {
+        return resolveGoalForUser(id, userId, Status.ACTIVE);
+    }
+
+    private @NonNull Goal resolveGoalForUser(Long id, Long userId, Status status) {
         return Objects.requireNonNull(
-            goalRepository.findByIdAndUserIdAndStatus(id, userId, Status.ACTIVE)
+            goalRepository.findByIdAndUserIdAndStatus(id, userId, status)
             .orElseThrow(() -> new ResourceNotFoundException("Objectif introuvable"))
         );
     }
@@ -128,6 +132,23 @@ public class GoalService {
         }
 
         existing.setStatus(Status.ARCHIVED);
+
+        return goalRepository.save(existing);
+    }
+
+    public Goal restoreGoal(User user, Long id) {
+        validateUser(user);
+        validateGoalId(id);
+
+        Goal existing = resolveGoalForUser(id, user.getId(), Status.ARCHIVED);
+
+        boolean hasArchivedCategory = existing.getCategory().getStatus() == Status.ARCHIVED;
+
+        if(hasArchivedCategory) {
+            throw new BadRequestException("L'objectif contient une catégorie archivée", "GOAL_HAS_ARCHIVED_CATEGORY");
+        }
+
+        existing.setStatus(Status.ACTIVE);
 
         return goalRepository.save(existing);
     }

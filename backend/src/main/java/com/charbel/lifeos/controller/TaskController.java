@@ -68,17 +68,30 @@ public class TaskController {
         return ResponseEntity.ok(taskMapper.toResponse(updated));
     }
 
+    @PatchMapping("/{id}/restore")
+    public ResponseEntity<TaskResponse> restore(@PathVariable Long id, Authentication auth) {
+        User user = currentUserService.getCurrentUser(auth);
+        
+        Task updated = taskService.restoreTask(user, id);
+
+        return ResponseEntity.ok(taskMapper.toResponse(updated));
+    }
+
     @GetMapping
-    public ResponseEntity<List<TaskResponse>> getTasks(Authentication auth, @RequestParam(required = false) Long goalId) {
+    public ResponseEntity<List<TaskResponse>> getTasks(Authentication auth, @RequestParam(required = false) Long goalId, @RequestParam(required = false) Status status) {
         User user = currentUserService.getCurrentUser(auth);
 
         List<TaskResponse> tasks;
 
+        if(status == null) {
+            status = Status.ACTIVE;
+        }
+
         if(goalId != null) {
-            tasks = taskService.getTasksForGoal(user, goalId, Status.ACTIVE).stream().map(taskMapper::toResponse).toList();
+            tasks = taskService.getTasksForGoal(user, goalId, status).stream().map(taskMapper::toResponse).toList();
         }
         else {
-            tasks = taskService.getTasksForUser(user).stream().map(taskMapper::toResponse).toList();
+            tasks = taskService.getTasksByStatusForUser(user, status).stream().map(taskMapper::toResponse).toList();
         }
 
         return ResponseEntity.ok(tasks);

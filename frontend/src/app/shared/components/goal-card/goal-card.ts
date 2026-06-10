@@ -26,6 +26,7 @@ export class GoalCard {
     @Output() createGoalRequested = new EventEmitter<void>();
     @Output() setGoalToModify = new EventEmitter<{ id: number, title: string, categoryId: number | null}>();
     @Output() deleteGoalRequested = new EventEmitter<Goal>();
+    @Output() detailsRequested = new EventEmitter<number>();
 
     protected barColor = barColor;
     protected getCategoryTitle = getCategoryTitle;
