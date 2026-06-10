@@ -14,13 +14,14 @@ import { GoalCard } from "../../shared/components/goal-card/goal-card";
 import { TaskCard } from "../../shared/components/task-card/task-card";
 import { SelectedDaySchedules } from "../../shared/components/selected-day-schedules/selected-day-schedules";
 import { CalendarDashboardCard } from "../../shared/components/calendar-dashboard-card/calendar-dashboard-card";
+import { ObjectiveDetailsModal } from "../../shared/components/objective-details-modal/objective-details-modal";
 
 @Component({
     selector: 'app-home',
     templateUrl: './home.html',
     styleUrls: ['./home.scss', '../../shared/styles/_variables.scss'],
     standalone: true,
-    imports: [CommonModule, ScheduleActionModal, ScheduleFormModal, KpiSummary, WarningModal, TaskFormModal, GoalFormModal, CategoryCard, GoalCard, TaskCard, SelectedDaySchedules, CalendarDashboardCard]
+    imports: [CommonModule, ScheduleActionModal, ScheduleFormModal, KpiSummary, WarningModal, TaskFormModal, GoalFormModal, CategoryCard, GoalCard, TaskCard, SelectedDaySchedules, CalendarDashboardCard, ObjectiveDetailsModal]
 })
 export class Home extends WarningBase implements OnInit {
     //imported functions

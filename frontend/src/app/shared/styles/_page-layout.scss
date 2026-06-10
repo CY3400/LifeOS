@@ -1,0 +1,84 @@
+.entity-page {
+  max-width: 1400px;
+  margin-inline: auto;
+  padding: 24px 24px 32px;
+}
+
+.entity-header {
+  margin-bottom: 28px;
+}
+
+.entity-header h1 {
+  margin: 0 0 8px;
+  color: var(--text-main);
+  font-size: clamp(1.7rem, 3vw, 2.3rem);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.entity-header p {
+  margin: 0;
+  max-width: 680px;
+  color: var(--text-secondary);
+  font-size: 0.98rem;
+  line-height: 1.55;
+}
+
+.entity-body {
+  min-width: 0;
+}
+
+.entity-body > p {
+  margin: 0;
+  padding: 18px 20px;
+  border-radius: 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--bg-card-border);
+  box-shadow: var(--card-shadow);
+  color: var(--text-secondary);
+  font-size: 0.96rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.entity-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  align-items: stretch;
+}
+
+@media (max-width: 900px) {
+  .entity-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .entity-page {
+    padding-inline: 16px;
+  }
+}
+
+@media (max-width: 576px) {
+  .entity-page {
+    padding-top: 20px;
+    padding-bottom: 24px;
+  }
+
+  .entity-header {
+    margin-bottom: 18px;
+  }
+
+  .entity-header h1 {
+    font-size: 1.5rem;
+  }
+
+  .entity-header p {
+    font-size: 0.94rem;
+  }
+
+  .entity-grid {
+    gap: 14px;
+  }
+}

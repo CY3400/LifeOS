@@ -22,6 +22,7 @@ import com.charbel.lifeos.dto.GoalProgressResponse;
 import com.charbel.lifeos.dto.RepeatTaskScheduleRequest;
 import com.charbel.lifeos.dto.TaskScheduleResponse;
 import com.charbel.lifeos.dto.UpdateTaskScheduleRequest;
+import com.charbel.lifeos.entity.Status;
 import com.charbel.lifeos.entity.TaskSchedule;
 import com.charbel.lifeos.entity.User;
 import com.charbel.lifeos.mapper.TaskScheduleMapper;
@@ -155,10 +156,10 @@ public class TaskScheduleController {
     }
 
     @GetMapping("/goal-progress")
-    public ResponseEntity<List<GoalProgressResponse>> getGoalProgress(Authentication auth) {
+    public ResponseEntity<List<GoalProgressResponse>> getGoalProgress(Authentication auth, @RequestParam(required = false) Status status) {
         User user = currentUserService.getCurrentUser(auth);
 
-        List<GoalProgressResponse> goalProgress = taskScheduleService.getGoalProgress(user);
+        List<GoalProgressResponse> goalProgress = taskScheduleService.getGoalProgress(user, status);
 
         return ResponseEntity.ok(goalProgress);
     }

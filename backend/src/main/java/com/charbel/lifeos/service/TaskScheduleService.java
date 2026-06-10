@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.charbel.lifeos.dto.GoalProgressResponse;
 import com.charbel.lifeos.entity.Priority;
+import com.charbel.lifeos.entity.Status;
 import com.charbel.lifeos.entity.Task;
 import com.charbel.lifeos.entity.TaskSchedule;
 import com.charbel.lifeos.entity.User;
@@ -351,10 +352,14 @@ public class TaskScheduleService {
     }
 
     @Transactional(readOnly = true)
-    public List<GoalProgressResponse> getGoalProgress(User user) {
+    public List<GoalProgressResponse> getGoalProgress(User user, Status status) {
         validateUser(user);
 
-        return taskScheduleRepository.getGoalProgress(user.getId()).stream().map(progress -> {
+        if(status == null) {
+            status = Status.ACTIVE;
+        }
+
+        return taskScheduleRepository.getGoalProgress(user.getId(), status.name()).stream().map(progress -> {
             GoalProgressResponse response = new GoalProgressResponse();
 
             response.setGoalId(progress.getGoalId());

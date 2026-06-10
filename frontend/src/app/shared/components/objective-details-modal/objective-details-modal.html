@@ -40,9 +40,9 @@
                     @else {
                         @for(t of tasks; track t.id) {
                             <div class="goal-task">
-                                <span>{{ t.title }}</span>
+                                <span class="goal-task-title">{{ t.title }}</span>
                                 @if(t.description) {
-                                    <span>{{ t.description }}</span>
+                                    <span class="goal-task-description">{{ t.description }}</span>
                                 }
                             </div>
                         }

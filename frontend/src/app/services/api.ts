@@ -43,7 +43,9 @@ export type Task = {
     description: string,
     goalId: number | null,
     categoryId: number | null,
-    status: Status
+    status: Status,
+    goalTitle: string | null,
+    categoryTitle: string | null
 };
 
 export type Category = {
@@ -157,14 +159,21 @@ export class Api {
         });
     }
 
-    getGoals(): Observable<Goal[]> {
+    getGoals(status?: Status): Observable<Goal[]> {
         return this.http.get<Goal[]>(`${this.baseUrl}/goals`, {
+            params: status ? { status } : {},
             withCredentials: true
         });
     }
 
     archiveGoal(id: number): Observable<Goal> {
         return this.http.patch<Goal>(`${this.baseUrl}/goals/${id}/archive`, {}, {
+            withCredentials: true
+        });
+    }
+
+    restoreGoal(id: number): Observable<Goal> {
+        return this.http.patch<Goal>(`${this.baseUrl}/goals/${id}/restore`, {}, {
             withCredentials: true
         });
     }
@@ -193,8 +202,22 @@ export class Api {
         });
     }
 
+    restoreTask(id: number): Observable<Task> {
+        return this.http.patch<Task>(`${this.baseUrl}/tasks/${id}/restore`, {}, {
+            withCredentials: true
+        });
+    }
+
+    getTasks(status?: Status): Observable<Task[]> {
+        return this.http.get<Task[]>(`${this.baseUrl}/tasks`, {
+            params: status ? { status } : {},
+            withCredentials: true
+        });
+    }
+
     getGoalTasks(goalId: number): Observable<Task[]> {
-        return this.http.get<Task[]>(`${this.baseUrl}/tasks?goalId=${goalId}`, {
+        return this.http.get<Task[]>(`${this.baseUrl}/tasks`, {
+            params: { goalId },
             withCredentials: true
         });
     }
@@ -235,6 +258,19 @@ export class Api {
 
     archiveCategory(id: number): Observable<Category> {
         return this.http.patch<Category>(`${this.baseUrl}/categories/${id}/archive`, {}, {
+            withCredentials: true
+        });
+    }
+
+    restoreCategory(id: number): Observable<Category> {
+        return this.http.patch<Category>(`${this.baseUrl}/categories/${id}/restore`, {}, {
+            withCredentials: true
+        });
+    }
+
+    getCategories(status?: Status): Observable<Category[]> {
+        return this.http.get<Category[]>(`${this.baseUrl}/categories`, {
+            params: status ? { status } : {},
             withCredentials: true
         });
     }
@@ -281,8 +317,9 @@ export class Api {
         });
     }
 
-    getGoalProgress(): Observable<GoalProgress[]> {
+    getGoalProgress(status?: Status): Observable<GoalProgress[]> {
         return this.http.get<GoalProgress[]>(`${this.baseUrl}/task-schedules/goal-progress`, {
+            params: status ? { status } : {},
             withCredentials: true
         });
     }

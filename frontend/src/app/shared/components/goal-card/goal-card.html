@@ -89,6 +89,15 @@
                         >
                             <app-icon name="delete"></app-icon>
                         </button>
+
+                        <button
+                            type="button"
+                            class="view"
+                            aria-label="Voir les détails de l’objectif"
+                            (click)="detailsRequested.emit(goal.id)"
+                        >
+                            <app-icon name="view"></app-icon>
+                        </button>
                     </div>
                 </div>
             }

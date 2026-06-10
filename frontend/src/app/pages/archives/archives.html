@@ -1,0 +1,91 @@
+<section class="entity-page archives-page">
+    <div class="entity-header">
+        <h1>Archives</h1>
+        <p>Consultez les éléments archivés sans les réafficher dans le dashboard.</p>
+    </div>
+
+    @if(hasAnyErrors(errors)) {
+        <span class="error">{{ errors.global }}</span>
+    }
+
+    <div class="entity-body archives-body">
+        @if(isLoading) {
+            <p>Chargement des archives en cours...</p>
+        }
+        @else {
+            <app-archive-section
+                title="Catégories archivées"
+                [isEmpty]="archivedCategories.length === 0"
+                emptyMessage="Aucune catégorie archivée pour le moment."
+            >
+                @for(c of archivedCategories; track c.id) {
+                    <div class="archive-item">
+                        <span class="archive-name">{{ c.title }}</span>
+
+                        <div class="archive-actions">
+                            <button
+                                type="button"
+                                class="restore"
+                                aria-label="Restaurer la catégorie"
+                                (click)="restoreArchivedCategory(c.id)"
+                            >
+                                <app-icon name="restore"></app-icon>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </app-archive-section>
+
+            <app-archive-section
+                title="Objectifs archivés"
+                [isEmpty]="archivedGoals.length === 0"
+                emptyMessage="Aucun objectif archivé pour le moment."
+            >
+                @for(g of archivedGoals; track g.id) {
+                    <app-objective-summary-card
+                        [title]="g.title"
+                        [categoryTitle]="g.categoryTitle"
+                        [goalProgress]="getGoalProgressById(g.id)"
+                        [showDetailsButton]="false"
+                        [showRestoreButton]="true"
+                        (restoreRequested)="restoreArchivedGoal(g.id)"
+                    ></app-objective-summary-card>
+                }
+            </app-archive-section>
+
+            <app-archive-section
+                title="Tâches archivées"
+                [isEmpty]="archivedTasks.length === 0"
+                emptyMessage="Aucune tâche archivée pour le moment."
+            >
+                @for(t of archivedTasks; track t.id) {
+                    <div class="archive-item">
+                        <span class="archive-name">{{ t.title }}</span>
+
+                        @if(t.goalTitle) {
+                            <span class="goal-badge">Objectif: {{ t.goalTitle }}</span>
+                        }
+                        @else if(t.categoryTitle) {
+                            <span class="category-badge">Catégorie: {{ t.categoryTitle }}</span>
+                        }
+
+                        @if(t.description) {
+                            <span class="archive-task-description">{{ t.description }}</span>
+                        }
+
+                        <div class="archive-actions">
+                            <button
+                                type="button"
+                                class="restore"
+                                aria-label="Restaurer la tâche"
+                                (click)="restoreArchivedTask(t.id)"
+                            >
+                                <app-icon name="restore"></app-icon>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </app-archive-section>
+        }
+    </div>
+</section>

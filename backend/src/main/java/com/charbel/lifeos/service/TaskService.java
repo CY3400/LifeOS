@@ -90,7 +90,11 @@ public class TaskService {
     }
 
     private @NonNull Task resolveTaskForUser(Long id, Long userId) {
-        return Objects.requireNonNull(taskRepository.findByIdAndUserIdAndStatus(id, userId, Status.ACTIVE).orElseThrow(() -> new ResourceNotFoundException("Tâche introuvable")));
+        return resolveTaskForUser(id, userId, Status.ACTIVE);
+    }
+
+    private @NonNull Task resolveTaskForUser(Long id, Long userId, Status status) {
+        return Objects.requireNonNull(taskRepository.findByIdAndUserIdAndStatus(id, userId, status).orElseThrow(() -> new ResourceNotFoundException("Tâche introuvable")));
     }
 
     private void validateTaskIsNotUsed(Long taskId, Long userId) {
@@ -175,11 +179,39 @@ public class TaskService {
         return taskRepository.save(existing);
     }
 
+    public Task restoreTask(User user, Long id) {
+        validateUser(user);
+        validateTaskId(id);
+
+        Task existing = resolveTaskForUser(id, user.getId(), Status.ARCHIVED);
+
+        boolean hasArchivedGoal = existing.getGoal() != null && existing.getGoal().getStatus() == Status.ARCHIVED;
+        boolean hasArchivedCategory = existing.getCategory() != null && existing.getCategory().getStatus() == Status.ARCHIVED;
+
+        if(hasArchivedCategory) {
+            throw new BadRequestException("La tâche contient une catégorie archivée", "TASK_HAS_ARCHIVED_CATEGORY");
+        }
+        else if(hasArchivedGoal) {
+            throw new BadRequestException("La tâche contient un objectif archivé", "TASK_HAS_ARCHIVED_GOAL");
+        }
+
+        existing.setStatus(Status.ACTIVE);
+
+        return taskRepository.save(existing);
+    }
+
     @Transactional(readOnly = true)
     public List<Task> getTasksForUser(User user) {
         validateUser(user);
 
         return taskRepository.findByUserId(user.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Task> getTasksByStatusForUser(User user, Status status) {
+        validateUser(user);
+
+        return taskRepository.findByUserIdAndStatus(user.getId(), status);
     }
 
     @Transactional(readOnly = true)

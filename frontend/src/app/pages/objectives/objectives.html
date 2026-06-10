@@ -1,12 +1,15 @@
-<section class="objectives-page">
-    <div class="objectives-header">
+<section class="entity-page objectives-page">
+    <div class="entity-header">
         <h1>Objectifs</h1>
         <p>Suivez vos objectifs actifs, leur catégorie et leur progression.</p>
     </div>
     @if(hasAnyErrors(errors)) {
         <span class="error">{{ errors.global }}</span>
     }
-    <div class="objectives-body">
+    @if(goalDetailsError) {
+        <span class="error">{{ goalDetailsError }}</span>
+    }
+    <div class="entity-body">
         @if(isLoading) {
             <p>Chargement des objectifs en cours...</p>
         }
@@ -14,7 +17,7 @@
             <p>Aucun objectif pour le moment.</p>
         }
         @else {
-            <div class="objectives-grid">
+            <div class="entity-grid objectives-grid">
                 @for(g of goals; track g.id) {
                     <app-objective-summary-card
                         [title]="g.title"

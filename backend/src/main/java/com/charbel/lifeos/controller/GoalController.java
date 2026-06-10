@@ -58,6 +58,15 @@ public class GoalController {
         return ResponseEntity.ok(goalMapper.toResponse(updated));
     }
 
+    @PatchMapping("/{id}/restore")
+    public ResponseEntity<GoalResponse> restore(@PathVariable Long id, Authentication auth) {
+        User user = currentUserService.getCurrentUser(auth);
+        
+        Goal updated = goalService.restoreGoal(user, id);
+
+        return ResponseEntity.ok(goalMapper.toResponse(updated));
+    }
+
     @PatchMapping("/{id}/archive")
     public ResponseEntity<GoalResponse> archive(@PathVariable Long id, Authentication auth) {
         User user = currentUserService.getCurrentUser(auth);

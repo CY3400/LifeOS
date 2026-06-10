@@ -3,7 +3,8 @@
    ========================================================= */
 
 .priority,
-.category-badge {
+.category-badge,
+.goal-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -42,7 +43,8 @@
   border-color: rgba(148, 163, 184, 0.2);
 }
 
-.category-badge {
+.category-badge,
+.goal-badge {
   background: rgba(148, 163, 184, 0.14);
   color: #cbd5e1;
   border-color: rgba(148, 163, 184, 0.22);

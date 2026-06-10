@@ -63,8 +63,12 @@ public class CategoryService {
     }
 
     private @NonNull Category resolveCategoryForUser(Long id, Long userId) {
+        return resolveCategoryForUser(id, userId, Status.ACTIVE);
+    }
+
+    private @NonNull Category resolveCategoryForUser(Long id, Long userId, Status status) {
         return Objects.requireNonNull(
-            categoryRepository.findByIdAndUserIdAndStatus(id, userId, Status.ACTIVE)
+            categoryRepository.findByIdAndUserIdAndStatus(id, userId, status)
             .orElseThrow(() -> new ResourceNotFoundException("Catégorie introuvable"))
         );
     }
@@ -138,11 +142,29 @@ public class CategoryService {
         return categoryRepository.save(existing);
     }
 
+    public Category restoreCategory(User user, Long id) {
+        validateUser(user);
+        validateCategoryId(id);
+
+        Category existing = resolveCategoryForUser(id, user.getId(), Status.ARCHIVED);
+
+        existing.setStatus(Status.ACTIVE);
+
+        return categoryRepository.save(existing);
+    }
+
     @Transactional(readOnly = true)
     public List<Category> getCategoriesForUser(User user) {
         validateUser(user);
 
         return categoryRepository.findByUserId(user.getId());
+    }
+
+    @Transactional(readOnly = true)
+    public List<Category> getCategoriesByStatusForUser(User user, Status status) {
+        validateUser(user);
+
+        return categoryRepository.findByUserIdAndStatusOrderByTitleAsc(user.getId(), status);
     }
 
     @Transactional(readOnly = true)

@@ -43,10 +43,10 @@ public interface TaskScheduleRepository extends JpaRepository<TaskSchedule, Long
     FROM (SELECT T.GOAL_ID AS goalId, COUNT(TS.ID) AS totalPlannings, SUM(CASE WHEN TS.COMPLETED = 1 THEN 1 ELSE 0 END) AS completedPlannings
     FROM LIFEOS.TASKS T
     INNER JOIN LIFEOS.TASK_SCHEDULES TS ON TS.TASK_ID = T.ID
-    WHERE T.USER_ID = :userId AND T.GOAL_ID IS NOT NULL AND T.STATUS = 'ACTIVE'
+    WHERE T.USER_ID = :userId AND T.GOAL_ID IS NOT NULL AND T.STATUS = :status
     GROUP BY T.GOAL_ID) SUB
     """, nativeQuery = true)
-    List<GoalProgressProjection> getGoalProgress(@Param("userId") Long userId);
+    List<GoalProgressProjection> getGoalProgress(@Param("userId") Long userId, @Param("status") String status);
 
     Optional<TaskSchedule> findTopByTaskIdAndSeriesIdIsNotNullOrderByCreatedAtDesc(Long taskId);
 

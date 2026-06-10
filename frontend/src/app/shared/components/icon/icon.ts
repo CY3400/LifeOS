@@ -1,6 +1,6 @@
 import { Component, Input } from "@angular/core";
 
-type IconName = 'plus' | 'edit' | 'delete' | 'check' | 'close' | 'view';
+type IconName = 'plus' | 'edit' | 'delete' | 'check' | 'close' | 'view' | 'restore';
 
 @Component({
     selector: 'app-icon',
