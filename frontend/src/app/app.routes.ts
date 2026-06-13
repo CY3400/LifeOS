@@ -9,6 +9,7 @@ import { GuestGuard } from './guards/guest-guard';
 import { Today } from './pages/today/today';
 import { Objectives } from './pages/objectives/objectives';
 import { Archives } from './pages/archives/archives';
+import { Review } from './pages/review/review';
 
 export const routes: Routes = [
     {
@@ -62,6 +63,13 @@ export const routes: Routes = [
         path:'archives',
         component: Archives,
         title: 'LifeOS - Archives',
+        canActivate: [AuthGuard],
+        resolve: { me: MeResolver }
+    },
+    {
+        path:'review',
+        component: Review,
+        title: 'LifeOS - Review',
         canActivate: [AuthGuard],
         resolve: { me: MeResolver }
     },

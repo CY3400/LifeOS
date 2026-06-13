@@ -1,0 +1,36 @@
+@if(reviews.length > 0) {
+    <section class="review-section">
+        <h2>{{ title }} ({{ reviews.length }})</h2>
+
+        <div class="review-list">
+            @for(r of reviews; track r.id) {
+                <div class="review-card review-breakdown-card">
+                    <span class="review-title">
+                        <strong>{{ label }}</strong>
+                        {{ r.title }}
+                    </span>
+
+                    <span>
+                        <strong>Total</strong>
+                        {{ r.totalPlannings }}
+                    </span>
+
+                    <span>
+                        <strong>Complétés</strong>
+                        {{ r.completedPlannings }}
+                    </span>
+
+                    <span>
+                        <strong>Restants</strong>
+                        {{ r.remainingPlannings }}
+                    </span>
+
+                    <span>
+                        <strong>Taux</strong>
+                        {{ r.completionRate | number:'1.0-2' }}%
+                    </span>
+                </div>
+            }
+        </div>
+    </section>
+}

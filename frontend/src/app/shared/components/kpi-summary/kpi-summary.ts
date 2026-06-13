@@ -16,6 +16,9 @@ export class KpiSummary {
     @Input() completedTasks: number = 0;
     @Input() remainingTasks: number = 0;
     @Input() completionRate: number = 0;
+    @Input() totalLabel = 'Tâches du jour';
+    @Input() completedLabel = 'Tâches complétées';
+    @Input() remainingLabel = 'Tâches restantes';
 
     protected barColor = barColor;
 }
