@@ -11,7 +11,8 @@
 .cancel-delete,
 .update-one,
 .update-following,
-.cancel-update {
+.cancel-update,
+.analyze {
   border: none;
   border-radius: 12px;
   font-weight: 700;
@@ -22,19 +23,22 @@
 .submit-task,
 .cancel-task,
 .submit-goal,
-.cancel-goal {
+.cancel-goal,
+.analyze {
   min-width: 110px;
   padding: 12px 18px;
 }
 
 .submit-task,
-.submit-goal {
+.submit-goal,
+.analyze {
   background: var(--primary);
   color: #fff;
 }
 
 .submit-task:hover,
-.submit-goal:hover {
+.submit-goal:hover,
+.analyze:hover {
   background: var(--primary-hover);
   transform: translateY(-1px);
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
@@ -59,7 +63,8 @@
 .submit-task:disabled,
 .cancel-task:disabled,
 .submit-goal:disabled,
-.cancel-goal:disabled {
+.cancel-goal:disabled,
+.analyze:disabled {
   opacity: 0.6;
   cursor: not-allowed;
   transform: none;

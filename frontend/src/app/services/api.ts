@@ -62,7 +62,12 @@ export type TaskSchedule = {
     endTime: string | null,
     completed: boolean,
     seriesId: string | null,
-    priority: Priority | null
+    priority: Priority | null,
+    taskTitle: string,
+    goalId: number | null,
+    goalTitle: string | null,
+    categoryId: number | null,
+    categoryTitle: string | null
 };
 
 export type CreateTaskScheduleRequest = {

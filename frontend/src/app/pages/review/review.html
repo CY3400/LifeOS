@@ -1,0 +1,146 @@
+<section class="entity-page review-page">
+    <div class="entity-header">
+        <h1>Review</h1>
+        <p>Analysez votre activité sur une période personnalisée</p>
+    </div>
+
+    @if(hasAnyErrors(errors)) {
+        <span class="error">{{ errors.global }}</span>
+    }
+
+    <div class="entity-body review-form">
+        <div class="review-field">
+            <label for="start-date">Date de début</label>
+            <input type="date" id="start-date" name="start-date" [(ngModel)]="startDate">
+        </div>
+
+        <div class="review-field">
+            <label for="end-date">Date de fin</label>
+            <input type="date" id="end-date" name="end-date" [(ngModel)]="endDate">
+        </div>
+
+        <button type="button" class="analyze" aria-label="Analyser" (click)="analyzeReview()">Analyser</button>
+    </div>
+
+    <div class="review-result">
+        @if(isLoading) {
+            <p class="review-message">Chargement de l'analyse en cours...</p>
+        }
+        @else if(hasAnalyzed && scheduleTasks.length === 0 && !hasAnyErrors(errors)) {
+            <p class="review-message">Aucun planning entre ces dates</p>
+        }
+        @else if(hasAnalyzed && scheduleTasks.length > 0 && !hasAnyErrors(errors)) {
+            <app-kpi-summary
+                totalLabel="Plannings analysés"
+                completedLabel="Plannings complétés"
+                remainingLabel="Plannings restants"
+                [totalTasks]="totalTasks"
+                [completedTasks]="completedTasks"
+                [remainingTasks]="remainingTasks"
+                [completionRate]="completionRate"
+            ></app-kpi-summary>
+
+            <section class="review-section">
+                <h2>Répartition par priorité</h2>
+                <div class="priority-list">
+                    <div class="priority-card">
+                        <span class="priority-label">Priorité haute</span>
+                        <strong>{{ highPriority }}</strong>
+                        <small>{{ completedHighPriority }} complétés</small>
+                    </div>
+
+                    <div class="priority-card">
+                        <span class="priority-label">Priorité moyenne</span>
+                        <strong>{{ mediumPriority }}</strong>
+                        <small>{{ completedMediumPriority }} complétés</small>
+                    </div>
+
+                    <div class="priority-card">
+                        <span class="priority-label">Priorité basse</span>
+                        <strong>{{ lowPriority }}</strong>
+                        <small>{{ completedLowPriority }} complétés</small>
+                    </div>
+                </div>
+            </section>
+
+            <app-review-breakdown-section
+                title="Répartition par catégorie"
+                label="Catégorie"
+                [reviews]="categoryReviews"
+            ></app-review-breakdown-section>
+
+            <app-review-breakdown-section
+                title="Répartition par objectif"
+                label="Objectif"
+                [reviews]="goalReviews"
+            ></app-review-breakdown-section>
+
+            <section class="review-section">
+                <h2>Plannings analysés ({{ scheduleTasks.length }})</h2>
+
+                <div class="review-list">
+                    @for(s of paginatedScheduleTasks; track s.id) {
+                        <div class="review-card">
+                            <span class="review-title">
+                                <strong>Tâche</strong>
+                                {{ s.taskTitle }}
+                            </span>
+
+                            <span>
+                                <strong>Date</strong>
+                                {{ s.taskDate }}
+                            </span>
+
+                            <span>
+                                <strong>Heure</strong>
+                                @if(s.startTime !== null && s.endTime !== null) {
+                                    {{ s.startTime }} - {{ s.endTime }}
+                                }
+                                @else if (s.startTime !== null && s.endTime === null) {
+                                    {{ s.startTime }}
+                                }
+                                @else {
+                                    Non définie
+                                }
+                            </span>
+
+                            <span>
+                                <strong>Catégorie</strong>
+                                {{ s.categoryTitle }}
+                            </span>
+
+                            <span>
+                                <strong>Objectif</strong>
+                                {{ s.goalTitle || 'Aucun objectif' }}
+                            </span>
+
+                            <span>
+                                <strong>Priorité</strong>
+                                {{ s.priority === 'HIGH' ? 'Haute' : s.priority === 'MEDIUM' ? 'Moyenne' : 'Basse' }}
+                            </span>
+
+                            <span>
+                                <strong>Statut</strong>
+                                {{ s.completed ? 'Complété' : 'Non complété' }}
+                            </span>
+                        </div>
+                    }
+                </div>
+
+                @if(totalPages > 1) {
+                    <div class="pagination">
+                        <button type="button" (click)="previousPage()" [disabled]="currentPage === 1">
+                            Précédent
+                        </button>
+
+                        <span>Page {{ currentPage }} / {{ totalPages }}</span>
+
+                        <button type="button" (click)="nextPage()" [disabled]="currentPage === totalPages">
+                            Suivant
+                        </button>
+                    </div>
+                }
+            </section>
+        }
+    </div>
+</section>
