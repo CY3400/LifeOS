@@ -12,7 +12,7 @@ export abstract class CategoryBase extends CalendarBase {
     categoryErrors = {
         global: '',
         title: ''
-    }
+    };
 
     protected resetCategoryErrors(): void {
         this.categoryErrors = {
@@ -49,7 +49,7 @@ export abstract class CategoryBase extends CalendarBase {
             const matchesSearch = !search || category.title.toLocaleLowerCase().includes(search);
 
             return activeCategories && matchesSearch;
-        });
+        }).sort((a, b) => a.title.localeCompare(b.title));
     }
 
     protected setCategoryToModify(id: number | null, title: string | null): void {
@@ -96,7 +96,11 @@ export abstract class CategoryBase extends CalendarBase {
 
         this.categorySubmit = true;
 
-        this.api.updateCategory(id, title).subscribe({
+        this.api.updateCategory(id, title).pipe(
+            finalize(() => {
+                this.categorySubmit = false;
+            })
+        ).subscribe({
             next: (category) => {
                 const index = this.categories.findIndex(c => c.id === id);
                 if (index !== -1) {

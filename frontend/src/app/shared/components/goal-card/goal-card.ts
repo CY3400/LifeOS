@@ -2,10 +2,10 @@ import { CommonModule } from "@angular/common";
 import { Component, EventEmitter, Input, Output } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { Icon } from "../icon/icon";
-import { Category, Goal } from "../../../services/api";
+import { Category, Goal, GoalProgress } from "../../../services/api";
 import { barColor } from "../../utils/ui-utils";
-import { GoalProgress } from "../../../services/api";
 import { getCategoryTitle } from "../../utils/task-utils";
+import { GoalSortBy } from "../../types/sort-types";
 
 @Component({
     selector: 'app-goal-card',
@@ -20,9 +20,11 @@ export class GoalCard {
     @Input() categories: Category[] = [];
     @Input() goals: Goal[] = [];
     @Input() goalProgresses: GoalProgress[] = [];
+    @Input() goalSortBy: GoalSortBy = 'title';
 
     @Output() goalSearchChange = new EventEmitter<string>();
     @Output() goalCategorySearchChange = new EventEmitter<number | null>();
+    @Output() goalSortByChange = new EventEmitter<GoalSortBy>();
     @Output() createGoalRequested = new EventEmitter<void>();
     @Output() setGoalToModify = new EventEmitter<{ id: number, title: string, categoryId: number | null}>();
     @Output() deleteGoalRequested = new EventEmitter<Goal>();
