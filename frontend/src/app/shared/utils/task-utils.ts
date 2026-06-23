@@ -10,6 +10,11 @@ export function getCategoryTitle(catId: number | null, categories: Category[]): 
     return category ? category.title : '';
 }
 
+export function getGoalTitle(goalId: number | null, goals: Goal[]): string {
+    const goal = goals.find(g => g.id === goalId);
+    return goal ? goal.title : '';
+}
+
 export function getCategoryIdByGoal(goalId: number | null, goals: Goal[]): number | null {
     const goal = goals.find(g => g.id === goalId);
     return goal ? goal.categoryId : null;

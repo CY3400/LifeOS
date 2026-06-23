@@ -34,6 +34,18 @@
                 <option [ngValue]="category.id">{{ category.title }}</option>
             }
         </select>
+
+        <select
+            id="goalSortBy"
+            name="goalSortBy"
+            [disabled]="goalSubmit"
+            [ngModel]="goalSortBy"
+            (ngModelChange)="goalSortByChange.emit($event)"
+        >
+            <option value="title">Trier par titre</option>
+            <option value="category">Trier par catégorie</option>
+            <option value="progress">Trier par progression</option>
+        </select>
     </div>
 
     <div class="goal-list">

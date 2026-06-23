@@ -47,6 +47,18 @@
                 <option [ngValue]="goal.id">{{ goal.title }}</option>
             }
         </select>
+
+        <select
+            id="taskSortBy"
+            name="taskSortBy"
+            [disabled]="taskSubmit"
+            [ngModel]="taskSortBy"
+            (ngModelChange)="taskSortByChange.emit($event)"
+        >
+            <option value="title">Trier par titre</option>
+            <option value="category">Trier par catégorie</option>
+            <option value="goal">Trier par objectif</option>
+        </select>
     </div>
 
     <div class="task-list">

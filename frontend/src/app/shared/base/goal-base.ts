@@ -2,6 +2,8 @@ import { finalize } from "rxjs";
 import { Goal, GoalProgress, Status } from "../../services/api";
 import { getGenericErrorMessage, getSuccessMessage, getValidationMessage } from "../utils/messages-utils";
 import { CategoryBase } from "./category-base";
+import { GoalSortBy } from "../types/sort-types";
+import { getCategoryTitle } from "../utils/task-utils";
 
 export abstract class GoalBase extends CategoryBase {
     goalTitle: string = '';
@@ -12,11 +14,12 @@ export abstract class GoalBase extends CategoryBase {
     goalSearch: string = '';
     goalCategorySearch: number | null = null;
     goalProgresses: GoalProgress[] = [];
+    goalSortBy: GoalSortBy = 'title';
     goalErrors = {
         global: '',
         title: '',
         category: ''
-    }
+    };
 
     protected resetGoalErrors(): void {
         this.goalErrors = {
@@ -115,12 +118,26 @@ export abstract class GoalBase extends CategoryBase {
         const search = this.goalSearch.trim().toLocaleLowerCase();
         const selectedCategoryId = this.goalCategorySearch;
 
-        return this.goals.filter(goal => {
+        let filteredGoals = this.goals.filter(goal => {
             const activeGoals = goal.status === 'ACTIVE';
             const matchesSearch = !search || goal.title.toLocaleLowerCase().includes(search);
             const matchesCategory = selectedCategoryId === null || goal.categoryId === selectedCategoryId;
 
             return activeGoals && matchesSearch && matchesCategory;
+        });
+
+        return filteredGoals.sort((a, b) => {
+            switch (this.goalSortBy) {
+                case 'category':
+                    return getCategoryTitle(a.categoryId, this.categories).localeCompare(getCategoryTitle(b.categoryId, this.categories));
+
+                case 'progress':
+                    return this.getGoalProgressById(b.id).progressRate - this.getGoalProgressById(a.id).progressRate;
+
+                case 'title':
+                default:
+                    return a.title.localeCompare(b.title);
+            }
         });
     }
 

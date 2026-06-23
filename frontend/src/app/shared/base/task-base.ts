@@ -1,8 +1,9 @@
 import { finalize, Observable } from "rxjs";
 import { getGenericErrorMessage, getSuccessMessage, getValidationMessage } from "../utils/messages-utils";
 import { Task } from "../../services/api";
-import { getCategoryIdByGoal } from "../utils/task-utils";
+import { getCategoryIdByGoal, getCategoryTitle, getGoalTitle } from "../utils/task-utils";
 import { GoalDetailsBase } from "./goal-details-base";
+import { TaskSortBy } from "../types/sort-types";
 
 export abstract class TaskBase extends GoalDetailsBase {
     isTaskModalOpen: boolean = false;
@@ -15,6 +16,7 @@ export abstract class TaskBase extends GoalDetailsBase {
     taskSearch: string = '';
     taskCategorySearch: number | null = null;
     taskGoalSearch: number | null = null;
+    taskSortBy: TaskSortBy = 'title';
     taskErrors = {
         title: '',
         global: ''
@@ -120,7 +122,7 @@ export abstract class TaskBase extends GoalDetailsBase {
         const selectedCategoryId = this.taskCategorySearch;
         const selectedGoalId = this.taskGoalSearch;
 
-        return this.tasks.filter(task => {
+        let filteredTasks = this.tasks.filter(task => {
             const taskCategoryId = task.categoryId ?? getCategoryIdByGoal(task.goalId, this.goals);
 
             const activeTasks = task.status === 'ACTIVE';
@@ -131,6 +133,24 @@ export abstract class TaskBase extends GoalDetailsBase {
             const matchesGoal = selectedGoalId === null || task.goalId === selectedGoalId;
 
             return activeTasks && matchesSearch && matchesCategory && matchesGoal;
+        });
+
+        return filteredTasks.sort((a, b) => {
+            switch (this.taskSortBy) {
+                case 'category': {
+                    const categoryA = a.categoryId ?? getCategoryIdByGoal(a.goalId, this.goals);
+                    const categoryB = b.categoryId ?? getCategoryIdByGoal(b.goalId, this.goals);
+
+                    return getCategoryTitle(categoryA, this.categories).localeCompare(getCategoryTitle(categoryB, this.categories));
+                }
+
+                case 'goal':
+                    return getGoalTitle(a.goalId, this.goals).localeCompare(getGoalTitle(b.goalId, this.goals));
+
+                case 'title':
+                default:
+                    return a.title.localeCompare(b.title);
+            }
         });
     }
 }
