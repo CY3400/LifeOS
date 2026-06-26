@@ -1,0 +1,13 @@
+@if(data.length === 0) {
+    <p class="chart-empty">Aucune activité sur cette période.</p>
+}
+@else {
+    <div class="chart-wrapper">
+        <canvas
+            baseChart
+            [type]="lineChartType"
+            [data]="lineChartData"
+            [options]="lineChartOptions"
+        ></canvas>
+    </div>
+}

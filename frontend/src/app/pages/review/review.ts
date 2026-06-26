@@ -8,17 +8,20 @@ import { KpiSummary } from '../../shared/components/kpi-summary/kpi-summary';
 import { hasAnyErrors } from '../../shared/utils/ui-utils';
 import { ReviewBreakdown } from '../../shared/types/review-types';
 import { ReviewBreakdownSection } from '../../shared/components/review-breakdown-section/review-breakdown-section';
+import { buildAnalyticsKpi, buildPriorityKpi, buildReviewBreakdowns } from '../../shared/utils/analytics-utils';
+import { AnalyticsPrioritySection } from '../../shared/components/analytics-priority-section/analytics-priority-section';
 
 @Component({
   selector: 'app-review',
-  imports: [CommonModule, FormsModule, KpiSummary, ReviewBreakdownSection],
+  imports: [CommonModule, FormsModule, KpiSummary, ReviewBreakdownSection, AnalyticsPrioritySection],
   templateUrl: './review.html',
   styleUrls: [
     './review.scss',
     '../../shared/styles/_page-layout.scss',
     '../../shared/styles/_errors.scss',
     '../../shared/styles/_buttons.scss',
-    '../../shared/styles/_reviews.scss'
+    '../../shared/styles/_sections.scss',
+    '../../shared/styles/_analytics.scss'
   ],
 })
 export class Review {
@@ -130,66 +133,6 @@ export class Review {
     this.setPaginatedScheduleTasks();
   }
 
-  private setKpi(schedules: TaskSchedule[]): void {
-    this.totalTasks = schedules.length;
-    this.completedTasks = schedules.filter(s => s.completed === true).length;
-    this.remainingTasks = this.totalTasks - this.completedTasks;
-    this.completionRate = this.totalTasks > 0 ? this.completedTasks / this.totalTasks * 100 : 0;
-  }
-
-  private setPriorityKpi(schedules: TaskSchedule[]): void {
-    this.highPriority = schedules.filter(s => s.priority === 'HIGH').length;
-    this.completedHighPriority = schedules.filter(s => s.priority === 'HIGH' && s.completed === true).length;
-
-    this.mediumPriority = schedules.filter(s => s.priority === 'MEDIUM').length;
-    this.completedMediumPriority = schedules.filter(s => s.priority === 'MEDIUM' && s.completed === true).length;
-
-    this.lowPriority = schedules.filter(s => s.priority === 'LOW').length;
-    this.completedLowPriority = schedules.filter(s => s.priority === 'LOW' && s.completed === true).length;
-  }
-
-  private buildReviewBreakdowns(schedules: TaskSchedule[], getId: (schedule: TaskSchedule) => number | null, getTitle: (schedule: TaskSchedule) => string | null): ReviewBreakdown[] {
-    const reviews: ReviewBreakdown[] = [];
-
-    for (const schedule of schedules) {
-      const id = getId(schedule);
-      const title = getTitle(schedule);
-
-      if (id === null || title === null) {
-        continue;
-      }
-
-      let review = reviews.find(r => r.id === id);
-
-      if (!review) {
-        const newReview: ReviewBreakdown = {
-          id,
-          title,
-          totalPlannings: 0,
-          completedPlannings: 0,
-          remainingPlannings: 0,
-          completionRate: 0
-        };
-
-        reviews.push(newReview);
-        review = newReview;
-      }
-
-      review.totalPlannings++;
-
-      if (schedule.completed === true) {
-        review.completedPlannings++;
-      }
-    }
-
-    for (const review of reviews) {
-      review.remainingPlannings = review.totalPlannings - review.completedPlannings;
-      review.completionRate = review.totalPlannings > 0 ? review.completedPlannings / review.totalPlannings * 100 : 0;
-    }
-
-    return reviews.sort((a, b) => b.totalPlannings - a.totalPlannings || b.completedPlannings - a.completedPlannings);
-  }
-
   protected analyzeReview(): void {
     this.resetReview();
     this.validateDates(this.startDate, this.endDate);
@@ -211,13 +154,25 @@ export class Review {
         this.currentPage = 1;
         this.setPaginatedScheduleTasks();
 
-        this.setKpi(scheduleTasks);
-        this.setPriorityKpi(scheduleTasks);
-        this.categoryReviews = this.buildReviewBreakdowns(scheduleTasks, schedule => schedule.categoryId, schedule => schedule.categoryTitle);
-        this.goalReviews = this.buildReviewBreakdowns(scheduleTasks, schedule => schedule.goalId, schedule => schedule.goalTitle);
+        const kpi = buildAnalyticsKpi(scheduleTasks);
+        this.totalTasks = kpi.total;
+        this.completedTasks = kpi.completed;
+        this.remainingTasks = kpi.remaining;
+        this.completionRate = kpi.completionRate;
+
+        const priority = buildPriorityKpi(scheduleTasks);
+        this.highPriority = priority.high;
+        this.completedHighPriority = priority.completedHigh;
+        this.mediumPriority = priority.medium;
+        this.completedMediumPriority = priority.completedMedium;
+        this.lowPriority = priority.low;
+        this.completedLowPriority = priority.completedLow;
+
+        this.categoryReviews = buildReviewBreakdowns(scheduleTasks, schedule => schedule.categoryId, schedule => schedule.categoryTitle);
+        this.goalReviews = buildReviewBreakdowns(scheduleTasks, schedule => schedule.goalId, schedule => schedule.goalTitle);
       },
       error: () => {
-        this.errors.global = "Erreur lors du chargement de l'analyse.";
+        this.errors.global = `Erreur lors du chargement de l'analyse.`;
       }
     });
   }
