@@ -52,7 +52,7 @@ public class DashboardService {
         List<TaskSchedule> todaySchedules = taskScheduleService.getTaskSchedulesByDateForUser(user, today);
 
         int totalTasks = todaySchedules.size();
-        int completedTasks = (int) todaySchedules.stream().filter(TaskSchedule::isCompleted).count();
+        int completedTasks = (int) todaySchedules.stream().filter(schedule -> schedule != null && schedule.isCompleted()).count();
 
         double completionRate = totalTasks > 0 ? (completedTasks * 100.0) / totalTasks : 0.0;
 

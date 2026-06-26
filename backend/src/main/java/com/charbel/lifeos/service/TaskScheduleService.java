@@ -83,7 +83,7 @@ public class TaskScheduleService {
     }
 
     private String getLastSeriesId(Long taskId) {
-        return taskScheduleRepository.findTopByTaskIdAndSeriesIdIsNotNullOrderByCreatedAtDesc(taskId).map(TaskSchedule::getSeriesId).orElse(null);
+        return taskScheduleRepository.findTopByTaskIdAndSeriesIdIsNotNullOrderByCreatedAtDesc(taskId).map(schedule -> schedule.getSeriesId()).orElse(null);
     }
 
     public TaskSchedule createTaskSchedule(User user, Long taskId, LocalDate taskDate, LocalTime startTime, LocalTime endTime, Priority priority) {

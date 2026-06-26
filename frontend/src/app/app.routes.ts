@@ -10,6 +10,7 @@ import { Today } from './pages/today/today';
 import { Objectives } from './pages/objectives/objectives';
 import { Archives } from './pages/archives/archives';
 import { Review } from './pages/review/review';
+import { Stats } from './pages/stats/stats';
 
 export const routes: Routes = [
     {
@@ -70,6 +71,13 @@ export const routes: Routes = [
         path:'review',
         component: Review,
         title: 'LifeOS - Review',
+        canActivate: [AuthGuard],
+        resolve: { me: MeResolver }
+    },
+    {
+        path:'stats',
+        component: Stats,
+        title: 'LifeOS - Statistiques',
         canActivate: [AuthGuard],
         resolve: { me: MeResolver }
     },

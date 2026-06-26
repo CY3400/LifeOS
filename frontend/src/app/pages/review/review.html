@@ -4,7 +4,7 @@
         <p>Analysez votre activité sur une période personnalisée</p>
     </div>
 
-    @if(hasAnyErrors(errors)) {
+    @if (hasAnyErrors(errors)) {
         <span class="error">{{ errors.global }}</span>
     }
 
@@ -22,14 +22,14 @@
         <button type="button" class="analyze" aria-label="Analyser" (click)="analyzeReview()">Analyser</button>
     </div>
 
-    <div class="review-result">
-        @if(isLoading) {
-            <p class="review-message">Chargement de l'analyse en cours...</p>
+    <div class="analytics-result">
+        @if (isLoading) {
+            <p class="analytics-message">Chargement de l'analyse en cours...</p>
         }
-        @else if(hasAnalyzed && scheduleTasks.length === 0 && !hasAnyErrors(errors)) {
-            <p class="review-message">Aucun planning entre ces dates</p>
+        @else if (hasAnalyzed && scheduleTasks.length === 0 && !hasAnyErrors(errors)) {
+            <p class="analytics-message">Aucun planning entre ces dates.</p>
         }
-        @else if(hasAnalyzed && scheduleTasks.length > 0 && !hasAnyErrors(errors)) {
+        @else if (hasAnalyzed && scheduleTasks.length > 0 && !hasAnyErrors(errors)) {
             <app-kpi-summary
                 totalLabel="Plannings analysés"
                 completedLabel="Plannings complétés"
@@ -40,28 +40,14 @@
                 [completionRate]="completionRate"
             ></app-kpi-summary>
 
-            <section class="review-section">
-                <h2>Répartition par priorité</h2>
-                <div class="priority-list">
-                    <div class="priority-card">
-                        <span class="priority-label">Priorité haute</span>
-                        <strong>{{ highPriority }}</strong>
-                        <small>{{ completedHighPriority }} complétés</small>
-                    </div>
-
-                    <div class="priority-card">
-                        <span class="priority-label">Priorité moyenne</span>
-                        <strong>{{ mediumPriority }}</strong>
-                        <small>{{ completedMediumPriority }} complétés</small>
-                    </div>
-
-                    <div class="priority-card">
-                        <span class="priority-label">Priorité basse</span>
-                        <strong>{{ lowPriority }}</strong>
-                        <small>{{ completedLowPriority }} complétés</small>
-                    </div>
-                </div>
-            </section>
+            <app-analytics-priority-section
+                [highPriority]="highPriority"
+                [completedHighPriority]="completedHighPriority"
+                [mediumPriority]="mediumPriority"
+                [completedMediumPriority]="completedMediumPriority"
+                [lowPriority]="lowPriority"
+                [completedLowPriority]="completedLowPriority"
+            ></app-analytics-priority-section>
 
             <app-review-breakdown-section
                 title="Répartition par catégorie"
@@ -79,7 +65,7 @@
                 <h2>Plannings analysés ({{ scheduleTasks.length }})</h2>
 
                 <div class="review-list">
-                    @for(s of paginatedScheduleTasks; track s.id) {
+                    @for (s of paginatedScheduleTasks; track s.id) {
                         <div class="review-card">
                             <span class="review-title">
                                 <strong>Tâche</strong>
@@ -93,7 +79,7 @@
 
                             <span>
                                 <strong>Heure</strong>
-                                @if(s.startTime !== null && s.endTime !== null) {
+                                @if (s.startTime !== null && s.endTime !== null) {
                                     {{ s.startTime }} - {{ s.endTime }}
                                 }
                                 @else if (s.startTime !== null && s.endTime === null) {
@@ -127,7 +113,7 @@
                     }
                 </div>
 
-                @if(totalPages > 1) {
+                @if (totalPages > 1) {
                     <div class="pagination">
                         <button type="button" (click)="previousPage()" [disabled]="currentPage === 1">
                             Précédent

@@ -1,0 +1,117 @@
+<section class="entity-page stats-page">
+    <div class="entity-header">
+        <h1>Statistiques</h1>
+        <p>Analyse globale de vos plannings, priorités, catégories et objectifs.</p>
+    </div>
+
+    @if (hasAnyErrors(errors)) {
+        <span class="error">{{ errors.global }}</span>
+    }
+
+    <div class="analytics-result">
+        <div class="period-filter" role="radiogroup" aria-label="Période des statistiques">
+            <button
+                type="button"
+                class="period-button"
+                [class.active]="selectedPeriod === 'week'"
+                (click)="changePeriod('week')"
+            >
+                Cette semaine
+            </button>
+
+            <button
+                type="button"
+                class="period-button"
+                [class.active]="selectedPeriod === 'month'"
+                (click)="changePeriod('month')"
+            >
+                Ce mois
+            </button>
+
+            <button
+                type="button"
+                class="period-button"
+                [class.active]="selectedPeriod === 'year'"
+                (click)="changePeriod('year')"
+            >
+                Cette année
+            </button>
+
+            <button
+                type="button"
+                class="period-button"
+                [class.active]="selectedPeriod === 'all'"
+                (click)="changePeriod('all')"
+            >
+                Tout
+            </button>
+        </div>
+        
+        @if (isLoading) {
+            <p class="analytics-message">Chargement des statistiques en cours...</p>
+        }
+        @else if (totalPlannings === 0) {
+            <p class="analytics-message">Aucune donnée statistique disponible pour cette période.</p>
+        }
+        @else {
+            @if (selectedPeriod !== 'all') {
+                <p class="period-label">Période analysée : du {{ displayStartDate }} au {{ displayEndDate }}</p>
+            }
+
+            <section class="stats-section">
+                <h2>Évolution de l’activité</h2>
+
+                <app-activity-trend-chart
+                    [data]="activityTrend"
+                ></app-activity-trend-chart>
+            </section>
+
+            @if (insights.length > 0) {
+                <section class="stats-section">
+                    <h2>Analyse rapide</h2>
+
+                    <div class="insight-list">
+                        @for (insight of insights; track insight.label) {
+                            <div class="insight-card">
+                                <span>{{ insight.label }}</span>
+                                <strong>{{ insight.value }}</strong>
+                                <small>{{ insight.detail }}</small>
+                            </div>
+                        }
+                    </div>
+                </section>
+            }
+
+            <app-kpi-summary
+                totalLabel="Plannings analysés"
+                completedLabel="Plannings complétés"
+                remainingLabel="Plannings restants"
+                [totalTasks]="totalPlannings"
+                [completedTasks]="completedPlannings"
+                [remainingTasks]="remainingPlannings"
+                [completionRate]="completionRatePlannings"
+            ></app-kpi-summary>
+
+            <app-analytics-priority-section
+                [highPriority]="highPriority"
+                [completedHighPriority]="completedHighPriority"
+                [mediumPriority]="mediumPriority"
+                [completedMediumPriority]="completedMediumPriority"
+                [lowPriority]="lowPriority"
+                [completedLowPriority]="completedLowPriority"
+            ></app-analytics-priority-section>
+
+            <app-review-breakdown-section
+                title="Répartition par catégorie"
+                label="Catégorie"
+                [reviews]="categoryReviews"
+            ></app-review-breakdown-section>
+
+            <app-review-breakdown-section
+                title="Répartition par objectif"
+                label="Objectif"
+                [reviews]="goalReviews"
+            ></app-review-breakdown-section>
+        }
+    </div>
+</section>

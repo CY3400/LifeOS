@@ -7,7 +7,7 @@ import { ReviewBreakdown } from '../../types/review-types';
   selector: 'app-review-breakdown-section',
   imports: [CommonModule],
   templateUrl: './review-breakdown-section.html',
-  styleUrls: ['./review-breakdown-section.scss', '../../styles/_reviews.scss'],
+  styleUrls: ['./review-breakdown-section.scss', '../../styles/_sections.scss'],
 })
 export class ReviewBreakdownSection {
   @Input() reviews: ReviewBreakdown[] = [];

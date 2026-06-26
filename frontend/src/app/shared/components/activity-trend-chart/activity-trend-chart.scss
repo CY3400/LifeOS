@@ -1,0 +1,11 @@
+.chart-wrapper {
+    position: relative;
+    width: 100%;
+    min-height: 320px;
+}
+
+.chart-empty {
+    margin: 0;
+    color: var(--text-secondary);
+    font-weight: 700;
+}

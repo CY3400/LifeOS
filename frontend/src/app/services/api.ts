@@ -227,6 +227,12 @@ export class Api {
         });
     }
 
+    getTaskSchedules(): Observable<TaskSchedule[]> {
+        return this.http.get<TaskSchedule[]>(`${this.baseUrl}/task-schedules`, {
+            withCredentials: true
+        });
+    }
+
     getTaskSchedulesByDate(taskDate: string): Observable<TaskSchedule[]> {
         return this.http.get<TaskSchedule[]>(`${this.baseUrl}/task-schedules/date/${taskDate}`, {
             withCredentials: true
