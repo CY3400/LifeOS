@@ -3,7 +3,6 @@ package com.charbel.lifeos.service;
 import java.util.List;
 import java.util.Objects;
 
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -64,11 +63,11 @@ public class GoalService {
         }
     }
 
-    private @NonNull Goal resolveGoalForUser(Long id, Long userId) {
+    private Goal resolveGoalForUser(Long id, Long userId) {
         return resolveGoalForUser(id, userId, Status.ACTIVE);
     }
 
-    private @NonNull Goal resolveGoalForUser(Long id, Long userId, Status status) {
+    private Goal resolveGoalForUser(Long id, Long userId, Status status) {
         return Objects.requireNonNull(
             goalRepository.findByIdAndUserIdAndStatus(id, userId, status)
             .orElseThrow(() -> new ResourceNotFoundException("Objectif introuvable"))
