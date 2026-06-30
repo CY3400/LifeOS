@@ -6,7 +6,6 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -89,11 +88,11 @@ public class TaskService {
         }
     }
 
-    private @NonNull Task resolveTaskForUser(Long id, Long userId) {
+    private Task resolveTaskForUser(Long id, Long userId) {
         return resolveTaskForUser(id, userId, Status.ACTIVE);
     }
 
-    private @NonNull Task resolveTaskForUser(Long id, Long userId, Status status) {
+    private Task resolveTaskForUser(Long id, Long userId, Status status) {
         return Objects.requireNonNull(taskRepository.findByIdAndUserIdAndStatus(id, userId, status).orElseThrow(() -> new ResourceNotFoundException("Tâche introuvable")));
     }
 
