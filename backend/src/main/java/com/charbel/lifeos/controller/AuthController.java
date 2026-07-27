@@ -10,10 +10,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.charbel.lifeos.dto.AuthResponse;
+import com.charbel.lifeos.dto.UserSessionResponse;
 import com.charbel.lifeos.dto.AuthResult;
 import com.charbel.lifeos.dto.LoginRequest;
-import com.charbel.lifeos.dto.MeResponse;
 import com.charbel.lifeos.dto.RegisterRequest;
 import com.charbel.lifeos.dto.VerifyRequest;
 import com.charbel.lifeos.entity.User;
@@ -48,7 +47,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request, HttpServletResponse response) {
+    public ResponseEntity<UserSessionResponse> register(@Valid @RequestBody RegisterRequest request, HttpServletResponse response) {
         AuthResult result = authService.register(request);
 
         String cookie = result.getToken();
@@ -59,7 +58,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
+    public ResponseEntity<UserSessionResponse> login(@Valid @RequestBody LoginRequest request, HttpServletResponse response) {
         AuthResult result = authService.login(request);
 
         String cookie = result.getToken();
@@ -84,10 +83,10 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<MeResponse> me(Authentication authentication) {
+    public ResponseEntity<UserSessionResponse> me(Authentication authentication) {
         User user = currentUserService.getCurrentUser(authentication);
 
-        MeResponse response = new MeResponse();
+        UserSessionResponse response = new UserSessionResponse();
 
         response.setEmail(user.getEmail());
         response.setRole(user.getRole());

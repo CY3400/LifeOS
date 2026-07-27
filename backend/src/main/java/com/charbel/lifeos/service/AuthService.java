@@ -3,7 +3,7 @@ package com.charbel.lifeos.service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.charbel.lifeos.dto.AuthResponse;
+import com.charbel.lifeos.dto.UserSessionResponse;
 import com.charbel.lifeos.dto.AuthResult;
 import com.charbel.lifeos.dto.LoginRequest;
 import com.charbel.lifeos.dto.RegisterRequest;
@@ -41,7 +41,7 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
 
-        AuthResponse response =  buildAuthResponse(savedUser, "Inscription réussie");
+        UserSessionResponse response =  buildUserSessionResponse(savedUser, "Inscription réussie");
 
         String token = jwtService.generateToken(savedUser.getEmail(), savedUser.getRole().name());
 
@@ -58,7 +58,7 @@ public class AuthService {
             throw new InvalidCredentialsException("Identifiants invalides");
         }
 
-        AuthResponse response =  buildAuthResponse(user, "Connexion réussie");
+        UserSessionResponse response =  buildUserSessionResponse(user, "Connexion réussie");
 
         String token = jwtService.generateToken(user.getEmail(), user.getRole().name());
 
@@ -73,16 +73,15 @@ public class AuthService {
         return email == null ? "" : email.trim().toLowerCase();
     }
 
-    private AuthResponse buildAuthResponse(User user, String message) {
-        AuthResponse response = new AuthResponse();
+    private UserSessionResponse buildUserSessionResponse(User user, String message) {
+        UserSessionResponse response = new UserSessionResponse();
         response.setUserId(user.getId());
         response.setEmail(user.getEmail());
         response.setRole(user.getRole());
-        response.setMessage(message);
         return response;
     }
 
-    private AuthResult buildAuthResult(AuthResponse response, String token) {
+    private AuthResult buildAuthResult(UserSessionResponse response, String token) {
         AuthResult result = new AuthResult();
         result.setToken(token);
         result.setResponse(response);
