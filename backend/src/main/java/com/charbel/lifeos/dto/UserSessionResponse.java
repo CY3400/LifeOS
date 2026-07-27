@@ -2,13 +2,12 @@ package com.charbel.lifeos.dto;
 
 import com.charbel.lifeos.entity.Role;
 
-public class AuthResponse {
+public class UserSessionResponse {
     private Long userId;
     private String email;
     private Role role;
-    private String message;
 
-    public Long getUserId(){
+    public Long getUserId() {
         return userId;
     }
 
@@ -16,7 +15,7 @@ public class AuthResponse {
         this.userId = userId;
     }
 
-    public String getEmail(){
+    public String getEmail() {
         return email;
     }
 
@@ -24,19 +23,11 @@ public class AuthResponse {
         this.email = email;
     }
 
-    public Role getRole(){
+    public Role getRole() {
         return role;
     }
 
     public void setRole(Role role) {
         this.role = role;
-    }
-
-    public String getMessage(){
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
     }
 }
